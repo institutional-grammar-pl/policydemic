@@ -1,4 +1,5 @@
 import os
+from config import Config
 
 from scrapy.exceptions import DropItem
 from scrapy.pipelines.files import FilesPipeline
@@ -11,7 +12,7 @@ class RenamePdfFilesPipeline(FilesPipeline):
     def item_completed(self, results, item: PdfItem, info):
         success, data = results[0]
         if success:
-            old_path = os.path.join('pdfs', data['path'])
+            old_path = os.path.join(Config.PDFDatabase_DIR, data['path'])
             if os.path.exists(old_path):
                 new_path = item.save_path()
                 os.makedirs(os.path.dirname(new_path), exist_ok=True)

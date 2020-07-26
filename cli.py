@@ -1,6 +1,6 @@
 # Helper file for testing queues
 from pdfparser.tasks import pdfparser
-from nlpengine.tasks import dispatch as nlpdispatch
+from nlpengine.tasks import index_document
 
 import json
 
@@ -10,4 +10,4 @@ print("Done!")
 # Testing Celery with Elasticsearch
 with open('elastic/example-document.json') as jsonfd:
     doc_body = json.load(jsonfd)
-nlpdispatch.delay(doc_body)
+index_document(doc_body)

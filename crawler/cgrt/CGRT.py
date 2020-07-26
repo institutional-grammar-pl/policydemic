@@ -30,8 +30,14 @@ class CgrtRecord:
 
 #function creating CgrtRecord instance basing on csv row with conditions
 #if conditions are not fulfilled, None is returned
-def createCgrtRecord(row, country, dateFrom, dateTo):
-    if country == row[0] and dateFrom <= row[2] and dateTo >= row[2]:
+def createCgrtRecord(row, country = None, date_from, date_to):
+    # country = None for acceptation of all countries
+    if country is None:
+        if date_from <= row[2] and date_to >= row[2]:
+            return CgrtRecord(row[0], row[2], row)
+        else:
+            return None
+    elif country == row[0] and date_from <= row[2] and date_to >= row[2]:
         return CgrtRecord(row[0], row[2], row)
     else:
         return None

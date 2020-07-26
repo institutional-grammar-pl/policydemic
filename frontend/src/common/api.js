@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export default class Api {
-    static baseUrl = "http://localhost:8000"
+    static baseUrl = ""
 
     static postDocument(type, data) {
         return this._postFormData(type.toLowerCase(), data);

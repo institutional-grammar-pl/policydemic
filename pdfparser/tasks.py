@@ -12,14 +12,14 @@ from wand.image import Image as wi
 from .config import ConfigOcr
 
 # --- required for complex criterion --- #
-import flair
-from flair.embeddings import WordEmbeddings
-import torch
-import numpy as np
-import pandas
-from flair.data import Sentence
+#import flair
+#from flair.embeddings import WordEmbeddings
+#import torch
+#import numpy as np
+#import pandas
+#from flair.data import Sentence
 
-emb = WordEmbeddings('glove')
+#emb = WordEmbeddings('glove')
 # -------------------------------------- #
 
 import textdistance
@@ -59,100 +59,100 @@ def pdfocr(path, pages=[], lang='eng'):
     return result_text
 
 # --------- Complex criterion --------- #
-def cos(u,v):
-    return u.dot(v) / u.norm() / v.norm()
-def embedding_cosine(str1, str2):
-    s1 = Sentence(str1)
-    emb.embed(s1)
-    s2 = Sentence(str2)
-    emb.embed(s2)
+#def cos(u,v):
+#    return u.dot(v) / u.norm() / v.norm()
+#def embedding_cosine(str1, str2):
+#    s1 = Sentence(str1)
+#    emb.embed(s1)
+#    s2 = Sentence(str2)
+#    emb.embed(s2)
+#
+#    return cos(s1[0].embedding, s2[0].embedding)
 
-    return cos(s1[0].embedding, s2[0].embedding)
+#def complex_crit(text, keywords, without=set(), at_least=1, at_most=1, similarity="hamming", threshold=1):
+#    """
+#    complex_crit
+#
+#    Arguments:
+#    * text - STRING - the text of the .pdf document;
+#    * keywords - SET of STRING - a python set of words, that should be in the text;
+#    * without - SET of STRING - a python set of words, that shouldn't be in the text;
+#    * at_least - INT - an integer indicating, how many unique words from of the keywords set should at least be in the text. If the number of words is smaller, function returns False;
+#    * at_most - INT - an integer indicating, how many of the keywords should at most be in the text. If the number is bigger, function returns False;
+#
+#    * threshold - FLOAT - threshold for cosine distance. The smaller the more words the algorithm accepts as similar. Can be in range [-1,1].
+#    * similarity - textdistance algorithm or embedding_cosine - similarity algorithm. It can be from the textdistance package or embedding_cosine algorithm.
+#
+#    Return:
+#    * BOOL - True if the text fulfils the criterion.
+#
+#    "complex_crit" checks if the intersection of set of words in the text and keywords set has at least "at_least" elements. If it has more than "at_most" words from the "without" set, it returns False. However, we say that two words A and B are equivalent when their similarity is above "threshold". Similarity is any function, that takes two strings and returns real number, that expresses similarity between those words. There are several distances to choose from, including:
+#    * Embedding cosine similarity: two words A and B get transformed into their embeddings, cosine is computed between those embeddings and if it is greater than "threshold", two words are equivalent.
+#    * Hamming similarity: https://en.wikipedia.org/wiki/Hamming_distance
+#    * Levenshtein similarity: https://en.wikipedia.org/wiki/Levenshtein_distance
+#
+#    and others from the textdistance package: https://pypi.org/project/textdistance/.
+#
+#
+#   Example:
+#    ```python
+#    > text = "It would have made a dreadfully ugly child; but it makes rather a handsome pig.";
+#
+#    > keywords = {"toddler"};
+#
+#    > complex_crit(text, keywords)
+#    True
+#    ```
 
-def complex_crit(text, keywords, without=set(), at_least=1, at_most=1, similarity="hamming", threshold=1):
-    """
-    complex_crit
-
-    Arguments:
-    * text - STRING - the text of the .pdf document;
-    * keywords - SET of STRING - a python set of words, that should be in the text;
-    * without - SET of STRING - a python set of words, that shouldn't be in the text;
-    * at_least - INT - an integer indicating, how many unique words from of the keywords set should at least be in the text. If the number of words is smaller, function returns False;
-    * at_most - INT - an integer indicating, how many of the keywords should at most be in the text. If the number is bigger, function returns False;
-
-    * threshold - FLOAT - threshold for cosine distance. The smaller the more words the algorithm accepts as similar. Can be in range [-1,1].
-    * similarity - textdistance algorithm or embedding_cosine - similarity algorithm. It can be from the textdistance package or embedding_cosine algorithm.
-
-    Return:
-    * BOOL - True if the text fulfils the criterion.
-
-    "complex_crit" checks if the intersection of set of words in the text and keywords set has at least "at_least" elements. If it has more than "at_most" words from the "without" set, it returns False. However, we say that two words A and B are equivalent when their similarity is above "threshold". Similarity is any function, that takes two strings and returns real number, that expresses similarity between those words. There are several distances to choose from, including:
-    * Embedding cosine similarity: two words A and B get transformed into their embeddings, cosine is computed between those embeddings and if it is greater than "threshold", two words are equivalent.
-    * Hamming similarity: https://en.wikipedia.org/wiki/Hamming_distance
-    * Levenshtein similarity: https://en.wikipedia.org/wiki/Levenshtein_distance
-
-    and others from the textdistance package: https://pypi.org/project/textdistance/.
-
-
-    Example:
-    ```python
-    > text = "It would have made a dreadfully ugly child; but it makes rather a handsome pig.";
-
-    > keywords = {"toddler"};
-
-    > complex_crit(text, keywords)
-    True
-    ```
-
-    The "complex_crit" returns True, because embeddings of the "toddler" word and the "child" word have a cosine greater than 0.3 and hence are equivalent.
-    """
-
-    if type(similarity) == str:
-        s = {
-            "hamming": td.hamming.similarity,
-            "levenshtein":td.levenshtein.similarity,
-            "embedding":embedding_cosine,
-            "embedding_cosine":embedding_cosine,
-            "cosine":embedding_cosine
-        }
-        try:
-            similarity = s[similarity]
-        except:
-            print("Similarity unknown. Please check your selected similarity measure.")
+#    The "complex_crit" returns True, because embeddings of the "toddler" word and the "child" word have a cosine greater than 0.3 and hence are equivalent.
+#    """
+#
+#    if type(similarity) == str:
+#        s = {
+#           "hamming": td.hamming.similarity,
+#            "levenshtein":td.levenshtein.similarity,
+#            "embedding":embedding_cosine,
+#            "embedding_cosine":embedding_cosine,
+#            "cosine":embedding_cosine
+#        }
+#        try:
+#            similarity = s[similarity]
+#        except:
+#            print("Similarity unknown. Please check your selected similarity measure.")
 
 
-    # Keywords and without to lowercase
-    keywords = {k.lower() for k in keywords}
-    without = {w.lower() for w in without}
-    # Lowered
-    lowered = text.lower()
-    # No punctuation
-    for m in ['.', ',', ':', ';', '-', '(', ')', '[', ']', '!', '?', '/', '\\']:
-        lowered = lowered.replace(m, ' ')
-    # Split
-    splitted = set(lowered.split())
-
-    ret_without = True
-    ret_keywords = False
-
-    if bool(without):
-        for ww in without:
-            for tt in splitted:
-                if similarity(tt, ww) >= threshold:
-                    at_most -= 1
-                    if at_most == 0:
-                        ret_without = False
-                    break
-
-    for kk in keywords:
-        for tt in splitted:
-            if similarity(tt, kk) >= threshold:
-                at_least -= 1
-                if at_least == 0:
-                    ret_keywords = True
-                break
-
-    return ret_without and ret_keywords
+#    # Keywords and without to lowercase
+#    keywords = {k.lower() for k in keywords}
+#    without = {w.lower() for w in without}
+#    # Lowered
+#    lowered = text.lower()
+#    # No punctuation
+#    for m in ['.', ',', ':', ';', '-', '(', ')', '[', ']', '!', '?', '/', '\\']:
+#        lowered = lowered.replace(m, ' ')
+#    # Split
+#    splitted = set(lowered.split())
+#
+#    ret_without = True
+#    ret_keywords = False
+#
+#    if bool(without):
+#        for ww in without:
+#            for tt in splitted:
+#                if similarity(tt, ww) >= threshold:
+#                    at_most -= 1
+#                    if at_most == 0:
+#                        ret_without = False
+#                    break
+#
+#    for kk in keywords:
+#        for tt in splitted:
+#            if similarity(tt, kk) >= threshold:
+#                at_least -= 1
+#                if at_least == 0:
+#                    ret_keywords = True
+#                break
+#
+#    return ret_without and ret_keywords
 # ------------------------------------- #
 
 
