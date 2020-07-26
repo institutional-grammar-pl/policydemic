@@ -19,6 +19,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
 
     const [selectedDateFrom, setSelectedDateFrom] = React.useState(aWeekAgo);
     const handleChangeDateFrom = (date) => {
+        console.log(date)
         setSelectedDateFrom(date);
         setValue("infoDateFrom", date.toISOString());
     };
@@ -72,7 +73,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                         <KeyboardDatePicker
                             disableToolbar
                             variant="inline"
-                            format="MM/dd/yyyy"
+                            format="yyyy-MM-dd"
                             margin="normal"
                             id="info-date-from"
                             name="infoDateFrom"
@@ -88,7 +89,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                         <KeyboardDatePicker
                             disableToolbar
                             variant="inline"
-                            format="MM/dd/yyyy"
+                            format="yyyy-MM-dd"
                             margin="normal"
                             id="info-date-to"
                             name="infoDateTo"
