@@ -259,6 +259,7 @@ router.post('/ssd/search', upload.none(), async (ctx) => {
 
 function parseData(data){
     const parsedData = [];
+    if (!data) data = [];
     data.forEach(element => {
         parsedData.push({
             id: element._id,
@@ -274,7 +275,7 @@ function parseData(data){
 async function fetchDocumentsFromElastic(body, documentType){
     let params = constructParams(body, documentType)
     let request = await client.search(params);
-    return  req.body.hits.hits;
+    return request.body.hits.hits;
 }
 function constructParams(body, documentType){
     let params = {
@@ -297,7 +298,8 @@ function constructParams(body, documentType){
 
     for(let i = 0; i < fields.length; i++){
 
-        if (body[fields[i]].length > 0) {
+        if (body[fields[i]] && body[fields[i]].length > 0) {
+
             let boolStatement = {
                 bool: {
                     should: []
