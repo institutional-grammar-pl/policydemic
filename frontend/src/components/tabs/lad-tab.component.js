@@ -18,7 +18,7 @@ export default function LadTabComponent() {
 
     const handleSearch = (formData) => {
 
-        Api.getSearchResults("SSD", formData).then((resp) => 
+        Api.getSearchResults("LAD", formData).then((resp) => 
         {
             setSearchResults(resp);
         });
