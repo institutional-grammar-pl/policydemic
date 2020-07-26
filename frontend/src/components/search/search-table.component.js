@@ -368,7 +368,7 @@ export default function EnhancedTable(props) {
                                             <TableCell component="th" id={labelId} scope="row" padding="none">
                                                 {row.source}
                                             </TableCell>
-                                            <TableCell align="right">{row.infoDate.toLocaleDateString("en-US")}</TableCell>
+                                            <TableCell align="right">{row.infoDate}</TableCell>
                                             <TableCell align="right">{row.language}</TableCell>
                                             <TableCell align="right">{row.keywords}</TableCell>
                                             <TableCell align="right">{row.country}</TableCell>

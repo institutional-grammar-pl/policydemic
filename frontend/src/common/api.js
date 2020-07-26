@@ -29,8 +29,8 @@ export default class Api {
         return new Promise((resolve, reject) => {
             setTimeout(resolve, 100, rows);
         });*/
-
-        return this._postFormData(type.toLowerCase() + '/search', data);
+        console.log('getSearchResults', type, data)
+        return this._postFormData(type.toLowerCase() + '/search', data).then((request) => request.data)
     }
 
     static editDocument(type, data) {
