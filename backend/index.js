@@ -99,14 +99,14 @@ router.post('/ssd', upload.single('pdf'), (ctx) => {
   ctx.status = 200
 });
 
-router.post('/crawler/saveConfig', (ctx) => {
+router.post('/crawler/saveConfig', upload.none(), (ctx) => {
   console.log(ctx.request)
   console.log(ctx.request.body)
 
   ctx.status = 200
 });
 
-router.post('/crawler/run', (ctx) => {
+router.post('/crawler/run', upload.none(), (ctx) => {
   console.log(ctx.request)
   console.log(ctx.request.body)
 
@@ -251,7 +251,7 @@ async function getDocuments(ctx, documentType) {
         })
 }
 
-router.post('/ssd/search', async (ctx) => {
+router.post('/ssd/search', upload.none(), async (ctx) => {
     console.log(ctx.request.body)
     await getDocuments(ctx, "secondary");
 });
@@ -324,7 +324,7 @@ function constructParams(body, documentType){
 }
 
 
-router.post('/lad/search', async (ctx) => {
+router.post('/lad/search', upload.none(), async (ctx) => {
     console.log(ctx.request)
     await getDocuments(ctx, "legalact");
 });
