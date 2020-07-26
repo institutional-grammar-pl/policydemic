@@ -101,14 +101,14 @@ router.post('/ssd', upload.single('pdf'), (ctx) => {
 
 router.post('/crawler/saveConfig', upload.none(), (ctx) => {
   console.log(ctx.request)
-  console.log(ctx.request.body)
+  console.log(ctx.req.body)
 
   ctx.status = 200
 });
 
 router.post('/crawler/run', upload.none(), (ctx) => {
   console.log(ctx.request)
-  console.log(ctx.request.body)
+  console.log(ctx.req.body)
 
   ctx.status = 200
 });
@@ -241,7 +241,7 @@ async function populate (){
     })
 }
 async function getDocuments(ctx, documentType) {
-    const data = await fetchDocumentsFromElastic(ctx.request.body, documentType)
+    const data = await fetchDocumentsFromElastic(ctx.req.body, documentType)
         .catch(console.log)
         .then(resp => {
             ctx.body = parseData(resp);
@@ -252,7 +252,7 @@ async function getDocuments(ctx, documentType) {
 }
 
 router.post('/ssd/search', upload.none(), async (ctx) => {
-    console.log(ctx.request.body)
+    console.log(ctx.req.body)
     await getDocuments(ctx, "secondary");
 });
 
@@ -274,7 +274,7 @@ function parseData(data){
 async function fetchDocumentsFromElastic(body, documentType){
     let params = constructParams(body, documentType)
     let request = await client.search(params);
-    return  request.body.hits.hits;
+    return  req.body.hits.hits;
 }
 function constructParams(body, documentType){
     let params = {
