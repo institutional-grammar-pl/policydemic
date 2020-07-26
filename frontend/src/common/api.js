@@ -20,7 +20,7 @@ export default class Api {
 
     static getSearchResults(type, data) {
 
-        var rows = [
+        /*var rows = [
             Api.createDataForRow(1, "International Labour Organization", new Date(1995, 4, 4), "english", "cinemas", "Canada"),
             Api.createDataForRow(2, "Coronavirus Government Response Tracker", new Date(1998, 0, 14), "french", "pubs", "Italy"),
             Api.createDataForRow(3, "Coronavirus Government Response Tracker", new Date(1990, 3, 24), "french", "pubs", "Italy")
@@ -28,9 +28,9 @@ export default class Api {
 
         return new Promise((resolve, reject) => {
             setTimeout(resolve, 100, rows);
-        });
+        });*/
 
-        //return this._postFormData(type.toLowerCase() + '/search', data);
+        return this._postFormData(type.toLowerCase() + '/search', data);
     }
 
     static editDocument(type, data) {
