@@ -16,6 +16,11 @@ import AsyncAutocomplete from '../form/async-autocomplete.component';
 export default function SearchFormComponent({ type, onSearch, onReset }) {
 
     const aWeekAgo = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000)
+    const formData = {}
+
+    const setValue = (k, v) => {
+        formData[k] = v
+    }
 
     const [selectedDateFrom, setSelectedDateFrom] = React.useState(aWeekAgo);
     const handleChangeDateFrom = (date) => {
@@ -23,6 +28,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
         setSelectedDateFrom(date);
         setValue("infoDateFrom", date.toISOString());
     };
+
 
     const [selectedDateTo, setSelectedDateTo] = React.useState(new Date());
     const handleChangeDateTo = (date) => {
@@ -32,6 +38,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
 
     const onResetClicked = (event) => {
         console.log("reset!")
+        formData = {}
         setSelectedDateFrom(aWeekAgo);
         setSelectedDateTo(new Date());
         
@@ -46,14 +53,12 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
         onReset();
     };
 
-    const onSubmit = useCallback(data => {
-        const f = new FormData(document.getElementById("search-form"));
-        data = Object.fromEntries(f)
-        console.log(data);
+    const onSubmit = () => {
+        const data = {...formData}
         onSearch(data);
-    }, [type])
+    }
 
-    const { register, handleSubmit, errors, setValue, reset } = useForm();
+    const { register, handleSubmit, errors, reset } = useForm();
 
     return (
         <form id="search-form" onSubmit={handleSubmit(onSubmit)}>
