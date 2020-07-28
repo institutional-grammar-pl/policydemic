@@ -129,7 +129,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                 <TextField
                                     {...params}
                                     label="Web page" margin="normal" />}
-                            onChange={(_, opts) => setValue("web_page", opts.map(o => o.value)}
+                            onChange={(_, opts) => setValue("web_page", opts.map(o => o.value))}
                         />
 
                         <AsyncAutocomplete
@@ -144,7 +144,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                 <TextField
                                     {...params}
                                     label="Language" margin="normal" />}
-                            onChange={(_, opts) => setValue("language", opts.map(o => o.value)}
+                            onChange={(_, opts) => setValue("language", opts.map(o => o.value))}
                         />
 
                         <AsyncAutocomplete
@@ -159,7 +159,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                 <TextField
                                     {...params}
                                     label="Country" margin="normal" />}
-                            onChange={(_, opts) => setValue("country", opts.map(o => o.value)}
+                            onChange={(_, opts) => setValue("country", opts.map(o => o.value))}
                         />
 
                         <TextField
