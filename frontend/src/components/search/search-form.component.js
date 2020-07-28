@@ -16,10 +16,11 @@ import AsyncAutocomplete from '../form/async-autocomplete.component';
 export default function SearchFormComponent({ type, onSearch, onReset }) {
 
     const aWeekAgo = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000)
-    const formData = {}
+    const formData = {infoDateFrom: aWeekAgo, infoDateTo: new Date()}
 
     const setValue = (k, v) => {
         formData[k] = v
+        console.log(k,v,formData)
     }
 
     const [selectedDateFrom, setSelectedDateFrom] = React.useState(aWeekAgo);
