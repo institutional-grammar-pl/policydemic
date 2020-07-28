@@ -16,26 +16,33 @@ import AsyncAutocomplete from '../form/async-autocomplete.component';
 export default function SearchFormComponent({ type, onSearch, onReset }) {
 
     const aWeekAgo = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000)
-    const formData = {infoDateFrom: aWeekAgo, infoDateTo: new Date()}
+    let formData = {}
 
-    const setValue = (k, v) => {
+    const setValue = (k, v, xx) => {
+        if (v.constructor === Date) {
+            const offset = v.getTimezoneOffset() * 60 * 1000
+            v = new Date(v - offset).toISOString().substr(0,10)
+        }
         formData[k] = v
-        console.log(k,v,formData)
+        // console.log(k,v,xx, formData)
     }
+
 
     const [selectedDateFrom, setSelectedDateFrom] = React.useState(aWeekAgo);
     const handleChangeDateFrom = (date) => {
-        console.log(date)
         setSelectedDateFrom(date);
-        setValue("infoDateFrom", date.toISOString());
+        setValue("infoDateFrom", date, 'idf');
     };
 
 
     const [selectedDateTo, setSelectedDateTo] = React.useState(new Date());
     const handleChangeDateTo = (date) => {
         setSelectedDateTo(date);
-        setValue("infoDateTo", date.toISOString());
+        setValue("infoDateTo", date, 'idt');
     };
+
+    setValue('infoDateFrom', selectedDateFrom, 'initial');
+    setValue('infoDateTo', selectedDateTo, 'initial');
 
     const onResetClicked = (event) => {
         console.log("reset!")
@@ -157,7 +164,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
 
                         <TextField
                             name="keywords"
-                            ref={register({ required: true })}
+                            ref={register({ name: 'keywords' })}
                             label="Any phrase"
                             margin="normal"
                             onChange={(event) => setValue("keywords", event.target.value)}
