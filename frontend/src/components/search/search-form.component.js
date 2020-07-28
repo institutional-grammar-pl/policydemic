@@ -122,7 +122,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                         <AsyncAutocomplete
                             name="language"
                             ref={register({ name: 'language' })}
-                            collectionName="language"
+                            collectionName="languages"
                             style={{ width: 300 }}
                             openOnFocus
                             fullWidth
