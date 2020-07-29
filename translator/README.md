@@ -1,10 +1,10 @@
-#Translator
+# Translator
 
 This module is responsible for translating text.
 It uses IBM Watson Translator as translating service.
 
-##API
-###translate(text)
+## API
+### translate(text)
 This method takes one parameter as input: string containing text to tranlate.
 It returns a dictionary of following structure:
 ```
@@ -15,7 +15,7 @@ It returns a dictionary of following structure:
 ```
 If an error occurs there is also a key named `message` containing description of this error.
 
-###translate_all()
+### translate_all()
 This method retrieves all documents that need to be translated from elasticsearch database 
 (address of the database is set to "http://127.0.0.1:9200/"). Documents are searched by field `language` other than 
 `English` and an empty `translated_text` field. Then it translates retrieved data using the `translate` method and updates
@@ -28,7 +28,7 @@ records in the database. It returns a dictionary:
 tells if everything went well. Message shown above is return in the best scenario, otherwise it can be one telling that
 only some of the records were updated or that there is a problem with connection to the database.
 
-##Setting up IBM Watson Translator
+## Setting up IBM Watson Translator
 This module requires Translator service running on IBM Cloud.
 Instructions on how to setup an instance of this service can be found in IBM Cloud documentation:
 ***https://cloud.ibm.com/docs/language-translator?topic=language-translator-gettingstarted***
@@ -36,7 +36,7 @@ Instructions on how to setup an instance of this service can be found in IBM Clo
 It is also required to supply credentials for the service, as described in ***https://pypi.org/project/ibm-watson/#authentication***
 The "Credential file" method should be used.
 
-##Other possible translators
+## Other possible translators
 There are some other solutions for translating text. They differ between each other in usage, price and number of 
 characters that can be translated for free each month. Here are links to some of them:
 
