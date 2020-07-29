@@ -30,7 +30,7 @@ export default class Api {
             setTimeout(resolve, 100, rows);
         });*/
         console.log('getSearchResults', type, data)
-        return this._postFormData(type.toLowerCase() + '/search', data).then((request) => request.data)
+        return this._postJsonData(type.toLowerCase() + '/search', data).then((request) => request.data)
     }
 
     static editDocument(type, data) {
@@ -65,6 +65,10 @@ export default class Api {
     }
 
     static getAutocompleteOptions(collectionName){
+        // if (collectionName == 'webpages') {
+        //     return Promise.resolve({data: [{"name":"google.com","value":"google.com"},{"name":"test","value":"test_webpage.com"},{"name":"bing.com","value":"bing.com"}]});
+        // }
+
         return axios.get(`${this.baseUrl}/autocomplete/${collectionName}`);
     }
 

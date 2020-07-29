@@ -86,7 +86,7 @@ router.get('/', (ctx) => {
 
 router.post('/lad', upload.single('pdf'), (ctx) => {
   console.log(ctx.request)
-  console.log(ctx.req.body)
+  console.log(ctx.request.body)
   console.log('ctx.req.file', ctx.req.file);
 
   ctx.status = 200
@@ -94,21 +94,21 @@ router.post('/lad', upload.single('pdf'), (ctx) => {
 
 router.post('/ssd', upload.single('pdf'), (ctx) => {
   console.log(ctx.request)
-  console.log(ctx.req.body)
+  console.log(ctx.request.body)
 
   ctx.status = 200
 });
 
 router.post('/crawler/saveConfig', upload.none(), (ctx) => {
   console.log(ctx.request)
-  console.log(ctx.req.body)
+  console.log(ctx.request.body)
 
   ctx.status = 200
 });
 
 router.post('/crawler/run', upload.none(), (ctx) => {
   console.log(ctx.request)
-  console.log(ctx.req.body)
+  console.log(ctx.request.body)
 
   ctx.status = 200
 });
@@ -241,7 +241,7 @@ async function populate (){
     })
 }
 async function getDocuments(ctx, documentType) {
-    const data = await fetchDocumentsFromElastic(ctx.req.body, documentType)
+    const data = await fetchDocumentsFromElastic(ctx.request.body, documentType)
         .catch(console.log)
         .then(resp => {
             ctx.body = parseData(resp);
@@ -252,7 +252,7 @@ async function getDocuments(ctx, documentType) {
 }
 
 router.post('/ssd/search', upload.none(), async (ctx) => {
-    console.log(ctx.req.body)
+    console.log(ctx.request.body)
     await getDocuments(ctx, "secondary");
 });
 
@@ -326,7 +326,7 @@ function constructParams(body, documentType){
 }
 
 
-router.post('/lad/search', upload.none(), async (ctx) => {
+router.post('/lad/search', async (ctx) => {
     console.log(ctx.request)
     await getDocuments(ctx, "legalact");
 });
