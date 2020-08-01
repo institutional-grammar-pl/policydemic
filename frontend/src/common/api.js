@@ -4,7 +4,7 @@ export default class Api {
     static baseUrl = ""
 
     static postDocument(type, data) {
-        return this._postFormData(type.toLowerCase(), data);
+        return this._postJsonData(type.toLowerCase(), data);
     }
 
     static createDataForRow(id, source, infoDate, language, keywords, country) {
@@ -34,7 +34,7 @@ export default class Api {
     }
 
     static editDocument(type, data) {
-        return this._postFormData(type.toLowerCase(), data)
+        return this._postJsonData(type.toLowerCase(), data)
     }
 
     static saveCrawlerConfig(data) {

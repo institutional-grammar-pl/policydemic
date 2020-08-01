@@ -45,5 +45,6 @@
     "material-ui-pickers": "^2.2.4",
     "react-data-grid": "^7.0.0-canary.16",
     "react-swipeable-views": "^0.13.9"
-  }
+  },
+  "proxy": "http://localhost:8000"
 }
