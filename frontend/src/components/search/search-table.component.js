@@ -370,7 +370,7 @@ export default function EnhancedTable(props) {
                                             </TableCell>
                                             <TableCell align="right">{row.infoDate}</TableCell>
                                             <TableCell align="right">{row.language}</TableCell>
-                                            <TableCell align="right">{row.keywords}</TableCell>
+                                            <TableCell align="right">{row.keywords.join(', ')}</TableCell>
                                             <TableCell align="right">{row.country}</TableCell>
                                             <TableCell align="right">
                                                 <Tooltip title="Edit">
