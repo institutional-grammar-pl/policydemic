@@ -59,7 +59,12 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
 
     const onSubmit = (reactFormData) => {
         const data = {...formData, keywords: (formData.keywords || '').split(',')}
-        console.log('onSubmit', reactFormData, data)
+        if (data.keywords != undefined) {
+        	data.keywords = data.keywords.split(',')
+        }
+        if (data.keywords == "") {
+        	data.keywords = undefined
+        }
         onSearch(data);
     }
 
