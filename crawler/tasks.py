@@ -85,30 +85,6 @@ def download_pdf(url, directory = Config.PDFDatabase_DIR, filename = 'document.p
     command = 'curl -o ' + os.path.join(directory, filename) +' -L -O ' + url
     print(command)
     os.system(command)
-    # dirPath = Path(directory)
-    # #create directory if not exist
-    # dirPath.mkdir(parents=True, exist_ok=True)
-
-    # #send the request to specified url
-    # r = requests.get(url, stream = True)
-    # print("after request")
-    # #reject if not PDF file
-    # if 'application/pdf' not in r.headers.get('content-type'):
-    #      print('File under this URL is not PDF')
-    #      return
-
-    # fullPath = dirPath / filename
-    # #write to file
-    # print(fullPath)
-    # with open(fullPath, "wb") as pdf:
-
-    #     #write in chunks in case of big files
-    #     for chunk in r.iter_content(chunk_size = chunk_size):
-
-    #         # writing one chunk at a time to pdf file
-    #         if chunk:
-    #             pdf.write(chunk)
-
 
 '''
 function takes records from Coronavirus Government Response Tracker csv file
@@ -139,7 +115,6 @@ def crawl_cgrt_countries(separate_countries = False):
     job = group(task_list)
     result = job.apply_async()
     result.wait()
-    #is_finished = result.wait()
     is_successful = result.susscessful()
     result.forget()
     return is_successful
