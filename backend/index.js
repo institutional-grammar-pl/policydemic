@@ -295,11 +295,11 @@ function constructParams(body, documentType){
     }
 
     let fields = ["web_page", "country", "language", "keywords" ];
-
+    console.log(body)
     for(let i = 0; i < fields.length; i++){
-
+	
         if (body[fields[i]] && body[fields[i]].length > 0) {
-
+                
             let boolStatement = {
                 bool: {
                     should: []

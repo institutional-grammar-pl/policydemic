@@ -39,7 +39,9 @@ class CrawlerProcess(Process):
 def crawl_gov_du():
     """ Starts crawling process which downloads pdfs from dziennikustaw.gov.pl """
     date_from = last_crawling('GovDuSpider').split('-')
-    spider = GovDuSpider(date_from)
+    print(date_from)
+    spider = GovDuSpider()
+    spider.set_date_from = date_from
     process = CrawlerProcess(spider)
     process.start()
     process.join()
@@ -49,17 +51,19 @@ def crawl_gov_du():
 def crawl_gov_mp():
     """ Starts crawling process which downloads pdfs from monitorpolski.gov.pl """
     date_from = last_crawling('GovMpSpider').split('-')
-    spider = GovMpSpider(date_from)
+    spider = GovMpSpider()
+    spider.set_date_from = date_from
     process = CrawlerProcess(spider)
     process.start()
     process.join()
 
-
+@app.task
 def run_crawl_gov_du():
     run_task = crawl_gov_du.s()
     run_task.link(update_crawling_date.s('GovDuSpider'))
     run_task.delay()
 
+@app.task
 def run_crawl_gov_mp():
     run_task = crawl_gov_mp.s()
     run_task.link(update_crawling_date.s('GovMpSpider'))
@@ -78,30 +82,32 @@ def crawl_gov():
 #download PDF file from url
 @app.task
 def download_pdf(url, directory = Config.PDFDatabase_DIR, filename = 'document.pdf', chunk_size = 1024):
+    command = 'curl -o ' + os.path.join(directory, filename) +' -L -O ' + url
+    print(command)
+    os.system(command)
+    # dirPath = Path(directory)
+    # #create directory if not exist
+    # dirPath.mkdir(parents=True, exist_ok=True)
 
-    dirPath = Path(directory)
-    #create directory if not exist
-    dirPath.mkdir(parents=True, exist_ok=True)
+    # #send the request to specified url
+    # r = requests.get(url, stream = True)
+    # print("after request")
+    # #reject if not PDF file
+    # if 'application/pdf' not in r.headers.get('content-type'):
+    #      print('File under this URL is not PDF')
+    #      return
 
-    #send the request to specified url
-    r = requests.get(url, stream = True)
+    # fullPath = dirPath / filename
+    # #write to file
+    # print(fullPath)
+    # with open(fullPath, "wb") as pdf:
 
-    #reject if not PDF file
-    if 'application/pdf' not in r.headers.get('content-type'):
-         print('File under this URL is not PDF')
-         return
+    #     #write in chunks in case of big files
+    #     for chunk in r.iter_content(chunk_size = chunk_size):
 
-    fullPath = dirPath / filename
-    #write to file
-    with open(fullPath, "wb") as pdf:
-
-        #write in chunks in case of big files
-        for chunk in r.iter_content(chunk_size = chunk_size):
-
-            # writing one chunk at a time to pdf file
-            if chunk:
-                pdf.write(chunk)
-
+    #         # writing one chunk at a time to pdf file
+    #         if chunk:
+    #             pdf.write(chunk)
 
 
 '''
@@ -120,11 +126,16 @@ def download_cgrt_data(country, date_from, date_to):
     return CGRT.saveIntoDatabase(records)
 
 @app.task
-def crawl_cgrt_countries():
+def crawl_cgrt_countries(separate_countries = False):
     date_from = last_crawling('CGRT').split('-').join()
     date_to = datetime.today().strftime('%Y%m%d')
     countries = ['Venezuela']
-    task_list = [download_cgrt_data.s(country, date_from, date_to) for country in countries]
+
+    if separate_countries:
+        task_list = [download_cgrt_data.s(country, date_from, date_to) for country in countries]
+    else:
+        task_list = [download_cgrt_data.s(None, date_from, date_to)]
+
     job = group(task_list)
     result = job.apply_async()
     result.wait()
@@ -144,7 +155,7 @@ def crawl_policy_watch():
     process.join()
 
 def last_crawling(crawler_name):
-    crawler_status_path = os.join(Config.crawler_status_DIR, crawler_name+'.json')
+    crawler_status_path = os.path.join(Config.crawler_status_DIR, crawler_name+'.json')
     with open(crawler_status_path) as status_file:
         status_json = json.load(status_file)
         last_crawling_date = status_json['last_crawling_date']
@@ -154,8 +165,9 @@ def last_crawling(crawler_name):
 @app.task
 def update_crawling_date(crawling_status, crawler_name):
     curr_date = datetime.today().strftime('%Y-%m-%d')
-    crawler_status_path = os.join(Config.crawler_status_DIR, crawler_name+'.json')
+    crawler_status_path = os.path.join(Config.crawler_status_DIR, crawler_name+'.json')
     with open(crawler_status_path) as status_file:
         status_json = json.load(status_file)
-        status_json['last_crawling_date'] = curr_date
+    status_json['last_crawling_date'] = curr_date
+    with open(crawler_status_path, 'w') as status_file:
         json.dump(status_json, status_file)

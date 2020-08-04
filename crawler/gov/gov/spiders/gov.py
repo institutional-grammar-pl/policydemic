@@ -7,16 +7,21 @@ from scrapy.spiders import Rule
 
 from crawler.gov.gov.items import PdfItem
 
-import datetime
+import time
 
 class GovDuSpider(scrapy.Spider):
     name = 'govdu'
     start_urls = ['http://dziennikustaw.gov.pl/DU/rok/2020']
     allowed_domains = ['gov.pl']
 
-    def __init__(self, data_from, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self._link_extractor = LxmlLinkExtractor(allow_domains=['gov.pl'])
+
+        # default date
+        self.date_from = ['2020', '01', '01']
+    
+    def set_date_from(self, date_from):
         self.date_from = date_from
 
     def start_requests(self):
@@ -37,7 +42,9 @@ class GovDuSpider(scrapy.Spider):
 
             # check last (successful) crawling date
             curr_doc_date = date.split('-')
-            if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
+
+            if time.strptime('-'.join(self.date_from), '%Y-%m-%d') <= time.strptime('-'.join(curr_doc_date), '%Y-%m-%d'):
+            # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
                 yield PdfItem(file_urls=[url], date=date)
 
 
@@ -46,9 +53,12 @@ class GovMpSpider(scrapy.Spider):
     start_urls = ['http://www.monitorpolski.gov.pl/MP/rok/2020']
     allowed_domains = ['gov.pl']
 
-    def __init__(self, date_from, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self._link_extractor = LxmlLinkExtractor(allow_domains=['gov.pl'])
+        self.date_from = ['2020', '01', '01']
+    
+    def set_date_from(self, date_from):
         self.date_from = date_from
 
     def start_requests(self):
@@ -69,7 +79,8 @@ class GovMpSpider(scrapy.Spider):
 
             # check last (successful) crawling date
             curr_doc_date = date.split('-')
-            if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
+            if time.strptime('-'.join(self.date_from), '%Y-%m-%d') <= time.strptime('-'.join(curr_doc_date), '%Y-%m-%d'):
+            # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
                 yield PdfItem(file_urls=[url], date=date)
 
 

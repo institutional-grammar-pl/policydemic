@@ -30,7 +30,7 @@ class CgrtRecord:
 
 #function creating CgrtRecord instance basing on csv row with conditions
 #if conditions are not fulfilled, None is returned
-def createCgrtRecord(row, country = None, date_from, date_to):
+def createCgrtRecord(row, date_from, date_to, country = None):
     # country = None for acceptation of all countries
     if country is None:
         if date_from <= row[2] and date_to >= row[2]:
@@ -43,7 +43,7 @@ def createCgrtRecord(row, country = None, date_from, date_to):
         return None
 
 #function downloading csv info with specified criteria
-def downloadCgrtRecords(country, dateFrom, dateTo):
+def downloadCgrtRecords(date_from, date_to, country=None):
     #list of records from csv file
     records = []
     #read the csv file from url
@@ -51,7 +51,7 @@ def downloadCgrtRecords(country, dateFrom, dateTo):
     reader = csv.reader(codecs.iterdecode(r.iter_lines(), 'utf-8'), delimiter=',')
     for row in reader:
         #convert row from csv to class record
-        record = createCgrtRecord(row, country, dateFrom, dateTo)
+        record = createCgrtRecord(row, date_from, date_to, country)
         if record is None:
             continue
         records.append(record)

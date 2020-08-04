@@ -1,4 +1,4 @@
-import PyPDF2
+# import PyPDF2
 
 import collections
 
@@ -10,6 +10,21 @@ import io
 from PIL import Image
 from wand.image import Image as wi
 from .config import ConfigOcr
+
+import regex
+
+
+# --- new pdf parsing --- #
+import os
+import sys
+from io import StringIO
+from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfparser import PDFParser
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.pdfdevice import PDFDevice, TagExtractor
+from pdfminer.pdfpage import PDFPage
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
 
 # --- required for complex criterion --- #
 #import flair
@@ -209,50 +224,73 @@ def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
 
 
 # ----------  Parse function  --------- #
+# @app.task
+# def parse(path):
+#     """
+#     parse
+
+#     Arguments:
+#     * path - STRING - a path to a single .pdf file;
+
+#     Return:
+#     * STRING - the text of the chosen .pdf;
+
+#     "parse" task works as an endpoint. It takes a path of a pdf file as an argument and returns its text as a STRING.
+
+#     ### pdfocr Function
+
+#     ```python
+#     > pdfocr(path, lang='eng')
+#     ```
+
+#     Arguments:
+#     * path - STRING - a path to a .pdf file;
+#     * lang - STRING - language, english by default.
+
+#     Return:
+#     * STRING - the text of the chosen .pdf
+
+#     The function returns parsed text from pdf file using OCR (optical character recognition). It takes a path of a pdf file as an argument and returns its text as a STRING.
+#     """
+#     pdf_text_list=[]
+#     with open(path, 'rb') as pdf_file:
+#         read_pdf = PyPDF2.PdfFileReader(pdf_file)
+#         number_of_pages = read_pdf.getNumPages()
+#         c = collections.Counter(range(number_of_pages))
+#         for i in c:
+#             page = read_pdf.getPage(i)
+#             page_content = page.extractText()
+#             pdf_text_list.append(page_content)
+#         pdf_file.close()
+
+#     pdf_text = " ".join(pdf_text_list)
+
+#     with open(os.path.join('/opt/policydemic/PDFparsed/', os.path.basename(path)) + '.txt', 'w+') as f:
+#         f.write(pdf_text)
+#     return pdf_text
+# ------------------------------------- #
 @app.task
 def parse(path):
-    """
-    parse
+    rsrcmgr = PDFResourceManager(caching=True)
+    outfp = StringIO()
+    laparams = LAParams()
+    password = b''
+    pagenos = set()
+    device = TextConverter(rsrcmgr, outfp, laparams=laparams, imagewriter=None)
+    with open(path, 'rb') as fp:
+            interpreter = PDFPageInterpreter(rsrcmgr, device)
+            for page in PDFPage.get_pages(fp, pagenos, password=password,
+                                          caching=True, check_extractable=True):
+                interpreter.process_page(page)
+    device.close()
+    contents = outfp.getvalue()
+    outfp.close()
 
-    Arguments:
-    * path - STRING - a path to a single .pdf file;
+    contents = text_postprocessing(contents)
 
-    Return:
-    * STRING - the text of the chosen .pdf;
-
-    "parse" task works as an endpoint. It takes a path of a pdf file as an argument and returns its text as a STRING.
-
-    ### pdfocr Function
-
-    ```python
-    > pdfocr(path, lang='eng')
-    ```
-
-    Arguments:
-    * path - STRING - a path to a .pdf file;
-    * lang - STRING - language, english by default.
-
-    Return:
-    * STRING - the text of the chosen .pdf
-
-    The function returns parsed text from pdf file using OCR (optical character recognition). It takes a path of a pdf file as an argument and returns its text as a STRING.
-    """
-    pdf_text_list=[]
-    with open(path, 'rb') as pdf_file:
-        read_pdf = PyPDF2.PdfFileReader(pdf_file)
-        number_of_pages = read_pdf.getNumPages()
-        c = collections.Counter(range(number_of_pages))
-        for i in c:
-            page = read_pdf.getPage(i)
-            page_content = page.extractText()
-            pdf_text_list.append(page_content)
-        pdf_file.close()
-
-    pdf_text = " ".join(pdf_text_list)
-    return pdf_text
-# ------------------------------------- #
-
-
+    with open(os.path.join('/opt/policydemic/PDFparsed/', os.path.basename(path)) + '.txt', 'w+') as f:
+        f.write(contents)
+    return contents
 
 
 
@@ -283,8 +321,20 @@ def check(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, simila
         return complex_crit(pdf_text, keywords, without=without, at_least=at_least, at_most=at_most, similarity=similarity, threshold=threshold)
 # ------------------------------------- #
 
-# ----------  link processing --------- #
-@app.task
-def process_pdf_link(http_url):
-    print(f"Received pdf: {http_url}")
-# ------------------------------------- #
+# # ----------  link processing --------- #
+# @app.task
+# def process_pdf_link(http_url):
+#     print(f"Received pdf: {http_url}")
+# # ------------------------------------- #
+
+def text_postprocessing(text):
+    # line breaks
+    text = regex.sub(r'(.)-\n', r'\1', text)
+
+    # one-character or empty lines
+    text = regex.sub(r'(?<=\n)?.\n', r'', text)
+
+    return text
+
+
+

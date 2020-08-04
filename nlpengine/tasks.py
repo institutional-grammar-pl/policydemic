@@ -13,9 +13,11 @@ import translator.tasks as translator_tasks
 
 config = ConfigParser()
 config.read('nlpengine/config.ini')
+from config import Config
 
 es_hosts = config['elasticsearch']['hosts']
-pdf_rootdir = config['pdf_database']['rootdir']
+# pdf_rootdir = config['pdf_database']['rootdir']
+pdf_rootdir = Config.PDFDatabase_DIR
 es = Elasticsearch(hosts=es_hosts)
 
 INDEX_NAME = 'documents'
@@ -24,6 +26,18 @@ DOC_TYPE = '_doc'
 SCRAP_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
+# @app.task
+# def process_pdf_link(pdf_url):
+#     print(f"Received pdf: {pdf_url}")
+
+#     pdf_chain = \
+#         download_pdf.s() | \
+#         parse_pdf.s() | \
+#        translate_pdf.s() | \
+#         process_document.s()
+
+#     pdf_chain(pdf_url)
+
 @app.task
 def process_pdf_link(pdf_url):
     print(f"Received pdf: {pdf_url}")
@@ -31,7 +45,6 @@ def process_pdf_link(pdf_url):
     pdf_chain = \
         download_pdf.s() | \
         parse_pdf.s() | \
-        translate_pdf.s() | \
         process_document.s()
 
     pdf_chain(pdf_url)
@@ -42,7 +55,7 @@ def download_pdf(pdf_url):
     pdf_filename = os.path.basename(pdf_url)
     pdf_path = os.path.join(pdf_rootdir, pdf_filename)
 
-    crawler_tasks.downloadPdf.apply(kwargs={
+    crawler_tasks.download_pdf.apply(kwargs={
         "url": pdf_url,
         "directory": pdf_rootdir,
         "filename": pdf_filename
@@ -75,13 +88,14 @@ def translate_pdf(body):
 @app.task
 def process_document(body):
     scrap_date = datetime.now().strftime(SCRAP_DATE_FORMAT)
-
+    print(body)
     body.update({
         "document_type": "legalact",
         "scrap_date": scrap_date,
         "text_parsing_type": "parser",
         "keywords": []
     })
+    print(body)
     index_document(body)
 
 
