@@ -2,6 +2,7 @@ from scheduler.celery import app
 from ibm_watson import LanguageTranslatorV3
 import requests
 import json
+import traceback
 
 
 @app.task
@@ -130,7 +131,8 @@ def translate(text):
         translator = LanguageTranslatorV3(
             version='2018-05-01'
         )
-    except:
+    except Exception as e:
+        print(traceback.format_exc())
         return {
             'message': 'Please bind your language translator service',
             'translation_type': 'missing',

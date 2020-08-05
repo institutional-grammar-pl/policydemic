@@ -3,3 +3,4 @@
 __pycache__
 .idea/
 celery_worker_log.*
+ibm-credentials.env
