@@ -26,18 +26,6 @@ DOC_TYPE = '_doc'
 SCRAP_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
-# @app.task
-# def process_pdf_link(pdf_url):
-#     print(f"Received pdf: {pdf_url}")
-
-#     pdf_chain = \
-#         download_pdf.s() | \
-#         parse_pdf.s() | \
-#        translate_pdf.s() | \
-#         process_document.s()
-
-#     pdf_chain(pdf_url)
-
 @app.task
 def process_pdf_link(pdf_url):
     print(f"Received pdf: {pdf_url}")
@@ -45,10 +33,10 @@ def process_pdf_link(pdf_url):
     pdf_chain = \
         download_pdf.s() | \
         parse_pdf.s() | \
+        translate_pdf.s() | \
         process_document.s()
 
     pdf_chain(pdf_url)
-
 
 @app.task
 def download_pdf(pdf_url):

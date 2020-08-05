@@ -1,5 +1,5 @@
 import json
-from nlpengine.tasks import index_document
+# from nlpengine.tasks import index_document
 import requests
 import csv
 import codecs
@@ -59,9 +59,9 @@ def downloadCgrtRecords(date_from, date_to, country=None):
     return records
 
 #send downloaded records to nlp engine
-def saveIntoDatabase(records):
-    for rec in records:
-        rec.Data["Country"] = rec.Country
-        rec.Data["Date"] = rec.Date
-        jsonString = json.dumps(rec.Data)
-        index_document(jsonString)
+# def saveIntoDatabase(records):
+#     for rec in records:
+#         rec.Data["Country"] = rec.Country
+#         rec.Data["Date"] = rec.Date
+#         jsonString = json.dumps(rec.Data)
+#         index_document(jsonString)
