@@ -131,7 +131,7 @@ def translate(text):
         translator = LanguageTranslatorV3(
             version='2018-05-01'
         )
-    except Exception as e:
+    except Exception:
         print(traceback.format_exc())
         return {
             'message': 'Please bind your language translator service',
