@@ -10,16 +10,18 @@ from nlpengine.tasks import process_pdf_link
 from elasticsearch import Elasticsearch
 from configparser import ConfigParser
 
-config = ConfigParser()
-config.read('nlpengine/config.ini')
-from config import Config
+nlp_config = ConfigParser()
+nlp_config.read('nlpengine/config.ini')
+from config import Config as app_config
 
-es_hosts = config['elasticsearch']['hosts']
-pdf_rootdir = Config.PDFDatabase_DIR
+es_hosts = nlp_config['elasticsearch']['hosts']
+pdf_rootdir = app_config.PDFDatabase_DIR
 es = Elasticsearch(hosts=es_hosts)
 
-INDEX_NAME = elastic_config['elasticsearch']['INDEX_NAME']
-DOC_TYPE = elastic_config['elasticsearch']['DOC_TYPE']
+
+
+INDEX_NAME = nlp_config['elasticsearch']['INDEX_NAME']
+DOC_TYPE = nlp_config['elasticsearch']['DOC_TYPE']
 
 
 class RenamePdfFilesPipeline(FilesPipeline):
