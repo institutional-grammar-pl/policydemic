@@ -11,17 +11,17 @@ import crawler.tasks as crawler_tasks
 import pdfparser.tasks as pdfparser_tasks
 import translator.tasks as translator_tasks
 
-config = ConfigParser()
-config.read('nlpengine/config.ini')
-from config import Config
+nlp_config = ConfigParser()
+nlp_config.read('nlpengine/config.ini')
+from config import Config as app_config
 
-es_hosts = config['elasticsearch']['hosts']
+es_hosts = nlp_config['elasticsearch']['hosts']
 # pdf_rootdir = config['pdf_database']['rootdir']
-pdf_rootdir = Config.PDFDatabase_DIR
+pdf_rootdir = app_config.PDFDatabase_DIR
 es = Elasticsearch(hosts=es_hosts)
 
-INDEX_NAME = 'documents'
-DOC_TYPE = '_doc'
+INDEX_NAME = nlp_config['elasticsearch']['INDEX_NAME']
+DOC_TYPE = nlp_config['elasticsearch']['DOC_TYPE']
 
 SCRAP_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -67,7 +67,12 @@ def parse_pdf(body):
 @app.task
 def translate_pdf(body):
     original_text = body["original_text"]
-    result = translator_tasks.translate(original_text)
+
+    max_n_chars = int(nlp_config["translator"]["max_n_chars_to_translate"])
+
+    text_to_translate = (original_text[:max_n_chars] + '<TRUNCATED_DOCUMENT>') if len(original_text) > max_n_chars else original_text
+
+    result = translator_tasks.translate(text_to_translate)
 
     body.update(result)
     return body

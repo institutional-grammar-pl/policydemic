@@ -33,8 +33,8 @@ DEFAULT_REQUEST_HEADERS = {
 #}
 
 ITEM_PIPELINES = {
-   'crawler.gov.gov.pipelines.CreateProcessPdfTaskPipeline': 0,  # Calls PDF processing task in celery
-   # 'crawler.gov.gov.pipelines.DropDuplicatesPipeline': 100,  # Removes duplicated PDFs based on local file system
+   'crawler.gov.gov.pipelines.DropDuplicatesPipeline': 0,   # Removes duplicated PDFs based on local file system
+   'crawler.gov.gov.pipelines.CreateProcessPdfTaskPipeline': 100,  # Calls PDF processing task in celery
    # 'scrapy.pipelines.files.FilesPipeline': 200,  # Downloads PDFs from given url
    # 'crawler.gov.gov.pipelines.RenamePdfFilesPipeline': 300,  # Clusters in directories downloaded PDFs by date
 }

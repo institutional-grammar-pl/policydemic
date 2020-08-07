@@ -19,7 +19,7 @@ class GovDuSpider(scrapy.Spider):
         self._link_extractor = LxmlLinkExtractor(allow_domains=['gov.pl'])
 
         # default date
-        self.date_from = ['2020', '01', '01']
+        self.date_from = None
     
     def set_date_from(self, date_from):
         self.date_from = date_from
@@ -40,12 +40,12 @@ class GovDuSpider(scrapy.Spider):
             url = response.urljoin(href)
             date = item.xpath('td[4]/text()').get().strip()
 
-            # check last (successful) crawling date
-            curr_doc_date = date.split('-')
-
-            if time.strptime('-'.join(self.date_from), '%Y-%m-%d') <= time.strptime('-'.join(curr_doc_date), '%Y-%m-%d'):
-            # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
-                yield PdfItem(file_urls=[url], date=date)
+            if self.date_from is not None:
+                # check last (successful) crawling date
+                curr_doc_date = date.split('-')
+                if time.strptime('-'.join(self.date_from), '%Y-%m-%d') <= time.strptime('-'.join(curr_doc_date), '%Y-%m-%d'):
+                # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
+                    yield PdfItem(file_urls=[url], date=date)
 
 
 class GovMpSpider(scrapy.Spider):
@@ -56,7 +56,7 @@ class GovMpSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self._link_extractor = LxmlLinkExtractor(allow_domains=['gov.pl'])
-        self.date_from = ['2020', '01', '01']
+        self.date_from = None
     
     def set_date_from(self, date_from):
         self.date_from = date_from
@@ -77,11 +77,12 @@ class GovMpSpider(scrapy.Spider):
             url = response.urljoin(href)
             date = item.xpath('td[4]/text()').get().strip()
 
-            # check last (successful) crawling date
-            curr_doc_date = date.split('-')
-            if time.strptime('-'.join(self.date_from), '%Y-%m-%d') <= time.strptime('-'.join(curr_doc_date), '%Y-%m-%d'):
-            # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
-                yield PdfItem(file_urls=[url], date=date)
+            if self.date_from is not None:
+                # check last (successful) crawling date
+                curr_doc_date = date.split('-')
+                if time.strptime('-'.join(self.date_from), '%Y-%m-%d') <= time.strptime('-'.join(curr_doc_date), '%Y-%m-%d'):
+                # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
+                    yield PdfItem(file_urls=[url], date=date)
 
 
 class GovCrawler(scrapy.spiders.CrawlSpider):

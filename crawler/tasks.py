@@ -38,10 +38,7 @@ class CrawlerProcess(Process):
 @app.task
 def crawl_gov_du():
     """ Starts crawling process which downloads pdfs from dziennikustaw.gov.pl """
-    date_from = last_crawling('GovDuSpider').split('-')
-    print(date_from)
     spider = GovDuSpider()
-    spider.set_date_from = date_from
     process = CrawlerProcess(spider)
     process.start()
     process.join()
@@ -50,9 +47,7 @@ def crawl_gov_du():
 @app.task
 def crawl_gov_mp():
     """ Starts crawling process which downloads pdfs from monitorpolski.gov.pl """
-    date_from = last_crawling('GovMpSpider').split('-')
     spider = GovMpSpider()
-    spider.set_date_from = date_from
     process = CrawlerProcess(spider)
     process.start()
     process.join()

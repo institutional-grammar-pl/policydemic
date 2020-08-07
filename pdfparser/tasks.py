@@ -165,7 +165,7 @@ def text_postprocessing(text):
     text = regex.sub(r'(.)-\n', r'\1', text)
 
     # one-character or empty lines
-    text = regex.sub(r'(?<=\n)?.\n', r'', text)
+    text = regex.sub(r'(?<=\n)(.|\s|\n){0,1}\n', r'', text)
 
     return text
 
