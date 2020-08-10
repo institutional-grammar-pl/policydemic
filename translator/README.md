@@ -5,7 +5,7 @@ It uses IBM Watson Translator as translating service.
 
 ## API
 ### translate(text)
-This method takes one parameter as input: string containing text to tranlate.
+This method takes one parameter as input: string containing text to translate.
 It returns a dictionary of following structure:
 ```
     'translation_type': 'auto',
