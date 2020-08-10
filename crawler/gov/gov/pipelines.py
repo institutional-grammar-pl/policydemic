@@ -38,25 +38,49 @@ class RenamePdfFilesPipeline(FilesPipeline):
             raise DropItem(f"Error while downloading item: {data}")
 
 
-class DropDuplicatesPipeline:
-    def process_item(self, item: PdfItem, spider):
+# class DropDuplicatesPipeline:
+#     def process_item(self, item: PdfItem, spider):
+#         # check if document with this URL is inded within ES database
+#         query_web_url = {
+#             "query": {
+#                 "match": {
+#                     "web_page": item.file_urls[0]
+#                 }
+#             }
+#         }
+#         rt = es.count(query_web_url, index='documents') 
+#         if rt > 0:
+#             print(f"Found {rt} documents with URL: {item}.")
+#             raise DropItem(f"Item {item['file_urls'][0]} is already saved under path: {(item.save_path())}")
+#         else:
+#             return item
+
+
+class CreateProcessPdfTaskPipeline:
+    @staticmethod
+    def is_duplicate(url):
         # check if document with this URL is inded within ES database
         query_web_url = {
             "query": {
                 "match": {
-                    "web_page": item.file_urls[0]
+                    "web_page": url
                 }
             }
         }
-        rt = es.count(query_web_url, index='documents') 
+        print("Elastic duplicates search")
+        rt = es.count(query_web_url, index='documents')
+        rt = rt['count']
+        print(rt)
         if rt > 0:
-            print(f"Found {rt} documents with URL: {item}.")
-            raise DropItem(f"Item {item['file_urls'][0]} is already saved under path: {(item.save_path())}")
+            print(f"Found {rt} documents with URL: {url}.")
+            return True
         else:
-            return item
+            return False
 
 
-class CreateProcessPdfTaskPipeline:
     def process_item(self, item: PdfItem, spider):
+        print("Found some PDF")
         for url in item['file_urls']:
-            process_pdf_link.delay(url)
+            if not CreateProcessPdfTaskPipeline.is_duplicate(url):
+                process_pdf_link.delay(url)
+        return item

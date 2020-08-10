@@ -44,10 +44,10 @@ class GovDuSpider(scrapy.Spider):
                 # check last (successful) crawling date
                 curr_doc_date = date.split('-')
                 if time.strptime('-'.join(self.date_from), '%Y-%m-%d') <= time.strptime('-'.join(curr_doc_date), '%Y-%m-%d'):
-                # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
+                    # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
                     yield PdfItem(file_urls=[url], date=date)
-                else:
-                    yield PdfItem(file_urls=[url], date=date)
+            else:
+                yield PdfItem(file_urls=[url], date=date)
 
 
 class GovMpSpider(scrapy.Spider):
@@ -83,7 +83,7 @@ class GovMpSpider(scrapy.Spider):
                 # check last (successful) crawling date
                 curr_doc_date = date.split('-')
                 if time.strptime('-'.join(self.date_from), '%Y-%m-%d') <= time.strptime('-'.join(curr_doc_date), '%Y-%m-%d'):
-                # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
+                    # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
                     yield PdfItem(file_urls=[url], date=date)
             else:
                 yield PdfItem(file_urls=[url], date=date)

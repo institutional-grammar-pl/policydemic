@@ -33,7 +33,7 @@ DEFAULT_REQUEST_HEADERS = {
 #}
 
 ITEM_PIPELINES = {
-   'crawler.gov.gov.pipelines.DropDuplicatesPipeline': 0,   # Removes duplicated PDFs based on local file system
+ #  'crawler.gov.gov.pipelines.DropDuplicatesPipeline': 0,   # Removes duplicated PDFs based on local file system
    'crawler.gov.gov.pipelines.CreateProcessPdfTaskPipeline': 100,  # Calls PDF processing task in celery
    # 'scrapy.pipelines.files.FilesPipeline': 200,  # Downloads PDFs from given url
    # 'crawler.gov.gov.pipelines.RenamePdfFilesPipeline': 300,  # Clusters in directories downloaded PDFs by date
@@ -62,7 +62,7 @@ MEDIA_ALLOW_REDIRECTS = True
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-DEPTH_LIMIT = 100
+DEPTH_LIMIT = 150
 SCHEDULER_PRIORITY_QUEUE = 'scrapy.pqueues.DownloaderAwarePriorityQueue'
 CONCURRENT_REQUESTS = 100
 COOKIES_ENABLED = False
