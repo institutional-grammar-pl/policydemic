@@ -44,6 +44,7 @@ export default function SsdTabComponent() {
                     onClose={() => setEditedDocumentId(undefined)}
                     type="SSD"
                     onSuccess={() => setEditedDocumentId(undefined)}
+                    documentId = {editedDocumentId}
                 />
             )
         }

@@ -6,7 +6,6 @@ const cors = require('@koa/cors');
 const { Client } = require('@elastic/elasticsearch')
 const client = new Client({node: 'http:/localhost:9200'})
 
-
 const app = new Koa();
 const router = new KoaRouter();
 const upload = multer();
@@ -58,10 +57,15 @@ router.get('/autocomplete/translationTypes', (ctx) => {
 })
 
 router.get('/documents/:id', (ctx) => {
-  console.log(ctx.params.id);
-  
+
+    /*ctx.body = await client.get({
+        index: 'documents',
+        id: 'ctx.params.id'
+    })*/
+
+
   ctx.body = JSON.stringify({
-      webPage: "web page",
+      webPage: "web page test",
       organization: "organization",
       section: "section",
       keywords: ["School Closing", "Shopping restrictions"],
@@ -126,7 +130,7 @@ async function populate (){
                 document_type: 'legalact',
                 pdf_path: 'test_path',
                 scrap_date: '2020-10-23 10:00:00',
-                info_date: '2020-12-12',
+                info_date: '2020-07-12',
                 country: "Poland",
                 language: "Polish",
                 translation_type: "automatic",
@@ -149,7 +153,7 @@ async function populate (){
             document_type: 'secondary',
             pdf_path: 'test_path',
             scrap_date: '2020-10-05 10:00:00',
-            info_date: '2020-12-15',
+            info_date: '2020-07-15',
             country: "Poland",
             language: "Polish",
             translation_type: "automatic",
@@ -195,7 +199,7 @@ async function populate (){
             document_type: 'secondary',
             pdf_path: 'test_path',
             scrap_date: '2020-01-23 10:00:00',
-            info_date: '2020-02-12',
+            info_date: '2020-07-12',
             country: "Italy",
             language: "Italian",
             translation_type: "automatic",
@@ -218,7 +222,7 @@ async function populate (){
             document_type: 'secondary',
             pdf_path: 'test_path',
             scrap_date: '2020-10-23 10:00:00',
-            info_date: '2020-12-12',
+            info_date: '2020-07-12',
             country: "Poland",
             language: "Polish",
             translation_type: "automatic",
@@ -325,13 +329,13 @@ function constructParams(body, documentType){
     return params
 }
 
-
 router.post('/lad/search', async (ctx) => {
     console.log(ctx.request)
+    // ctx.body = [{"id":"eKQvl3MBnbyDoKwL3lQ2","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"},{"id":"caTSnnMBnbyDoKwLrmz8","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"},{"id":"-aSkq3MBnbyDoKwLq3yq","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"}]
+    // ctx.status  = 200
+    
     await getDocuments(ctx, "legalact");
 });
-
-
 
 module.exports = constructParams;
 app

@@ -45,6 +45,7 @@ export default function LadTabComponent() {
                     onClose={() => setEditedDocumentId(undefined)}
                     type="LAD"
                     onSuccess={() => setEditedDocumentId(undefined)}
+                    documentId = {editedDocumentId}
                 />
             )
         }
