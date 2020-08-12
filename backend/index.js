@@ -62,6 +62,11 @@ router.get('/documents/:id', async (ctx) => {
             index: 'documents',
             id: ctx.params.id
         })
+        zmienna.body._source.web_page = zmienna.body._source.webPage
+        zmienna.body._source.translation_type = zmienna.body._source.translationType
+        zmienna.body._source.info_date = zmienna.body._source.infoDate
+        zmienna.body._source.scrap_date = zmienna.body._source.scrapDate
+        zmienna.body._source.original_text = zmienna.body._source.originalText
         ctx.body = zmienna.body._source;
     } catch (e) {
         console.error('tutaj blad!:', e);
