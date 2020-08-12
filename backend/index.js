@@ -62,11 +62,18 @@ router.get('/documents/:id', async (ctx) => {
             index: 'documents',
             id: ctx.params.id
         })
-        zmienna.body._source.web_page = zmienna.body._source.webPage
-        zmienna.body._source.translation_type = zmienna.body._source.translationType
-        zmienna.body._source.info_date = zmienna.body._source.infoDate
-        zmienna.body._source.scrap_date = zmienna.body._source.scrapDate
-        zmienna.body._source.original_text = zmienna.body._source.originalText
+        nazwy = {webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
+        originalText: 'original_text'}
+        for (k in nazwy) {
+            zmienna.body._source[k] = zmienna.body._source[nazwy[k]]
+            delete zmienna.body._source[nazwy[k]] 
+        }
+  /*      zmienna.body._source.webPage = zmienna.body._source.web_page
+        zmienna.body._source.translationType = zmienna.body._source.translation_type
+        zmienna.body._source.infoDate = zmienna.body._source.info_date
+        zmienna.body._source.scrapDate = zmienna.body._source.scrap_date
+        zmienna.body._source.originalText = zmienna.body._source.original_text
+*/
         ctx.body = zmienna.body._source;
     } catch (e) {
         console.error('tutaj blad!:', e);
