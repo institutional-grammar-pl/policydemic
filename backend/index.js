@@ -56,15 +56,21 @@ router.get('/autocomplete/translationTypes', (ctx) => {
   ])
 })
 
-router.get('/documents/:id', (ctx) => {
+router.get('/documents/:id', async (ctx) => {
+    try {
+        let zmienna = await client.get({
+            index: 'documents',
+            id: ctx.params.id
+        })
+        ctx.body = zmienna.body._source;
+    } catch (e) {
+        console.error('tutaj blad!:', e);
+        ctx.body = e.toString();
+        ctx.status = 422;
+    }
 
-    /*ctx.body = await client.get({
-        index: 'documents',
-        id: 'ctx.params.id'
-    })*/
 
-
-  ctx.body = JSON.stringify({
+  /*ctx.body = JSON.stringify({
       webPage: "web page test",
       organization: "organization",
       section: "section",
@@ -76,7 +82,7 @@ router.get('/documents/:id', (ctx) => {
       translationType: "Google Translate",
       translation: "translation",
       originalText: "translation",
-  })
+  })*/
 })
 
 
