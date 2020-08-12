@@ -19,15 +19,19 @@ from celery import group
 
 from config import Config
 
+import logging
+
 class CrawlerProcess(Process):
     """ This class allows to run scrapy Crawlers using multiprocessing from billiard """
 
     def __init__(self, spider):
+        logging.info("CrawlerProcess")
         Process.__init__(self)
         os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'crawler.gov.gov.settings')
         settings = get_project_settings()
         self.crawler = Crawler(spider.__class__, settings)
-        self.crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
+        # self.crawler.signals.connect(spider.item_scraped, signal=signals.item_scraped)
+        # self.crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
         self.spider = spider
 
     def run(self):
@@ -38,6 +42,7 @@ class CrawlerProcess(Process):
 @app.task
 def crawl_gov_du():
     """ Starts crawling process which downloads pdfs from dziennikustaw.gov.pl """
+    logging.info("crawl gov du")
     spider = GovDuSpider()
     process = CrawlerProcess(spider)
     process.start()

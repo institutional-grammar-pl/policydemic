@@ -19,21 +19,21 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    'gov.middlewares.GovSpiderMiddleware': 543,
-#}
+SPIDER_MIDDLEWARES = {
+   'gov.middlewares.GovSpiderMiddleware': 543,
+}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'gov.middlewares.GovDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   'gov.middlewares.GovDownloaderMiddleware': 543,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
-#    'scrapy.extensions.telnet.TelnetConsole': None,
-#}
+EXTENSIONS = {
+   'scrapy.extensions.telnet.TelnetConsole': None,
+}
 
 ITEM_PIPELINES = {
  #  'crawler.gov.gov.pipelines.DropDuplicatesPipeline': 0,   # Removes duplicated PDFs based on local file system
