@@ -57,11 +57,25 @@ router.get('/autocomplete/translationTypes', (ctx) => {
   ])
 })
 
-router.get('/documents/:id', (ctx) => {
-  console.log(ctx.params.id);
-  
-  ctx.body = JSON.stringify({
-      webPage: "web page",
+router.get('/documents/:id', async (ctx) => {
+
+    console.log('dzien dobry get ', ctx.params);
+    try {
+
+        let zmienna = await client.get({
+            index: 'documents',
+            id: ctx.params.id
+        })
+        ctx.body = zmienna.body._source;
+    } catch (e) {
+        console.error('tutaj blad!:', e);
+	ctx.body = e.toString();
+	ctx.status = 422;
+    }
+
+
+  /*ctx.body = JSON.stringify({
+      webPage: "web page test",
       organization: "organization",
       section: "section",
       keywords: ["School Closing", "Shopping restrictions"],
@@ -72,7 +86,7 @@ router.get('/documents/:id', (ctx) => {
       translationType: "Google Translate",
       translation: "translation",
       originalText: "translation",
-  })
+  })*/
 })
 
 
@@ -341,3 +355,4 @@ app
   .use(router.allowedMethods());
 
 app.listen(8000);
+
