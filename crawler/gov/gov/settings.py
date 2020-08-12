@@ -2,17 +2,17 @@ BOT_NAME = 'govcrawler'
 SPIDER_MODULES = ['crawler.gov.gov.spiders']
 NEWSPIDER_MODULE = 'crawler.gov.gov.spiders'
 ROBOTSTXT_OBEY = False
-# DEFAULT_REQUEST_HEADERS = {
-#     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-#     'Accept-Encoding': 'gzip, deflate',
-#     'Accept-Language': 'pl-PL,pl;q=0.9,en-GB;q=0.8,en;q=0.7,en-US;q=0.6',
-#     'Cache-Control': 'max-age=0',
-#     'Connection': 'keep-alive',
-#     'dnt': '1',
-#     'Host': 'gov.pl',
-#     'Upgrade-Insecure-Requests': '1',
-#     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
-# }
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    'Accept-Encoding': 'gzip, deflate',
+    'Accept-Language': 'pl-PL,pl;q=0.9,en-GB;q=0.8,en;q=0.7,en-US;q=0.6',
+    'Cache-Control': 'max-age=0',
+    'Connection': 'keep-alive',
+    'dnt': '1',
+    'Host': 'gov.pl',
+    'Upgrade-Insecure-Requests': '1',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
+}
 
 # 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
 # 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
