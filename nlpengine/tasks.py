@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from elasticsearch import Elasticsearch
 from celery import chain
@@ -85,6 +86,7 @@ def process_document(body):
     body.update({
         "document_type": "legalact",
         "scrap_date": scrap_date,
+        "info_date": scrap_date[:10],
         "text_parsing_type": "parser",
         "keywords": []
     })
