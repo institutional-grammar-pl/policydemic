@@ -87,7 +87,7 @@ router.get('/', (ctx) => {
 })
 
 router.post('/lad/:id', upload.single('pdf'), (ctx) => {
-  console.log('id', id)
+  console.log('id', ctx.params.id)
   console.log(ctx.request)
   console.log(ctx.request.body)
   console.log('ctx.req.file', ctx.req.file);
