@@ -61,7 +61,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         if (document) {
             Api.editDocument(type, document.documentId, data)
                 .then(c => onSuccessfulSend());
-        } else {``
+        } else {
             Api.postDocument(type, data)
                 .then(c => onSuccessfulSend());
         }
