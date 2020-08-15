@@ -34,7 +34,7 @@ export default class Api {
     }
 
     static editDocument(type, id, data) {
-        return this._postJsonData(${type.toLowerCase()}/${id})
+        return this._postJsonData(`${type.toLowerCase()}/${id}`)
     }
 
     static saveCrawlerConfig(data) {
