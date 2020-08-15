@@ -185,14 +185,12 @@ def translate(text):
         # print(output)
         return {
             'translation_type': 'auto',
-            'original_text': text,
             'translated_text': output,
             'language': language_name
         }
     else:
         return {
             'translation_type': 'auto',
-            'original_text': text,
             'translated_text': text,
             'language': LT_PAIRS[BASE_LANGUAGE]
         }
