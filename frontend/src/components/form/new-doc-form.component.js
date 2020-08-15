@@ -57,6 +57,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     }, [register, pdfUpload])
 
     const onSubmit = useCallback(data => {
+        console.log('documentID')
         if (document) {
             Api.editDocument(type, document.documentId, data)
                 .then(c => onSuccessfulSend());
