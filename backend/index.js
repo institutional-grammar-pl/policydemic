@@ -57,6 +57,7 @@ router.get('/autocomplete/translationTypes', (ctx) => {
 })
 
 router.get('/documents/:id', async (ctx) => {
+    console.log('id', ctx.params.id)
     try {
         let zmienna = await client.get({
             index: 'documents',
@@ -68,33 +69,12 @@ router.get('/documents/:id', async (ctx) => {
             zmienna.body._source[k] = zmienna.body._source[nazwy[k]]
             delete zmienna.body._source[nazwy[k]] 
         }
-  /*      zmienna.body._source.webPage = zmienna.body._source.web_page
-        zmienna.body._source.translationType = zmienna.body._source.translation_type
-        zmienna.body._source.infoDate = zmienna.body._source.info_date
-        zmienna.body._source.scrapDate = zmienna.body._source.scrap_date
-        zmienna.body._source.originalText = zmienna.body._source.original_text
-*/
         ctx.body = zmienna.body._source;
     } catch (e) {
         console.error('tutaj blad!:', e);
         ctx.body = e.toString();
         ctx.status = 422;
     }
-
-
-  /*ctx.body = JSON.stringify({
-      webPage: "web page test",
-      organization: "organization",
-      section: "section",
-      keywords: ["School Closing", "Shopping restrictions"],
-      infoDate: new Date(2020, 3, 1),
-      scrapDate: new Date(2020, 4, 1),
-      country: "Poland",
-      language: "Polish",
-      translationType: "Google Translate",
-      translation: "translation",
-      originalText: "translation",
-  })*/
 })
 
 
@@ -121,19 +101,19 @@ router.post('/ssd', upload.single('pdf'), (ctx) => {
   ctx.status = 200
 });
 
-router.post('/crawler/saveConfig', upload.none(), (ctx) => {
+/*router.post('/crawler/saveConfig', upload.none(), (ctx) => {
   console.log(ctx.request)
   console.log(ctx.request.body)
 
   ctx.status = 200
 });
-
-router.post('/crawler/run', upload.none(), (ctx) => {
+*/
+/*router.post('/crawler/run', upload.none(), (ctx) => {
   console.log(ctx.request)
   console.log(ctx.request.body)
 
   ctx.status = 200
-});
+});*/
 
 router.get('/populate', (ctx) => {
     populate().then(r => console.log(r)).catch(console.log)
@@ -285,7 +265,8 @@ function parseData(data){
     data.forEach(element => {
         parsedData.push({
             id: element._id,
-            source: element._source.organization,
+            /* source: element._source.organization,*/
+            source: element._source.web_page,
             infoDate: element._source.info_date,
             language: element._source.language,
             keywords: element._source.keywords,

@@ -39,7 +39,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             language: document.language,
             translationType: document.translationType,
             translation: document.translation,
-            "original-text": document.originalText,
+            original_text: document.originalText,
         } : undefined
     });
     useEffect(() => {
@@ -217,23 +217,22 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                     </Grid>
 
                     <Grid container item xs={12}>
-                        {pdfUpload ? (
-                            <UploadPdfComponent setValue={setValue} name="pdf" />
-                        ) : (
-                                <TextField
-                                    name="original-text"
-                                    inputRef={register}
-                                    label="Original text"
-                                    InputLabelProps={{
-                                        shrink: true,
-                                    }}
-                                    multiline
-                                    rows={8}
-                                    fullWidth
-                                    placeholder=""
-                                    variant="outlined"
-                                />
-                            )}
+                        /*{pdfUpload ? {
+                            <UploadPDFComponent setValue = {setValue} name="pdf" />
+                        } : */
+                        <TextField
+                            name="original_text"
+                            inputRef={register}
+                            label="original text"
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            multiline
+                            rows={8}
+                            fullWidth
+                            variant="outlined"
+                        />
+                        //)}
                     </Grid>
 
                     <Grid container item xs={12}>
