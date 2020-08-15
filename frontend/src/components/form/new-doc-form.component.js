@@ -56,12 +56,12 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
     }, [register, pdfUpload])
 
-    const onSubmit = useCallback(data => {
+    const onSubmit = (data => {
         console.log('documentID')
         if (document) {
             Api.editDocument(type, document.documentId, data)
                 .then(c => onSuccessfulSend());
-        } else {
+        } else {``
             Api.postDocument(type, data)
                 .then(c => onSuccessfulSend());
         }
@@ -218,9 +218,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                     </Grid>
 
                     <Grid container item xs={12}>
-                        /*{pdfUpload ? {
-                            <UploadPDFComponent setValue = {setValue} name="pdf" />
-                        } : */
+
                         <TextField
                             name="original_text"
                             inputRef={register}
@@ -233,7 +231,6 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             fullWidth
                             variant="outlined"
                         />
-                        //)}
                     </Grid>
 
                     <Grid container item xs={12}>
