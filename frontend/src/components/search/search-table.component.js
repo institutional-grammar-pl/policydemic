@@ -26,7 +26,7 @@ import AddBoxIcon from '@material-ui/icons/AddBox';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteConfirmationDialogComponent from './delete-dialog.component.js';
 
- function descendingComparator(a, b, orderBy) {
+function descendingComparator(a, b, orderBy) {
 {
     if (b[orderBy] < a[orderBy]) {
         return -1;
@@ -182,12 +182,6 @@ const EnhancedTableToolbar = (props) => {
                 style={{ display: 'flex', justifyContent: 'right' }}
             >
 
-                    /*<Tooltip title="Upload JSON">
-                        <IconButton aria-label="delete" onClick={(event) => props.onUploadJSONClick(event)}>
-                            <CloudUploadIcon />
-                        </IconButton>
-                    </Tooltip>
-*/
                     <Tooltip title="Add New">
                         <IconButton aria-label="addNew" onClick={(event) => props.onAddNewItemClick(event)}>
                             <AddBoxIcon />
