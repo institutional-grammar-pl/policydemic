@@ -182,6 +182,12 @@ const EnhancedTableToolbar = (props) => {
                 style={{ display: 'flex', justifyContent: 'right' }}
             >
 
+                    <Tooltip title="Upload JSON">
+                        <IconButton aria-label="delete" onClick={(event) => props.onUploadJSONClick(event)}>
+                            <CloudUploadIcon />
+                        </IconButton>
+                    </Tooltip>
+
                     <Tooltip title="Add New">
                         <IconButton aria-label="addNew" onClick={(event) => props.onAddNewItemClick(event)}>
                             <AddBoxIcon />
