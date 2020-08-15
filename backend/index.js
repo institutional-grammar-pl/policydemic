@@ -86,22 +86,6 @@ router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
 
-router.post('/lad/:id', upload.single('pdf'), (ctx) => {
-  console.log('id', ctx.params.id)
-  console.log(ctx.request)
-  console.log(ctx.request.body)
-  console.log('ctx.req.file', ctx.req.file);
-
-  ctx.status = 200
-});
-
-router.post('/ssd', upload.single('pdf'), (ctx) => {
-  console.log(ctx.request)
-  console.log(ctx.request.body)
-
-  ctx.status = 200
-});
-
 /*router.post('/crawler/saveConfig', upload.none(), (ctx) => {
   console.log(ctx.request)
   console.log(ctx.request.body)
@@ -333,9 +317,27 @@ router.post('/lad/search', async (ctx) => {
     console.log(ctx.request)
     // ctx.body = [{"id":"eKQvl3MBnbyDoKwL3lQ2","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"},{"id":"caTSnnMBnbyDoKwLrmz8","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"},{"id":"-aSkq3MBnbyDoKwLq3yq","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"}]
     // ctx.status  = 200
-    
+
     await getDocuments(ctx, "legalact");
 });
+
+
+router.post('/lad/:id', upload.single('pdf'), (ctx) => {
+  console.log('id', ctx.params.id)
+  console.log(ctx.request)
+  console.log(ctx.request.body)
+  console.log('ctx.req.file', ctx.req.file);
+
+  ctx.status = 200
+});
+
+router.post('/ssd', upload.single('pdf'), (ctx) => {
+  console.log(ctx.request)
+  console.log(ctx.request.body)
+
+  ctx.status = 200
+});
+
 
 module.exports = constructParams;
 app
