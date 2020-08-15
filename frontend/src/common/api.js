@@ -33,8 +33,8 @@ export default class Api {
         return this._postJsonData(type.toLowerCase() + '/search', data).then((request) => request.data)
     }
 
-    static editDocument(type, data) {
-        return this._postJsonData(type.toLowerCase(), data)
+    static editDocument(type, id, data) {
+        return this._postJsonData(${type.toLowerCase()}/${id})
     }
 
     static saveCrawlerConfig(data) {

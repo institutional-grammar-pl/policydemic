@@ -58,7 +58,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
     const onSubmit = useCallback(data => {
         if (document) {
-            Api.editDocument(type, data)
+            Api.editDocument(type, document.documentId, data)
                 .then(c => onSuccessfulSend());
         } else {
             Api.postDocument(type, data)

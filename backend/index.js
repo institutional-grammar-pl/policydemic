@@ -86,7 +86,8 @@ router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
 
-router.post('/lad', upload.single('pdf'), (ctx) => {
+router.post('/lad/:id', upload.single('pdf'), (ctx) => {
+  console.log('id', id)
   console.log(ctx.request)
   console.log(ctx.request.body)
   console.log('ctx.req.file', ctx.req.file);
