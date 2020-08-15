@@ -56,7 +56,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
     }, [register, pdfUpload])
 
-    const onSubmit = (data => {
+    const onSubmit = data => {
         console.log('documentID')
         if (document) {
             Api.editDocument(type, document.documentId, data)
@@ -65,7 +65,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             Api.postDocument(type, data)
                 .then(c => onSuccessfulSend());
         }
-    }, [type]);
+    };
 
     return (
         <form id={document ? "edit-doc-form" : "new-doc-form"} onSubmit={handleSubmit(onSubmit)}>
