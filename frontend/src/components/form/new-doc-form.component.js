@@ -58,7 +58,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
     const onSubmit = data => {
         console.log('onSubmit document',document)
-        console.log('onSubmit data', 'data')
+        console.log('onSubmit data', data)
         if (document) {
             Api.editDocument(type, document.id, data)
                 .then(c => onSuccessfulSend());
