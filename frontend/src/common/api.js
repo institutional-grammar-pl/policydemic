@@ -34,6 +34,10 @@ export default class Api {
     }
 
     static editDocument(type, id, data) {
+        console.log('editDocument')
+        console.log('type', type)
+        console.log('id' id)
+        console.log('data', data)
         return this._postJsonData(`${type.toLowerCase()}/${id}`)
     }
 
