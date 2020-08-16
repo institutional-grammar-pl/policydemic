@@ -26,7 +26,7 @@ import AddBoxIcon from '@material-ui/icons/AddBox';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteConfirmationDialogComponent from './delete-dialog.component.js';
 
-function descendingComparator(a, b, orderBy) {
+function descendingComparator(a, b, orderBy) 
 {
     if (b[orderBy] < a[orderBy]) {
         return -1;
