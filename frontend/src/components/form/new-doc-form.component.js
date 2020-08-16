@@ -57,7 +57,8 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     }, [register, pdfUpload])
 
     const onSubmit = data => {
-        console.log(document)
+        console.log('onSubmit document',document)
+        console.log('onSubmit data', 'data')
         if (document) {
             Api.editDocument(type, document.id, data)
                 .then(c => onSuccessfulSend());
