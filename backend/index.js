@@ -69,8 +69,11 @@ router.get('/documents/:id', async (ctx) => {
             zmienna.body._source[k] = zmienna.body._source[nazwy[k]]
             delete zmienna.body._source[nazwy[k]] 
         }
+        console.log('zmienna.body._source', zmienna.body._source)
         ctx.body = zmienna.body._source;
+        console.log('ctx.body', ctx.body)
         ctx.body.id = zmienna.body._id
+        console.log('ctx.body', ctx.body)
     } catch (e) {
         console.error('tutaj blad!:', e);
         ctx.body = e.toString();
