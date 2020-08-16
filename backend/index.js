@@ -69,9 +69,7 @@ router.get('/documents/:id', async (ctx) => {
             zmienna.body._source[k] = zmienna.body._source[nazwy[k]]
             delete zmienna.body._source[nazwy[k]] 
         }
-        console.log('zmienna.body._source', zmienna.body._source)
         ctx.body = zmienna.body._source;
-        console.log('ctx.body', ctx.body)
         ctx.body.id = zmienna.body._id
         console.log('ctx.body', ctx.body)
     } catch (e) {
@@ -327,6 +325,7 @@ router.post('/lad/search', async (ctx) => {
 
 
 router.post('/lad/:id', upload.single('pdf'), (ctx) => {
+  console.log('ctx', ctx)
   console.log('id', ctx.params.id)
   console.log(ctx.request)
   console.log(ctx.request.body)

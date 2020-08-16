@@ -52,7 +52,6 @@ export default class Api {
     static _postFormData(relativeUrl, data) {
         var formData = new FormData();
         Object.keys(data).forEach(key => formData.append(key, data[key]));
-
         return axios.post(`${this.baseUrl}/${relativeUrl}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
@@ -61,6 +60,9 @@ export default class Api {
     }
 
     static _postJsonData(relativeUrl, jsonData) {
+        console.log('_postJsonData')
+        console.log('jsonData', jsonData)
+        console.log('relativeUrl', relativeUrl)
         return axios.post(`${this.baseUrl}/${relativeUrl}`, jsonData, {
             headers: {
                 'Content-Type': 'application/json',
