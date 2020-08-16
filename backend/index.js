@@ -324,15 +324,24 @@ router.post('/lad/search', async (ctx) => {
 });
 
 
-router.post('/lad/:id', upload.single('pdf'), (ctx) => {
+router.post('/lad/:id', upload.single('pdf'), async (ctx) => {
   console.log('ctx', ctx)
   console.log('id', ctx.params.id)
   console.log(ctx.request)
   console.log(ctx.request.body)
-  console.log('ctx.req.file', ctx.req.file);
-
+  await updateDocument(ctx);
   ctx.status = 200
 });
+
+async function updateDocument(ctx){
+    await client.update({
+    index: 'documents',
+    id: ctx.params.id,
+        body: {
+            doc: ctx.request.body
+        }
+    })
+}
 
 router.post('/ssd', upload.single('pdf'), (ctx) => {
   console.log(ctx.request)
