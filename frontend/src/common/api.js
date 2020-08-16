@@ -38,7 +38,7 @@ export default class Api {
         console.log('type', type)
         console.log('id', id)
         console.log('data', data)
-        return this._postJsonData(`${type.toLowerCase()}/${id}`)
+        return this._postJsonData(`${type.toLowerCase()}/${id}`, data)
     }
 
     static saveCrawlerConfig(data) {
