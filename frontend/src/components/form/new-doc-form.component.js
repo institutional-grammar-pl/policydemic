@@ -18,16 +18,29 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     const [infoDate, setInfoDate] = React.useState(document ? document.infoDate : undefined);
     const [scrapDate, setScrapDate] = React.useState(document ? document.scrapDate : undefined);
 
+    const selectDate = (v) => {
+        const offset = v.getTimezoneOffset() * 60 * 1000
+        return new Date(v - offset).toISOString().substr(0,10)
+    }
+    const selectDateFunnyFormat = (v) => {
+        const offset = v.getTimezoneOffset() * 60 * 1000
+        return new Date(v - offset).toISOString().split(/[.T]/).splice(0, 2).join(' ')
+    }
+
     const handleInfoDateChange = (date) => {
+        date = selectDate(date);
         setInfoDate(date);
         console.log('infoDate', date)
-        setValue("infoDate", date.toISOString());
+        setValue("infoDate", date);
     };
+
     const handleScrapDateChange = (date) => {
+        date = selectDateFunnyFormat(date);
         setScrapDate(date);
         console.log('scrapDate', date)
-        setValue("scrapDate", date.toISOString());
+        setValue("scrapDate", date);
     };
+
 
     const { register, handleSubmit, setValue } = useForm({
         defaultValues: document ? {

@@ -57,23 +57,24 @@ router.get('/autocomplete/translationTypes', (ctx) => {
 })
 
 router.get('/documents/:id', async (ctx) => {
-    console.log('id', ctx.params.id)
+    console.log('get id', ctx.params.id)
     try {
-        let zmienna = await client.get({
+        const query = await client.get({
             index: 'documents',
             id: ctx.params.id
         })
-        nazwy = {webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
-        originalText: 'original_text'}
-        for (k in nazwy) {
-            zmienna.body._source[k] = zmienna.body._source[nazwy[k]]
-            delete zmienna.body._source[nazwy[k]] 
+
+        const body = ctx.body = { id: query.body._id, ...query.body._source }
+        const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
+            originalText: 'original_text' }
+
+        for (k in vars) {
+            body[k] = body[vars[k]]
+            delete body[vars[k]] 
         }
-        ctx.body = zmienna.body._source;
-        ctx.body.id = zmienna.body._id
-        console.log('ctx.body', ctx.body)
+        ctx.status = 200
     } catch (e) {
-        console.error('tutaj blad!:', e);
+        console.error('get id ', ctx.params.id, ' threw error: ', e);
         ctx.body = e.toString();
         ctx.status = 422;
     }
@@ -319,29 +320,35 @@ router.post('/ssd/search', upload.none(), async (ctx) => {
 });
 
 router.post('/lad/:id', upload.single('pdf'), async (ctx) => {
-  console.log('ctx', ctx)
-  console.log('id', ctx.params.id)
-  console.log(ctx.request)
-  console.log(ctx.request.body)
+  console.log('post /lad/', ctx.params.id);
   await updateDocument(ctx);
   ctx.status = 200
 });
 
 router.post('/ssd/:id', upload.single('pdf'), async (ctx) => {
-  console.log('ctx', ctx)
-  console.log('id', ctx.params.id)
-  console.log(ctx.request)
-  console.log(ctx.request.body)
+  console.log('post /ssd/', ctx.params.id);
   await updateDocument(ctx);
   ctx.status = 200
 });
 
 async function updateDocument(ctx){
+
+    const body = { ...ctx.request.body }
+    const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
+        originalText: 'original_text' }
+
+    for (k in vars) {
+        body[vars[k]] = body[k]
+        delete body[k] 
+    }
+
+    console.log('update document ', ctx.params.id, body)
+
     await client.update({
         index: 'documents',
         id: ctx.params.id,
         body: {
-            doc: ctx.request.body
+            doc: body
         }
     })
 }
