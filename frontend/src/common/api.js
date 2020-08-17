@@ -19,16 +19,6 @@ export default class Api {
     }
 
     static getSearchResults(type, data) {
-
-        /*var rows = [
-            Api.createDataForRow(1, "International Labour Organization", new Date(1995, 4, 4), "english", "cinemas", "Canada"),
-            Api.createDataForRow(2, "Coronavirus Government Response Tracker", new Date(1998, 0, 14), "french", "pubs", "Italy"),
-            Api.createDataForRow(3, "Coronavirus Government Response Tracker", new Date(1990, 3, 24), "french", "pubs", "Italy")
-        ];
-
-        return new Promise((resolve, reject) => {
-            setTimeout(resolve, 100, rows);
-        });*/
         console.log('getSearchResults', type, data)
         return this._postJsonData(type.toLowerCase() + '/search', data).then((request) => request.data)
     }
@@ -60,9 +50,6 @@ export default class Api {
     }
 
     static _postJsonData(relativeUrl, jsonData) {
-        console.log('_postJsonData')
-        console.log('jsonData', jsonData)
-        console.log('relativeUrl', relativeUrl)
         return axios.post(`${this.baseUrl}/${relativeUrl}`, jsonData, {
             headers: {
                 'Content-Type': 'application/json',
@@ -71,10 +58,6 @@ export default class Api {
     }
 
     static getAutocompleteOptions(collectionName){
-        // if (collectionName == 'webpages') {
-        //     return Promise.resolve({data: [{"name":"google.com","value":"google.com"},{"name":"test","value":"test_webpage.com"},{"name":"bing.com","value":"bing.com"}]});
-        // }
-
         return axios.get(`${this.baseUrl}/autocomplete/${collectionName}`);
     }
 

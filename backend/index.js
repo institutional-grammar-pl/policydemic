@@ -84,10 +84,6 @@ router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
 
-router.get('/', (ctx) => {
-  ctx.body = "Hello world!"
-})
-
 /*router.post('/crawler/saveConfig', upload.none(), (ctx) => {
   console.log(ctx.request)
   console.log(ctx.request.body)
@@ -102,7 +98,7 @@ router.get('/', (ctx) => {
   ctx.status = 200
 });*/
 
-router.get('/populate', (ctx) => {
+/*router.get('/populate', (ctx) => {
     populate().then(r => console.log(r)).catch(console.log)
     ctx.status = 200
 })
@@ -228,7 +224,8 @@ async function populate (){
     await client.indices.refresh({
         index: 'documents'
     })
-}
+}*/
+
 async function getDocuments(ctx, documentType) {
     const data = await fetchDocumentsFromElastic(ctx.request.body, documentType)
         .catch(console.log)
@@ -239,12 +236,6 @@ async function getDocuments(ctx, documentType) {
             console.log("Error " + error)
         })
 }
-
-router.post('/ssd/search', upload.none(), async (ctx) => {
-    console.log(ctx.request.body)
-    await getDocuments(ctx, "secondary");
-});
-
 
 function parseData(data){
     const parsedData = [];
@@ -262,11 +253,13 @@ function parseData(data){
     });
     return parsedData;
 }
+
 async function fetchDocumentsFromElastic(body, documentType){
     let params = constructParams(body, documentType)
     let request = await client.search(params);
     return request.body.hits.hits;
 }
+
 function constructParams(body, documentType){
     let params = {
         index: 'documents',
@@ -317,12 +310,13 @@ function constructParams(body, documentType){
 
 router.post('/lad/search', async (ctx) => {
     console.log(ctx.request)
-    // ctx.body = [{"id":"eKQvl3MBnbyDoKwL3lQ2","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"},{"id":"caTSnnMBnbyDoKwLrmz8","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"},{"id":"-aSkq3MBnbyDoKwLq3yq","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"}]
-    // ctx.status  = 200
-
     await getDocuments(ctx, "legalact");
 });
 
+router.post('/ssd/search', upload.none(), async (ctx) => {
+    console.log(ctx.request.body)
+    await getDocuments(ctx, "secondary");
+});
 
 router.post('/lad/:id', upload.single('pdf'), async (ctx) => {
   console.log('ctx', ctx)
@@ -333,23 +327,24 @@ router.post('/lad/:id', upload.single('pdf'), async (ctx) => {
   ctx.status = 200
 });
 
+router.post('/ssd/:id', upload.single('pdf'), async (ctx) => {
+  console.log('ctx', ctx)
+  console.log('id', ctx.params.id)
+  console.log(ctx.request)
+  console.log(ctx.request.body)
+  await updateDocument(ctx);
+  ctx.status = 200
+});
+
 async function updateDocument(ctx){
     await client.update({
-    index: 'documents',
-    id: ctx.params.id,
+        index: 'documents',
+        id: ctx.params.id,
         body: {
             doc: ctx.request.body
         }
     })
 }
-
-router.post('/ssd', upload.single('pdf'), (ctx) => {
-  console.log(ctx.request)
-  console.log(ctx.request.body)
-
-  ctx.status = 200
-});
-
 
 module.exports = constructParams;
 app

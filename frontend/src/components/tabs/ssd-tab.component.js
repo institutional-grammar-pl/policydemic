@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import SearchFormComponent from '../search/search-form.component.js';
-import SearchResultsListComponent from '../search/search-results-list.component.js';
+import SearchResultsListComponent from '../search/search-results-list.component'
 import { Container } from '@material-ui/core';
 import NewDocDialogComponent from '../form/new-doc-dialog.component.js';
+import EditDocDialogComponent from '../form/edit-doc-dialog.component.js';
 import NewDocFormComponent from '../form/new-doc-form.component.js';
 import { useFormDialog } from '../../common/hooks/form-dialog-hook';
-import EditDocDialogComponent from "../../components/form/edit-doc-dialog.component";
 
 import Api from '../../common/api.js';
 
@@ -52,8 +52,8 @@ export default function SsdTabComponent() {
             headerCaption="SSD"
             onAddNewItemClick={handleOpenDialog}
             onEdit={documentId => setEditedDocumentId(documentId)}
-            searchResultsList={searchResults}
             onDelete={handleOnDelete}
+            searchResultsList={searchResults}
         />
     </Container>);
 }
