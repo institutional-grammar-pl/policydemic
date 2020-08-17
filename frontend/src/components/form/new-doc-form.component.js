@@ -20,10 +20,12 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
     const handleInfoDateChange = (date) => {
         setInfoDate(date);
+        console.log('infoDate', date)
         setValue("infoDate", date.toISOString());
     };
     const handleScrapDateChange = (date) => {
         setScrapDate(date);
+        console.log('scrapDate', date)
         setValue("scrapDate", date.toISOString());
     };
 
@@ -38,7 +40,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             country: document.country,
             language: document.language,
             translationType: document.translationType,
-            translation: document.translation,
+            translated_text: document.translated_text,
             original_text: document.originalText,
         } : undefined
     });
@@ -240,7 +242,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
                     <Grid container item xs={12}>
                         <TextField
-                            name="translation"
+                            name="translated_text"
                             inputRef={register}
                             label="Translation"
                             InputLabelProps={{
