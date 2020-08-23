@@ -12,20 +12,19 @@ import Api from "../../common/api";
 import AsyncAutocomplete from "./async-autocomplete.component";
 import UploadPdfComponent from './upload-pdf.component';
 
+const selectDate = (v) => {
+    const offset = v.getTimezoneOffset() * 60 * 1000
+    return new Date(v - offset).toISOString().substr(0,10)
+}
+const selectDateTime = (v) => {
+    const offset = v.getTimezoneOffset() * 60 * 1000
+    return new Date(v - offset).toISOString().split(/[.T]/).splice(0, 2).join(' ')
+}
 
 export default function NewDocFormComponent({ document, type, onSuccessfulSend }) {
     const pdfUpload = type === "LAD";
     const [infoDate, setInfoDate] = React.useState(document ? document.infoDate : undefined);
     const [scrapDate, setScrapDate] = React.useState(document ? document.scrapDate : undefined);
-
-    const selectDate = (v) => {
-        const offset = v.getTimezoneOffset() * 60 * 1000
-        return new Date(v - offset).toISOString().substr(0,10)
-    }
-    const selectDateFunnyFormat = (v) => {
-        const offset = v.getTimezoneOffset() * 60 * 1000
-        return new Date(v - offset).toISOString().split(/[.T]/).splice(0, 2).join(' ')
-    }
 
     const handleInfoDateChange = (date) => {
         date = selectDate(date);
@@ -35,7 +34,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     };
 
     const handleScrapDateChange = (date) => {
-        date = selectDateFunnyFormat(date);
+        date = selectDateTime(date);
         setScrapDate(date);
         console.log('scrapDate', date)
         setValue("scrapDate", date);
@@ -148,7 +147,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             <KeyboardDatePicker
                                 disableToolbar
                                 variant="inline"
-                                format="MM/dd/yyyy"
+                                format="yyyy-MM-dd"
                                 margin="normal"
                                 name="infoDate"
                                 label="Info date"
@@ -164,7 +163,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             <KeyboardDatePicker
                                 disableToolbar
                                 variant="inline"
-                                format="MM/dd/yyyy"
+                                format="yyyy-MM-dd"
                                 margin="normal"
                                 name="scrapDate"
                                 label="Scrap date"

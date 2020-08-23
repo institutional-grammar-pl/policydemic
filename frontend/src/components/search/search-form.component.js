@@ -13,65 +13,66 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import AsyncAutocomplete from '../form/async-autocomplete.component';
 
+const selectDate = (v) => {
+    const offset = v.getTimezoneOffset() * 60 * 1000
+    return new Date(v - offset).toISOString().substr(0,10)
+}
+
 export default function SearchFormComponent({ type, onSearch, onReset }) {
+    const aWeekAgo = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000);
+    const { register, handleSubmit, errors, reset, setValue, control } = useForm();
 
-    const aWeekAgo = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000)
-    const [formData, setFormData] = React.useState({});
-
-    const setFDValue = (k, v, xx) => {
-        setValue(k, v)
-        if (v.constructor === Date) {
-            const offset = v.getTimezoneOffset() * 60 * 1000
-            v = new Date(v - offset).toISOString().substr(0,10)
-            // formData[k] = v
-            // return
-        }
-        // const newObj = { ...formData, [k]: v }
-        // setFormData(newObj)
-        formData[k] = v
-        // setFormData(formData)
-        // console.log(k,v,xx, formData)
-    }
-
-    const [selectedDateFrom, setSelectedDateFrom] = React.useState(aWeekAgo);
+    const [selectedDateFrom, setSelectedDateFrom] = React.useState(selectDate(aWeekAgo));
     const handleChangeDateFrom = (date) => {
+        date = selectDate(date);
         setSelectedDateFrom(date);
-        setFDValue("infoDateFrom", date, 'idf');
+        setValue("infoDateFrom", date);
     };
 
-    const [selectedDateTo, setSelectedDateTo] = React.useState(new Date());
+    const [selectedDateTo, setSelectedDateTo] = React.useState(selectDate(new Date()));
     const handleChangeDateTo = (date) => {
+        date = selectDate(date);
         setSelectedDateTo(date);
-        setFDValue("infoDateTo", date, 'idt');
+        setValue("infoDateTo", date);
     };
 
     const onResetClicked = (event) => {
-        console.log("reset!")
-        setFormData({})
-        setSelectedDateFrom(aWeekAgo);
-        setSelectedDateTo(new Date());
-
         document.getElementById("search-form").reset();
+
+        const buttons = document.querySelectorAll('#search-form .MuiAutocomplete-root .MuiAutocomplete-clearIndicatorDirty')
+        buttons.forEach((button) => button.click());
+
         reset();
+        
+        handleChangeDateFrom(aWeekAgo);
+        handleChangeDateTo(new Date());
 
         onReset();
     };
 
-    const onSubmit = (reactFormData) => {
-        const data = {...formData}
-        if (data.keywords != undefined) {
-        	data.keywords = data.keywords.split(',')
-        }
+    const onSubmit = (data) => {
         if (data.keywords == "") {
-        	data.keywords = undefined
+            data.keywords = undefined
+        }
+        if (data.keywords != undefined) {
+            data.keywords = data.keywords.split(',')
         }
         onSearch(data);
     }
 
-    const { register, handleSubmit, errors, reset, setValue, control } = useForm();
+    useEffect(() => {
+        register({ name: "infoDateFrom"  });
+        register({ name: "infoDateTo" });
+        register({ name: "web_page" });
 
-    setFDValue('infoDateFrom', selectedDateFrom, 'initial');
-    setFDValue('infoDateTo', selectedDateTo, 'initial');
+        register({ name: "language" });
+        register({ name: "country" });
+        register({ name: "keywords" });
+
+    }, [register])
+
+    setValue('infoDateFrom', selectedDateFrom);
+    setValue('infoDateTo', selectedDateTo);
 
     return (
         <form id="search-form" onSubmit={handleSubmit(onSubmit)}>
@@ -84,41 +85,19 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
 
                 <Typography variant="h5" gutterBottom >
                     Search
-                    </Typography>
+                </Typography>
 
                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
                     <Grid container justify="space-around">
-                        {/*<Controller*/}
-                        {/*    control={control}*/}
-                        {/*    name="infoDateFrom"*/}
-                        {/*    as={*/}
-                        {/*        <KeyboardDatePicker*/}
-                        {/*            disableToolbar*/}
-                        {/*            variant="inline"*/}
-                        {/*            format="yyyy-MM-dd"*/}
-                        {/*            margin="normal"*/}
-                        {/*            id="info-date-from"*/}
-                        {/*            name="infoDateFrom"*/}
-                        {/*            label="Info date from"*/}
-                        {/*            onChange={() => {}}*/}
-                        {/*            value={() => {}}*/}
-                        {/*            KeyboardButtonProps={{*/}
-                        {/*                'aria-label': 'change date',*/}
-                        {/*            }}*/}
-                        {/*        />*/}
-                        {/*    }*/}
-                        {/*/>*/}
-
                         <KeyboardDatePicker
                             disableToolbar
                             variant="inline"
                             format="yyyy-MM-dd"
                             margin="normal"
-                            id="info-date-from"
                             name="infoDateFrom"
                             label="Info date from"
-                            onChange={handleChangeDateFrom}
                             value={selectedDateFrom}
+                            onChange={handleChangeDateFrom}
                             KeyboardButtonProps={{
                                 'aria-label': 'change date',
                             }}
@@ -129,12 +108,10 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             variant="inline"
                             format="yyyy-MM-dd"
                             margin="normal"
-                            id="info-date-to"
                             name="infoDateTo"
-                            // ref={register({ name: 'infoDateTo' })}
                             label="Info date to"
-                            onChange={handleChangeDateTo}
                             value={selectedDateTo}
+                            onChange={handleChangeDateTo}
                             KeyboardButtonProps={{
                                 'aria-label': 'change date',
                             }}
@@ -145,17 +122,17 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                         <AsyncAutocomplete
                             name="web_page"
                             collectionName="webpages"
+                            inputRef={register}
                             style={{ width: 300 }}
                             openOnFocus
                             fullWidth
                             multiple
+                            onChange={(_, opts) => setValue("web_page", opts.map(o => o.value))}
                             renderInput={(params) =>
                                 <TextField
                                     {...params}
-                                    name="web_page"
                                     inputRef={register}
                                     label="Web page" margin="normal" />}
-                            onChange={(_, opts) => setFDValue("web_page", opts.map(o => o.value))}
                         />
 
                         <AsyncAutocomplete
@@ -167,11 +144,10 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             multiple
                             renderInput={(params) =>
                                 <TextField
-                                    name="language"
                                     {...params}
                                     inputRef={register}
                                     label="Language" margin="normal" />}
-                            onChange={(_, opts) => setFDValue("language", opts.map(o => o.value))}
+                            onChange={(_, opts) => setValue("language", opts.map(o => o.value))}
                         />
 
                         <AsyncAutocomplete
@@ -187,7 +163,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                     name="country"
                                     inputRef={register}
                                     label="Country" margin="normal" />}
-                            onChange={(e, opts) => setFDValue("country", opts.map(o => o.value), e)}
+                            onChange={(e, opts) => setValue("country", opts.map(o => o.value), e)}
                         />
 
                         <TextField
@@ -195,7 +171,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             inputRef={register}
                             label="Any phrase"
                             margin="normal"
-                            onChange={(event) => setFDValue("keywords", event.target.value)}
+                            onChange={(event) => setValue("keywords", event.target.value)}
                             aria-invalid={errors['keywords'] ? "true" : "false"}
                         />
                     </Grid>
