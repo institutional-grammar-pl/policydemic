@@ -64,4 +64,8 @@ export default class Api {
     static getDocumentById(documentId){
         return axios.get(`${this.baseUrl}/documents/${documentId}`);
     }
+
+    static deleteDocuments(documentIds){
+        return this._postJsonData('delete', {ids:documentIds})
+    }
 }

@@ -29,7 +29,8 @@ export default function LadTabComponent() {
     }
 
     const handleOnDelete = (selected) => {
-        alert(selected.join(','));
+        //alert(selected.join(','));
+        Api.deleteDocuments(selected)
     }
 
     return (<Container>

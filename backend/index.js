@@ -85,6 +85,20 @@ router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
 
+
+router.post('/delete', async (ctx) => {
+    console.log(ctx.request.body)
+    for (id of ctx.request.body.ids) {
+        console.log(id)
+        await client.delete({
+            id: id,
+            index: 'documents'
+        })
+    }
+    ctx.status = 200
+    ctx.body = 'OK'
+})
+
 /*router.post('/crawler/saveConfig', upload.none(), (ctx) => {
   console.log(ctx.request)
   console.log(ctx.request.body)
