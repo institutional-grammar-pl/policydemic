@@ -73,7 +73,9 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     const onSubmit = data => {
         console.log('onSubmit document',document)
         console.log('onSubmit data', data)
-        console.log(data.keywords)
+        if (data.keywords == undefined) {
+            data.keywords = ''
+        }
         data.keywords = data.keywords.split(',')
         console.log(data.keywords)
         if (document) {

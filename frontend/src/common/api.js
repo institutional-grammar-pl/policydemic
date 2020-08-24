@@ -4,6 +4,9 @@ export default class Api {
     static baseUrl = ""
 
     static postDocument(type, data) {
+        console.log('postDocument')
+        console.log('type', type)
+        console.log('data', data)
         return this._postJsonData(type.toLowerCase(), data);
     }
 
