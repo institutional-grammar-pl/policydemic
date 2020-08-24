@@ -53,6 +53,7 @@ export default class Api {
     }
 
     static _postJsonData(relativeUrl, jsonData) {
+        console.log('_postJsonData', relativeUrl, jsonData)
         return axios.post(`${this.baseUrl}/${relativeUrl}`, jsonData, {
             headers: {
                 'Content-Type': 'application/json',

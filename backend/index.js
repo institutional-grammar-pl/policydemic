@@ -333,8 +333,8 @@ router.post('/ssd/search', upload.none(), async (ctx) => {
     await getDocuments(ctx, "secondary");
 });
 
-router.post('/lad', upload.single('pdf'), async (ctx) => {
-  console.log('post /lad/');
+router.post('/lad', async (ctx) => {
+  console.log('post /lad');
   await postDocument(ctx);
   ctx.status = 200
 });
@@ -354,7 +354,7 @@ router.post('/ssd/:id', upload.single('pdf'), async (ctx) => {
 
 async function postDocument(ctx){
     const body = { ...ctx.request.body }
-    console.log(bodt)
+    console.log(body)
     const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
         originalText: 'original_text' }
 
