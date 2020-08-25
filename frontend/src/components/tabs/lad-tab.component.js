@@ -30,7 +30,12 @@ export default function LadTabComponent() {
 
     const handleOnDelete = (selected) => {
         //alert(selected.join(','));
-        Api.deleteDocuments(selected)
+        Api.deleteDocuments(selected).catch(()=>{}).then(()=>{
+            console.log(searchResults)
+            const newSearchResults = searchResults.filter(row=>!selected.includes(row.id))
+            console.log(newSearchResults)
+            setSearchResults(newSearchResults)
+        })
     }
 
     return (<Container>

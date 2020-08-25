@@ -88,12 +88,18 @@ router.get('/', (ctx) => {
 
 router.post('/delete', async (ctx) => {
     console.log(ctx.request.body)
-    for (id of ctx.request.body.ids) {
-        console.log(id)
-        await client.delete({
-            id: id,
-            index: 'documents'
-        })
+    try {
+        for (id of ctx.request.body.ids) {
+            console.log(id)
+            await client.delete({
+                id: id,
+                index: 'documents'
+            })
+        }
+    } catch (e) {
+        ctx.status = e.meta.statusCode
+        ctx.body = e.toString()
+        return
     }
     ctx.status = 200
     ctx.body = 'OK'
