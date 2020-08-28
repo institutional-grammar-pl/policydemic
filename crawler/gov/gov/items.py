@@ -1,8 +1,12 @@
 import os
+from configparser import ConfigParser
 
 import scrapy
 
-from config import Config
+cfg = ConfigParser()
+cfg.read('config.ini')
+pdf_dir = cfg['paths']['pdf_database']
+
 
 class PdfItem(scrapy.Item):
     file_urls = scrapy.Field()
@@ -10,4 +14,4 @@ class PdfItem(scrapy.Item):
     date = scrapy.Field(serializer=str)
 
     def save_path(self):
-        return os.path.join(Config.PDFDatabase_DIR, self['date'], self['file_urls'][0].split('/')[-1])
+        return os.path.join(pdf_dir, self['date'], self['file_urls'][0].split('/')[-1])

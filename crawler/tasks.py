@@ -1,10 +1,10 @@
 import os
-import sys
 from pathlib import Path
 import json
 from datetime import datetime
+import logging
+from configparser import ConfigParser
 
-import requests
 from crawler.cgrt import CGRT
 from billiard.context import Process
 from scrapy import signals
@@ -17,9 +17,10 @@ from crawler.COVIDPolicyWatch.PolicyWatchSpider import PolicyWatchSpider
 from scheduler.celery import app
 from celery import group
 
-from config import Config
+cfg = ConfigParser()
+cfg.read('config.ini')
+pdf_dir = cfg['paths']['pdf_database']
 
-import logging
 
 class CrawlerProcess(Process):
     """ This class allows to run scrapy Crawlers using multiprocessing from billiard """
@@ -30,8 +31,8 @@ class CrawlerProcess(Process):
         os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'crawler.gov.gov.settings')
         settings = get_project_settings()
         self.crawler = Crawler(spider.__class__, settings)
-        # self.crawler.signals.connect(spider.item_scraped, signal=signals.item_scraped)
-        # self.crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
+        self.crawler.signals.connect(spider.item_scraped, signal=signals.item_scraped)
+        self.crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
         self.spider = spider
 
     def run(self):
@@ -57,11 +58,13 @@ def crawl_gov_mp():
     process.start()
     process.join()
 
+
 @app.task
 def run_crawl_gov_du():
     run_task = crawl_gov_du.s()
     run_task.link(update_crawling_date.s('GovDuSpider'))
     run_task.delay()
+
 
 @app.task
 def run_crawl_gov_mp():
@@ -72,37 +75,42 @@ def run_crawl_gov_mp():
 
 @app.task
 def crawl_gov():
-    """ Starts crawling process which downloads pdfs from all websites in domain gov.pl """
+    """Starts crawling process which downloads pdfs from all websites in domain gov.pl"""
     crawler = GovCrawler()
     process = CrawlerProcess(crawler)
     process.start()
     process.join()
 
 
-#download PDF file from url
+
 @app.task
-def download_pdf(url, directory = Config.PDFDatabase_DIR, filename = 'document.pdf', chunk_size = 1024):
-    command = 'curl -o ' + os.path.join(directory, filename) +' -L -O ' + url
+def download_pdf(url, directory=pdf_dir, filename='document.pdf', chunk_size=1024):
+    """download PDF file from url"""
+    command = 'curl -o ' + os.path.join(directory, filename) + ' -L -O ' + url
     print(command)
     os.system(command)
+
 
 '''
 function takes records from Coronavirus Government Response Tracker csv file
 with specified country and date range 
 date format is YYYYMMDD , for example "20200624"
 '''
+
+
 @app.task
 def download_cgrt_data(country, date_from, date_to):
-    #download records from Coronavirus Government Response Tracker
+    # download records from Coronavirus Government Response Tracker
     date_from = last_crawling('CGRT').split('-').join()
     date_to = datetime.today().strftime('%Y%m%d')
     records = CGRT.downloadCgrtRecords(country, date_from, date_to)
 
-    #send downloaded data to nlp engine
+    # send downloaded data to nlp engine
     return CGRT.saveIntoDatabase(records)
 
+
 @app.task
-def crawl_cgrt_countries(separate_countries = False):
+def crawl_cgrt_countries(separate_countries=False):
     date_from = last_crawling('CGRT').split('-').join()
     date_to = datetime.today().strftime('%Y%m%d')
     countries = ['Venezuela']
@@ -118,7 +126,7 @@ def crawl_cgrt_countries(separate_countries = False):
     is_successful = result.susscessful()
     result.forget()
     return is_successful
-            
+
 
 @app.task
 def crawl_policy_watch():
@@ -129,18 +137,20 @@ def crawl_policy_watch():
     process.start()
     process.join()
 
+
 def last_crawling(crawler_name):
-    crawler_status_path = os.path.join(Config.crawler_status_DIR, crawler_name+'.json')
+    crawler_status_path = os.path.join(pdf_dir, crawler_name + '.json')
     with open(crawler_status_path) as status_file:
         status_json = json.load(status_file)
         last_crawling_date = status_json['last_crawling_date']
 
     return last_crawling_date
 
+
 @app.task
 def update_crawling_date(crawling_status, crawler_name):
     curr_date = datetime.today().strftime('%Y-%m-%d')
-    crawler_status_path = os.path.join(Config.crawler_status_DIR, crawler_name+'.json')
+    crawler_status_path = os.path.join(pdf_dir, crawler_name + '.json')
     with open(crawler_status_path) as status_file:
         status_json = json.load(status_file)
     status_json['last_crawling_date'] = curr_date
