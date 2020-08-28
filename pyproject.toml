@@ -6,6 +6,7 @@ authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+scrapy = "2.^2.0"
 celery = "^4.4.5"
 elasticsearch = "^7.8.0"
 requests = "^2.24.0"
@@ -16,6 +17,7 @@ pandas = "^1.0.5"
 ibm-watson = "^4.5.0"
 textdistance = "^4.2.0"
 "pdfminer.six" = "^20200726"
+
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"

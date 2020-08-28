@@ -47,10 +47,11 @@ class PolicyWatchSpider(scrapy.Spider):
 
 
 
-# class CreateInsertDocumentTaskPipeline:
-#     """Pipeline creates  Celery task which inserts document into index"""
-#     def process_item(self, item, spider):
-#         json_item = json.dumps(item)
-#         index_document(json_item)
-#         return item
+class CreateInsertDocumentTaskPipeline:
+    """Pipeline creates  Celery task which inserts document into index"""
+    def process_item(self, item, spider):
+        json_item = json.dumps(item)
+        from nlpengine.tasks import index_document
+        index_document(json_item)
+        return item
         

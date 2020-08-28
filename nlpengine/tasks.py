@@ -1,28 +1,24 @@
 import os
 import datetime
-
-from elasticsearch import Elasticsearch
-from celery import chain
-from celery.task import subtask
 from configparser import ConfigParser
 from datetime import datetime
+
+from elasticsearch import Elasticsearch
 
 from scheduler.celery import app
 import crawler.tasks as crawler_tasks
 import pdfparser.tasks as pdfparser_tasks
 import translator.tasks as translator_tasks
 
-nlp_config = ConfigParser()
-nlp_config.read('nlpengine/config.ini')
-from config import Config as app_config
+cfg = ConfigParser()
+cfg.read('config.ini')
 
-es_hosts = nlp_config['elasticsearch']['hosts']
-# pdf_rootdir = config['pdf_database']['rootdir']
-pdf_rootdir = app_config.PDFDatabase_DIR
+es_hosts = cfg['elasticsearch']['hosts']
+pdf_dir = cfg['paths']['pdf_database']
 es = Elasticsearch(hosts=es_hosts)
 
-INDEX_NAME = nlp_config['elasticsearch']['INDEX_NAME']
-DOC_TYPE = nlp_config['elasticsearch']['DOC_TYPE']
+INDEX_NAME = cfg['elasticsearch']['index_name']
+DOC_TYPE = cfg['elasticsearch']['doc_type']
 
 SCRAP_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -39,14 +35,15 @@ def process_pdf_link(pdf_url):
 
     pdf_chain(pdf_url)
 
+
 @app.task
 def download_pdf(pdf_url):
     pdf_filename = os.path.basename(pdf_url)
-    pdf_path = os.path.join(pdf_rootdir, pdf_filename)
+    pdf_path = os.path.join(pdf_dir, pdf_filename)
 
     crawler_tasks.download_pdf.apply(kwargs={
         "url": pdf_url,
-        "directory": pdf_rootdir,
+        "directory": pdf_dir,
         "filename": pdf_filename
     })
 
@@ -69,9 +66,10 @@ def parse_pdf(body):
 def translate_pdf(body):
     original_text = body["original_text"]
 
-    max_n_chars = int(nlp_config["translator"]["max_n_chars_to_translate"])
+    max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
 
-    text_to_translate = (original_text[:max_n_chars] + '<TRUNCATED_DOCUMENT>') if len(original_text) > max_n_chars else original_text
+    text_to_translate = (original_text[:max_n_chars] + '<TRUNCATED_DOCUMENT>') if len(
+        original_text) > max_n_chars else original_text
 
     result = translator_tasks.translate(text_to_translate)
 
@@ -108,11 +106,11 @@ def index_document(body):
     )
 
 
-def update_document(id, body):
+def update_document(doc_id, body):
     """
     Updates a document in Elasticsearch index, applying mentioned changes
 
-    :param id: hash document ID 
+    :param doc_id: hash document ID
     :param body: elements of body to update
     :return response from Elasticsearch
     """
@@ -120,6 +118,6 @@ def update_document(id, body):
     es.update(
         index=INDEX_NAME,
         doc_type=DOC_TYPE,
-        id=id,
+        id=doc_id,
         body=body
     )

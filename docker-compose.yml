@@ -4,8 +4,14 @@ services:
     image: rabbitmq
     ports:
       - "5672:5672"
+  elasticsearch:
+    image: nshou/elasticsearch-kibana
+    ports:
+    volumes:
+
   policydemic:
     build: .
     image: minipw/policydemic:latest
     depends_on:
       - rabbitmq
+      - elasticsearch
