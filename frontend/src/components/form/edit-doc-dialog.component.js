@@ -17,7 +17,7 @@ export default function EditDocDialogComponent({ type, onSuccess, documentId, op
     const [document, setDocument] = useState();    
 
     useEffect(() => {
-        Api.getDocumentById()
+        Api.getDocumentById(documentId)
             .then(response => setDocument(response.data));
     }, [documentId]);  
 

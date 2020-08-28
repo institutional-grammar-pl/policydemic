@@ -6,7 +6,6 @@ const cors = require('@koa/cors');
 const { Client } = require('@elastic/elasticsearch')
 const client = new Client({node: 'http:/localhost:9200'})
 
-
 const app = new Koa();
 const router = new KoaRouter();
 const upload = multer();
@@ -58,19 +57,28 @@ router.get('/autocomplete/translationTypes', (ctx) => {
 })
 
 router.get('/documents/:id', async (ctx) => {
-
-    console.log('dzien dobry get ', ctx.params);
     try {
-
         let zmienna = await client.get({
             index: 'documents',
             id: ctx.params.id
         })
+        nazwy = {webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
+        originalText: 'original_text'}
+        for (k in nazwy) {
+            zmienna.body._source[k] = zmienna.body._source[nazwy[k]]
+            delete zmienna.body._source[nazwy[k]] 
+        }
+  /*      zmienna.body._source.webPage = zmienna.body._source.web_page
+        zmienna.body._source.translationType = zmienna.body._source.translation_type
+        zmienna.body._source.infoDate = zmienna.body._source.info_date
+        zmienna.body._source.scrapDate = zmienna.body._source.scrap_date
+        zmienna.body._source.originalText = zmienna.body._source.original_text
+*/
         ctx.body = zmienna.body._source;
     } catch (e) {
         console.error('tutaj blad!:', e);
-	ctx.body = e.toString();
-	ctx.status = 422;
+        ctx.body = e.toString();
+        ctx.status = 422;
     }
 
 
@@ -140,7 +148,7 @@ async function populate (){
                 document_type: 'legalact',
                 pdf_path: 'test_path',
                 scrap_date: '2020-10-23 10:00:00',
-                info_date: '2020-12-12',
+                info_date: '2020-07-12',
                 country: "Poland",
                 language: "Polish",
                 translation_type: "automatic",
@@ -163,7 +171,7 @@ async function populate (){
             document_type: 'secondary',
             pdf_path: 'test_path',
             scrap_date: '2020-10-05 10:00:00',
-            info_date: '2020-12-15',
+            info_date: '2020-07-15',
             country: "Poland",
             language: "Polish",
             translation_type: "automatic",
@@ -209,7 +217,7 @@ async function populate (){
             document_type: 'secondary',
             pdf_path: 'test_path',
             scrap_date: '2020-01-23 10:00:00',
-            info_date: '2020-02-12',
+            info_date: '2020-07-12',
             country: "Italy",
             language: "Italian",
             translation_type: "automatic",
@@ -232,7 +240,7 @@ async function populate (){
             document_type: 'secondary',
             pdf_path: 'test_path',
             scrap_date: '2020-10-23 10:00:00',
-            info_date: '2020-12-12',
+            info_date: '2020-07-12',
             country: "Poland",
             language: "Polish",
             translation_type: "automatic",
@@ -309,11 +317,11 @@ function constructParams(body, documentType){
     }
 
     let fields = ["web_page", "country", "language", "keywords" ];
-    console.log(body)
+
     for(let i = 0; i < fields.length; i++){
-	
+
         if (body[fields[i]] && body[fields[i]].length > 0) {
-                
+
             let boolStatement = {
                 bool: {
                     should: []
@@ -339,13 +347,13 @@ function constructParams(body, documentType){
     return params
 }
 
-
 router.post('/lad/search', async (ctx) => {
     console.log(ctx.request)
+    // ctx.body = [{"id":"eKQvl3MBnbyDoKwL3lQ2","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"},{"id":"caTSnnMBnbyDoKwLrmz8","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"},{"id":"-aSkq3MBnbyDoKwLq3yq","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"}]
+    // ctx.status  = 200
+    
     await getDocuments(ctx, "legalact");
 });
-
-
 
 module.exports = constructParams;
 app
@@ -355,4 +363,3 @@ app
   .use(router.allowedMethods());
 
 app.listen(8000);
-
