@@ -26,7 +26,8 @@ import AddBoxIcon from '@material-ui/icons/AddBox';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteConfirmationDialogComponent from './delete-dialog.component.js';
 
-function descendingComparator(a, b, orderBy) {
+function descendingComparator(a, b, orderBy) 
+{
     if (b[orderBy] < a[orderBy]) {
         return -1;
     }
@@ -370,7 +371,7 @@ export default function EnhancedTable(props) {
                                             </TableCell>
                                             <TableCell align="right">{row.infoDate}</TableCell>
                                             <TableCell align="right">{row.language}</TableCell>
-                                            <TableCell align="right">{row.keywords.join(', ')}</TableCell>
+                                            <TableCell align="right">{row.keywords}</TableCell>
                                             <TableCell align="right">{row.country}</TableCell>
                                             <TableCell align="right">
                                                 <Tooltip title="Edit">

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import SearchFormComponent from '../search/search-form.component.js';
 import SearchResultsListComponent from '../search/search-results-list.component'
@@ -11,6 +10,7 @@ import { useFormDialog } from '../../common/hooks/form-dialog-hook';
 import Api from '../../common/api.js';
 
 export default function LadTabComponent() {
+
     const [openDialog, handleOpenDialog, handleCloseDialog] = useFormDialog();
     const [editedDocumentId, setEditedDocumentId] = useState();
 
@@ -29,7 +29,13 @@ export default function LadTabComponent() {
     }
 
     const handleOnDelete = (selected) => {
-        alert(selected.join(','));
+        //alert(selected.join(','));
+        Api.deleteDocuments(selected).catch(()=>{}).then(()=>{
+            console.log(searchResults)
+            const newSearchResults = searchResults.filter(row=>!selected.includes(row.id))
+            console.log(newSearchResults)
+            setSearchResults(newSearchResults)
+        })
     }
 
     return (<Container>

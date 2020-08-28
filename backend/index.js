@@ -57,44 +57,27 @@ router.get('/autocomplete/translationTypes', (ctx) => {
 })
 
 router.get('/documents/:id', async (ctx) => {
+    console.log('get id', ctx.params.id)
     try {
-        let zmienna = await client.get({
+        const query = await client.get({
             index: 'documents',
             id: ctx.params.id
         })
-        nazwy = {webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
-        originalText: 'original_text'}
-        for (k in nazwy) {
-            zmienna.body._source[k] = zmienna.body._source[nazwy[k]]
-            delete zmienna.body._source[nazwy[k]] 
+
+        const body = ctx.body = { id: query.body._id, ...query.body._source }
+        const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
+            originalText: 'original_text' }
+
+        for (k in vars) {
+            body[k] = body[vars[k]]
+            delete body[vars[k]] 
         }
-  /*      zmienna.body._source.webPage = zmienna.body._source.web_page
-        zmienna.body._source.translationType = zmienna.body._source.translation_type
-        zmienna.body._source.infoDate = zmienna.body._source.info_date
-        zmienna.body._source.scrapDate = zmienna.body._source.scrap_date
-        zmienna.body._source.originalText = zmienna.body._source.original_text
-*/
-        ctx.body = zmienna.body._source;
+        ctx.status = 200
     } catch (e) {
-        console.error('tutaj blad!:', e);
+        console.error('get id ', ctx.params.id, ' threw error: ', e);
         ctx.body = e.toString();
         ctx.status = 422;
     }
-
-
-  /*ctx.body = JSON.stringify({
-      webPage: "web page test",
-      organization: "organization",
-      section: "section",
-      keywords: ["School Closing", "Shopping restrictions"],
-      infoDate: new Date(2020, 3, 1),
-      scrapDate: new Date(2020, 4, 1),
-      country: "Poland",
-      language: "Polish",
-      translationType: "Google Translate",
-      translation: "translation",
-      originalText: "translation",
-  })*/
 })
 
 
@@ -102,40 +85,41 @@ router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
 
-router.get('/', (ctx) => {
-  ctx.body = "Hello world!"
+
+router.post('/delete', async (ctx) => {
+    console.log(ctx.request.body)
+    try {
+        for (id of ctx.request.body.ids) {
+            console.log(id)
+            await client.delete({
+                id: id,
+                index: 'documents'
+            })
+        }
+    } catch (e) {
+        ctx.status = e.meta.statusCode
+        ctx.body = e.toString()
+        return
+    }
+    ctx.status = 200
+    ctx.body = 'OK'
 })
 
-router.post('/lad', upload.single('pdf'), (ctx) => {
-  console.log(ctx.request)
-  console.log(ctx.request.body)
-  console.log('ctx.req.file', ctx.req.file);
-
-  ctx.status = 200
-});
-
-router.post('/ssd', upload.single('pdf'), (ctx) => {
+/*router.post('/crawler/saveConfig', upload.none(), (ctx) => {
   console.log(ctx.request)
   console.log(ctx.request.body)
 
   ctx.status = 200
 });
-
-router.post('/crawler/saveConfig', upload.none(), (ctx) => {
+*/
+/*router.post('/crawler/run', upload.none(), (ctx) => {
   console.log(ctx.request)
   console.log(ctx.request.body)
 
   ctx.status = 200
-});
+});*/
 
-router.post('/crawler/run', upload.none(), (ctx) => {
-  console.log(ctx.request)
-  console.log(ctx.request.body)
-
-  ctx.status = 200
-});
-
-router.get('/populate', (ctx) => {
+/*router.get('/populate', (ctx) => {
     populate().then(r => console.log(r)).catch(console.log)
     ctx.status = 200
 })
@@ -261,7 +245,8 @@ async function populate (){
     await client.indices.refresh({
         index: 'documents'
     })
-}
+}*/
+
 async function getDocuments(ctx, documentType) {
     const data = await fetchDocumentsFromElastic(ctx.request.body, documentType)
         .catch(console.log)
@@ -273,19 +258,14 @@ async function getDocuments(ctx, documentType) {
         })
 }
 
-router.post('/ssd/search', upload.none(), async (ctx) => {
-    console.log(ctx.request.body)
-    await getDocuments(ctx, "secondary");
-});
-
-
 function parseData(data){
     const parsedData = [];
     if (!data) data = [];
     data.forEach(element => {
         parsedData.push({
             id: element._id,
-            source: element._source.organization,
+            /* source: element._source.organization,*/
+            source: element._source.web_page,
             infoDate: element._source.info_date,
             language: element._source.language,
             keywords: element._source.keywords,
@@ -294,11 +274,13 @@ function parseData(data){
     });
     return parsedData;
 }
+
 async function fetchDocumentsFromElastic(body, documentType){
     let params = constructParams(body, documentType)
     let request = await client.search(params);
     return request.body.hits.hits;
 }
+
 function constructParams(body, documentType){
     let params = {
         index: 'documents',
@@ -349,11 +331,75 @@ function constructParams(body, documentType){
 
 router.post('/lad/search', async (ctx) => {
     console.log(ctx.request)
-    // ctx.body = [{"id":"eKQvl3MBnbyDoKwL3lQ2","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"},{"id":"caTSnnMBnbyDoKwLrmz8","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"},{"id":"-aSkq3MBnbyDoKwLq3yq","source":"Test3","infoDate":"2020-07-12","language":"German","keywords":["covid","bulk"],"country":"Germany"}]
-    // ctx.status  = 200
-    
     await getDocuments(ctx, "legalact");
 });
+
+router.post('/ssd/search', upload.none(), async (ctx) => {
+    console.log(ctx.request.body)
+    await getDocuments(ctx, "secondary");
+});
+
+router.post('/lad', async (ctx) => {
+  console.log('post /lad');
+  await postDocument(ctx);
+  ctx.status = 200
+});
+
+
+router.post('/lad/:id', upload.single('pdf'), async (ctx) => {
+  console.log('post /lad/', ctx.params.id);
+  await updateDocument(ctx);
+  ctx.status = 200
+});
+
+router.post('/ssd/:id', upload.single('pdf'), async (ctx) => {
+  console.log('post /ssd/', ctx.params.id);
+  await updateDocument(ctx);
+  ctx.status = 200
+});
+
+async function postDocument(ctx){
+    const body = { ...ctx.request.body }
+    console.log(body)
+    const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
+        originalText: 'original_text' }
+
+    for (k in vars) {
+        body[vars[k]] = body[k]
+        delete body[k] 
+    }
+
+    console.log('post new document ', body)
+
+    await client.index({
+        index: 'documents',
+        body: {
+            doc: body
+        }
+    })    
+}
+
+async function updateDocument(ctx){
+
+    const body = { ...ctx.request.body }
+    const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
+        originalText: 'original_text' }
+
+    for (k in vars) {
+        body[vars[k]] = body[k]
+        delete body[k] 
+    }
+
+    console.log('update document ', ctx.params.id, body)
+
+    await client.update({
+        index: 'documents',
+        id: ctx.params.id,
+        body: {
+            doc: body
+        }
+    })
+}
 
 module.exports = constructParams;
 app

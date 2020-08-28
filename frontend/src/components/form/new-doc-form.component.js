@@ -12,6 +12,14 @@ import Api from "../../common/api";
 import AsyncAutocomplete from "./async-autocomplete.component";
 import UploadPdfComponent from './upload-pdf.component';
 
+const selectDate = (v) => {
+    const offset = v.getTimezoneOffset() * 60 * 1000
+    return new Date(v - offset).toISOString().substr(0,10)
+}
+const selectDateTime = (v) => {
+    const offset = v.getTimezoneOffset() * 60 * 1000
+    return new Date(v - offset).toISOString().split(/[.T]/).splice(0, 2).join(' ')
+}
 
 export default function NewDocFormComponent({ document, type, onSuccessfulSend }) {
     const pdfUpload = type === "LAD";
@@ -19,13 +27,19 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     const [scrapDate, setScrapDate] = React.useState(document ? document.scrapDate : undefined);
 
     const handleInfoDateChange = (date) => {
+        date = selectDate(date);
         setInfoDate(date);
-        setValue("infoDate", date.toISOString());
+        console.log('infoDate', date)
+        setValue("infoDate", date);
     };
+
     const handleScrapDateChange = (date) => {
+        date = selectDateTime(date);
         setScrapDate(date);
-        setValue("scrapDate", date.toISOString());
+        console.log('scrapDate', date)
+        setValue("scrapDate", date);
     };
+
 
     const { register, handleSubmit, setValue } = useForm({
         defaultValues: document ? {
@@ -38,8 +52,8 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             country: document.country,
             language: document.language,
             translationType: document.translationType,
-            translation: document.translation,
-            "original-text": document.originalText,
+            translated_text: document.translated_text,
+            original_text: document.originalText,
         } : undefined
     });
     useEffect(() => {
@@ -56,15 +70,23 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
     }, [register, pdfUpload])
 
-    const onSubmit = useCallback(data => {
+    const onSubmit = data => {
+        console.log('onSubmit document',document)
+        console.log('onSubmit data', data)
+        if (data.keywords == undefined) {
+            data.keywords = ''
+        }
+        data.keywords = data.keywords.split(',')
+        console.log(data.keywords)
         if (document) {
-            Api.editDocument(type, data)
+            console.log('editDocument in onSubmit')
+            Api.editDocument(type, document.id, data)
                 .then(c => onSuccessfulSend());
         } else {
             Api.postDocument(type, data)
                 .then(c => onSuccessfulSend());
         }
-    }, [type]);
+    };
 
     return (
         <form id={document ? "edit-doc-form" : "new-doc-form"} onSubmit={handleSubmit(onSubmit)}>
@@ -127,7 +149,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             <KeyboardDatePicker
                                 disableToolbar
                                 variant="inline"
-                                format="MM/dd/yyyy"
+                                format="yyyy-MM-dd"
                                 margin="normal"
                                 name="infoDate"
                                 label="Info date"
@@ -143,7 +165,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             <KeyboardDatePicker
                                 disableToolbar
                                 variant="inline"
-                                format="MM/dd/yyyy"
+                                format="yyyy-MM-dd"
                                 margin="normal"
                                 name="scrapDate"
                                 label="Scrap date"
@@ -217,28 +239,24 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                     </Grid>
 
                     <Grid container item xs={12}>
-                        {pdfUpload ? (
-                            <UploadPdfComponent setValue={setValue} name="pdf" />
-                        ) : (
-                                <TextField
-                                    name="original-text"
-                                    inputRef={register}
-                                    label="Original text"
-                                    InputLabelProps={{
-                                        shrink: true,
-                                    }}
-                                    multiline
-                                    rows={8}
-                                    fullWidth
-                                    placeholder=""
-                                    variant="outlined"
-                                />
-                            )}
+
+                        <TextField
+                            name="original_text"
+                            inputRef={register}
+                            label="original text"
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            multiline
+                            rows={8}
+                            fullWidth
+                            variant="outlined"
+                        />
                     </Grid>
 
                     <Grid container item xs={12}>
                         <TextField
-                            name="translation"
+                            name="translated_text"
                             inputRef={register}
                             label="Translation"
                             InputLabelProps={{
