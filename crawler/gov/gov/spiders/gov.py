@@ -10,6 +10,7 @@ from crawler.gov.gov.items import PdfItem
 import time
 import logging
 
+
 class GovDuSpider(scrapy.Spider):
     name = 'govdu'
     start_urls = ['http://dziennikustaw.gov.pl/DU/rok/2020']
@@ -91,7 +92,7 @@ class GovMpSpider(scrapy.Spider):
                 yield PdfItem(file_urls=[url], date=date)
 
 
-class GovCrawler(scrapy.spiders.CrawlSpider):
+class GovPlCrawler(scrapy.spiders.CrawlSpider):
     name = 'gov'
     start_urls = ['http://gov.pl/']
     allowed_domains = ['gov.pl']
@@ -108,3 +109,7 @@ class GovCrawler(scrapy.spiders.CrawlSpider):
     def parse_item(self, response: Response):
         if 'content-type' in response.headers and b'application/pdf' in response.headers['content-type']:
             yield PdfItem(file_urls=[response.url])
+
+
+
+
