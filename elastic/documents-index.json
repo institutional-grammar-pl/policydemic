@@ -49,6 +49,12 @@
             },
             "section": {
                 "type": "keyword"
+            },
+            "status": {
+                "type": "keyword"
+            },
+            "title": {
+                "type": "text"
             }
         }
     }
