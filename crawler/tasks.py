@@ -5,14 +5,13 @@ from datetime import datetime
 import logging
 from configparser import ConfigParser
 
-from crawler.cgrt import CGRT
-from billiard.context import Process
-from scrapy import signals
-from scrapy.crawler import Crawler
-from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor
+from scrapy.settings import Settings
+from scrapy.crawler import CrawlerProcess
 
-from crawler.gov.gov.spiders.gov import GovDuSpider, GovCrawler, GovMpSpider
+from crawler.cgrt import CGRT
+from crawler.gov.gov.spiders.gov import GovDuSpider, GovPlCrawler, GovMpSpider
+from crawler.lad.lad.spiders.lad import LadSpider
 from crawler.COVIDPolicyWatch.PolicyWatchSpider import PolicyWatchSpider
 from scheduler.celery import app
 from celery import group
@@ -22,22 +21,22 @@ cfg.read('config.ini')
 pdf_dir = cfg['paths']['pdf_database']
 
 
-class CrawlerProcess(Process):
-    """ This class allows to run scrapy Crawlers using multiprocessing from billiard """
-
-    def __init__(self, spider):
-        logging.info("CrawlerProcess")
-        Process.__init__(self)
-        os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'crawler.gov.gov.settings')
-        settings = get_project_settings()
-        self.crawler = Crawler(spider.__class__, settings)
-        self.crawler.signals.connect(spider.item_scraped, signal=signals.item_scraped)
-        self.crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
-        self.spider = spider
-
-    def run(self):
-        self.crawler.crawl(self.spider)
-        reactor.run()
+# class CrawlerProcess(Process):
+#     """ This class allows to run scrapy Crawlers using multiprocessing from billiard """
+#
+#     def __init__(self, spider):
+#         Process.__init__(self)
+#         if isinstance(spider, LadSpider):
+#             os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'crawler.lad.lad.settings')
+#         else:
+#             os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'crawler.gov.gov.settings')
+#         settings = get_project_settings()
+#         self.crawler = Crawler(spider.__class__, settings)
+#         self.spider = spider
+#
+#     def run(self):
+#         self.crawler.crawl(self.spider)
+#         reactor.run()
 
 
 @app.task
@@ -76,11 +75,40 @@ def run_crawl_gov_mp():
 @app.task
 def crawl_gov():
     """Starts crawling process which downloads pdfs from all websites in domain gov.pl"""
-    crawler = GovCrawler()
+    crawler = GovPlCrawler()
     process = CrawlerProcess(crawler)
     process.start()
     process.join()
 
+
+@app.task
+def crawl_lad():
+    """Starts crawling process which downloads pdfs from all prepared .gov websites"""
+    # crawler = LadSpider()
+    # process = CrawlerProcess(crawler)
+    # process.start()
+    # process.join()
+    settings = Settings()
+    # settings.set('DEFAULT_REQUEST_HEADERS', {
+    # 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,'
+    #           'application/signed-exchange;v=b3;q=0.9',
+    # 'Accept-Encoding': 'gzip, deflate',
+    # 'Accept-Language': 'pl-PL,pl;q=0.9,en-GB;q=0.8,en;q=0.7,en-US;q=0.6',
+    # 'Cache-Control': 'max-age=0',
+    # 'Connection': 'keep-alive',
+    # 'dnt': '1',
+    # 'Host': 'gov.pl',
+    # 'Upgrade-Insecure-Requests': '1',
+    # 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'})
+    # settings.set('ITEM_PIPELINES', {'lad.pipelines.PdfTaskPipeline': 100})
+    settings.set('DEPTH_LIMIT', 75)
+    settings.set('CONCURRENT_REQUESTS', 100)
+    settings.set('COOKIES_ENABLED', False)
+    process = CrawlerProcess(settings)
+    process.crawl(LadSpider, settings)
+    process.start()
+    # reactor.run()
+    # reactor.stop()
 
 
 @app.task
