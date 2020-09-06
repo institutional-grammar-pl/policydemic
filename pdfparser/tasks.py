@@ -1,15 +1,12 @@
-import collections
-
+from configparser import ConfigParser
 from scheduler.celery import app
 
 # --- required for ocr --- #
 import pytesseract
+import regex
 import io
 from PIL import Image
 from wand.image import Image as wi
-from .config import ConfigOcr
-
-import regex
 
 
 # --- new pdf parsing --- #
@@ -24,36 +21,39 @@ from pdfminer.pdfpage import PDFPage
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 
-import textdistance
+cfg = ConfigParser()
+cfg.read('config.ini')
+tesseract_path = cfg['paths']['tesseract']
+txts_dir = cfg['paths']['parsed_txts']
+filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 
-'''
-Function return parsed text from pdf file using optical character recognition
-path = path to pdf file
-pages = pages to recognize
-'''
-@app.task
-def pdfocr(path, pages=[], lang='eng'):
 
+def pdf_ocr(path, pages=[], lang='eng'):
+    """Function return parsed text from pdf file using optical character recognition.
+
+    path = path to pdf file
+    pages = pages to recognize
+    """
     if len(path) == 0:
         print('Path is empty')
         return
 
-    pytesseract.pytesseract.tesseract_cmd = ConfigOcr.path_to_tesseract
+    pytesseract.pytesseract.tesseract_cmd = tesseract_path
     pdf = wi(filename=path, resolution=300)
-    pdfImage = pdf.convert('jpeg')
+    pdf_image = pdf.convert('jpeg')
 
-    imageBlobs = []
+    image_blobs = []
     count = 1
 
-    for img in pdfImage.sequence:
+    for img in pdf_image.sequence:
         if (not pages) or count in pages:
-            imgPage = wi(image=img)
-            imageBlobs.append(imgPage.make_blob('jpeg'))
+            img_page = wi(image=img)
+            image_blobs.append(img_page.make_blob('jpeg'))
         count = count + 1
 
     result_text = []
 
-    for imgBlob in imageBlobs:
+    for imgBlob in image_blobs:
         im = Image.open(io.BytesIO(imgBlob))
         text = pytesseract.image_to_string(im, lang=lang)
         result_text.append(text)
@@ -129,7 +129,10 @@ def parse(path):
 
     contents = text_postprocessing(contents)
 
-    with open(os.path.join('/opt/policydemic/PDFparsed/', os.path.basename(path)) + '.txt', 'w+') as f:
+    if contents == '':
+        contents =  pdf_ocr(path)
+
+    with open(os.path.join(txts_dir, os.path.basename(path)) + '.txt', 'w+') as f:
         f.write(contents)
     return contents
 
@@ -137,11 +140,12 @@ def parse(path):
 
 # ----------  Check function  --------- #
 @app.task
-def check(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, similarity="hamming", threshold=5, crit="simple"):
+def check_content(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, similarity="hamming", threshold=5, crit="simple"):
     """
     check
 
     Arguments:
+
     * text - STRING - the text of the .pdf document;
     * keywords - SET of STRING - a python set of words, that should be in the text;
     * without - SET of STRING - a python set of words, that shouldn't be in the text;
@@ -152,12 +156,13 @@ def check(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, simila
     * similarity - textdistance algorithm or embedding_cosine - similarity algorithm. It can be from the textdistance package or embedding_cosine algorithm.
 
     Return:
+
     * BOOL - True if the text fulfils the criterion.
 
     check is a bridge to simple_crit and complex crit function. For details please check their documentation.
     """
     if crit == "simple":
-        return simple_cirt(pdf_text, keywords, without=without, at_least=at_least, at_most=at_most)
+        return simple_crit(pdf_text, keywords, without=without, at_least=at_least, at_most=at_most)
 # ------------------------------------- #
 
 def text_postprocessing(text):

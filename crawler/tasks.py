@@ -16,10 +16,12 @@ from crawler.COVIDPolicyWatch.PolicyWatchSpider import PolicyWatchSpider
 from scheduler.celery import app
 from celery import group
 
+from .lad.lad.gov_sites import get_gov_websites
+
 cfg = ConfigParser()
 cfg.read('config.ini')
 pdf_dir = cfg['paths']['pdf_database']
-
+gov_sites_path = cfg['paths']['gov_websites']
 
 # class CrawlerProcess(Process):
 #     """ This class allows to run scrapy Crawlers using multiprocessing from billiard """
@@ -84,31 +86,29 @@ def crawl_gov():
 @app.task
 def crawl_lad():
     """Starts crawling process which downloads pdfs from all prepared .gov websites"""
-    # crawler = LadSpider()
-    # process = CrawlerProcess(crawler)
-    # process.start()
-    # process.join()
+    gov_sites = get_gov_websites(gov_sites_path)
     settings = Settings()
-    # settings.set('DEFAULT_REQUEST_HEADERS', {
-    # 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,'
-    #           'application/signed-exchange;v=b3;q=0.9',
-    # 'Accept-Encoding': 'gzip, deflate',
-    # 'Accept-Language': 'pl-PL,pl;q=0.9,en-GB;q=0.8,en;q=0.7,en-US;q=0.6',
-    # 'Cache-Control': 'max-age=0',
-    # 'Connection': 'keep-alive',
-    # 'dnt': '1',
-    # 'Host': 'gov.pl',
-    # 'Upgrade-Insecure-Requests': '1',
-    # 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'})
-    # settings.set('ITEM_PIPELINES', {'lad.pipelines.PdfTaskPipeline': 100})
-    settings.set('DEPTH_LIMIT', 75)
-    settings.set('CONCURRENT_REQUESTS', 100)
+    settings.set('MEDIA_ALLOW_REDIRECTS', True)
+    settings.set('SCHEDULER_PRIORITY_QUEUE', 'scrapy.pqueues.DownloaderAwarePriorityQueue')
     settings.set('COOKIES_ENABLED', False)
+    settings.set('DEFAULT_REQUEST_HEADERS', {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    'Accept-Encoding': 'gzip, deflate',
+    'Accept-Language': 'pl-PL,pl;q=0.9,en-GB;q=0.8,en;q=0.7,en-US;q=0.6',
+    'Cache-Control': 'max-age=0',
+    'Connection': 'keep-alive',
+    'dnt': '1',
+    'Host': 'gov.pl',
+    'Upgrade-Insecure-Requests': '1',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
+    })
+    settings.set('CONCURRENT_REQUESTS', 64)
     process = CrawlerProcess(settings)
-    process.crawl(LadSpider, settings)
+    # for url in gov_sites:
+    #     process.crawl(LadSpider, [url])
+    process.crawl(LadSpider, gov_sites)
     process.start()
-    # reactor.run()
-    # reactor.stop()
+    process.join()
 
 
 @app.task

@@ -31,7 +31,7 @@ def process_pdf_link(pdf_url):
         download_pdf.s() | \
         parse_pdf.s() | \
         translate_pdf.s() | \
-        process_document.s()
+        process_document.s() \
 
     pdf_chain(pdf_url)
 

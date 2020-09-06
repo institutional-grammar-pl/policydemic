@@ -33,7 +33,7 @@ class RenamePdfFilesPipeline(FilesPipeline):
             raise DropItem(f"Error while downloading item: {data}")
 
 
-class CreateProcessPdfTaskPipeline:
+class PdfTaskPipeline:
     @staticmethod
     def is_duplicate(url):
         """check if document with this URL is in ES database"""
@@ -55,9 +55,9 @@ class CreateProcessPdfTaskPipeline:
             return False
 
     @staticmethod
-    def process_item(self, item: PdfItem, spider):
+    def process_item(item: PdfItem, spider):
         print("Found some PDF")
         for url in item['file_urls']:
-            if not CreateProcessPdfTaskPipeline.is_duplicate(url):
+            if not PdfTaskPipeline.is_duplicate(url):
                 process_pdf_link.delay(url)
         return item
