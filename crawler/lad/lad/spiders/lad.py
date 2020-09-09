@@ -1,5 +1,6 @@
 import os
 import re
+import nlpengine.tasks as nlpengine_tasks
 
 import scrapy
 import logging
@@ -8,9 +9,8 @@ from scrapy.http import Response
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 
 
-# @TODO wyrzucić to do tasks.py (?) - konfigurację
 cfg = ConfigParser()
-cfg.read('/home/ghost/policydemic_legal_info/config.ini')
+cfg.read('config.ini')
 govs = cfg['paths']['gov_websites']
 pdf_dir = cfg['paths']['pdf_database']
 max_depth = int(cfg['crawler']['max_depth'])
@@ -22,19 +22,19 @@ class LadSpider(scrapy.spiders.CrawlSpider):
     # start_urls = ['https://ww2.mini.pw.edu.pl/']
     start_urls = []
 
-    @staticmethod
-    def download_pdf(dir_path, url):
-        filename = os.path.basename(url)
-        command = 'curl -o ' + os.path.join(dir_path, filename) + ' -L -O ' + url
-        print(command)
-        os.system(command)
+    # @staticmethod
+    # def download_pdf(dir_path, url):
+    #     filename = os.path.basename(url)
+    #     command = 'curl -o ' + os.path.join(dir_path, filename) + ' -L -O ' + url
+    #     print(command)
+    #     os.system(command)
 
     def __init__(self, urls, *args, **kwargs):
         super().__init__(**kwargs)
         self._link_extractor = LxmlLinkExtractor()
-        self.start_urls.extend(urls)
-        self.sites_count = {url: 0 for url in urls}
-        self.found_pdf = {url: False for url in urls}
+        # self.start_urls.extend(urls)
+        self.sites_count = {url: 0 for url in self.start_urls + urls}
+        self.found_pdf = {url: False for url in self.start_urls + urls}
 
     def parse_start_url(self, response: Response):
         for url in self.start_urls:
@@ -51,7 +51,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
                 or response.url.endswith('.pdf'):
             self.found_pdf[start_url] = True
             self.logger.info('it\'s pdf %s', response.url)
-            LadSpider.download_pdf(pdf_dir, response.url)
+            nlpengine_tasks.process_pdf_link(response.url, 'legal_act')
         else:
             for link in self._link_extractor.extract_links(response):
                 # self.logger.info(link.ulr)

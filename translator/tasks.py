@@ -74,7 +74,7 @@ def translate_all():
 
 
 @app.task
-def translate(text):
+def translate(text, translated_field='title'):
     base_language = 'en'
     lt_thresh = 0.4
     lt_pairs = {
@@ -137,8 +137,7 @@ def translate(text):
         return {
             'message': 'Please bind your language translator service',
             'translation_type': 'missing',
-            'original_text': text,
-            'translated_text': '',
+            translated_field: '',
             'language': ''
         }
 
@@ -156,8 +155,7 @@ def translate(text):
         return {
             'message': 'Sorry, I am not able to detect the language you are speaking. Please try rephrasing.',
             'translation_type': 'missing',
-            'original_text': text,
-            'translated_text': '',
+            translated_field: '',
             'language': ''
         }
 
@@ -168,8 +166,7 @@ def translate(text):
                 base_language, language
             ),
             'translation_type': 'missing',
-            'original_text': text,
-            'translated_text': '',
+            translated_field: '',
             'language': ''
         }
 
@@ -186,13 +183,13 @@ def translate(text):
         # print(output)
         return {
             'translation_type': 'auto',
-            'translated_text': output,
+            translated_field: output,
             'language': language_name
         }
     else:
         return {
             'translation_type': 'auto',
-            'translated_text': text,
+            translated_field: text,
             'language': lt_pairs[base_language]
         }
 

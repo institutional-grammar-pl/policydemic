@@ -86,7 +86,7 @@ def crawl_gov():
 @app.task
 def crawl_lad():
     """Starts crawling process which downloads pdfs from all prepared .gov websites"""
-    gov_sites = get_gov_websites(gov_sites_path)
+    gov_sites = list(get_gov_websites(gov_sites_path))
     settings = Settings()
     settings.set('MEDIA_ALLOW_REDIRECTS', True)
     settings.set('SCHEDULER_PRIORITY_QUEUE', 'scrapy.pqueues.DownloaderAwarePriorityQueue')
@@ -111,12 +111,12 @@ def crawl_lad():
     process.join()
 
 
-@app.task
-def download_pdf(url, directory=pdf_dir, filename='document.pdf', chunk_size=1024):
-    """download PDF file from url"""
-    command = 'curl -o ' + os.path.join(directory, filename) + ' -L -O ' + url
-    print(command)
-    os.system(command)
+# @app.task
+# def download_pdf(url, directory=pdf_dir, filename='document.pdf', chunk_size=1024):
+#     """download PDF file from url"""
+#     command = 'curl -o ' + os.path.join(directory, filename) + ' -L -O ' + url
+#     print(command)
+#     os.system(command)
 
 
 '''
@@ -126,61 +126,68 @@ date format is YYYYMMDD , for example "20200624"
 '''
 
 
-@app.task
-def download_cgrt_data(country, date_from, date_to):
-    # download records from Coronavirus Government Response Tracker
-    date_from = last_crawling('CGRT').split('-').join()
-    date_to = datetime.today().strftime('%Y%m%d')
-    records = CGRT.downloadCgrtRecords(country, date_from, date_to)
-
-    # send downloaded data to nlp engine
-    return CGRT.saveIntoDatabase(records)
-
-
-@app.task
-def crawl_cgrt_countries(separate_countries=False):
-    date_from = last_crawling('CGRT').split('-').join()
-    date_to = datetime.today().strftime('%Y%m%d')
-    countries = ['Venezuela']
-
-    if separate_countries:
-        task_list = [download_cgrt_data.s(country, date_from, date_to) for country in countries]
-    else:
-        task_list = [download_cgrt_data.s(None, date_from, date_to)]
-
-    job = group(task_list)
-    result = job.apply_async()
-    result.wait()
-    is_successful = result.susscessful()
-    result.forget()
-    return is_successful
+# @app.task
+# def download_cgrt_data(country, date_from, date_to):
+#     # download records from Coronavirus Government Response Tracker
+#     date_from = last_crawling('CGRT').split('-').join()
+#     date_to = datetime.today().strftime('%Y%m%d')
+#     records = CGRT.downloadCgrtRecords(country, date_from, date_to)
+#
+#     # send downloaded data to nlp engine
+#     return CGRT.saveIntoDatabase(records)
+#
+#
+# @app.task
+# def crawl_cgrt_countries(separate_countries=False):
+#     date_from = last_crawling('CGRT').split('-').join()
+#     date_to = datetime.today().strftime('%Y%m%d')
+#     countries = ['Venezuela']
+#
+#     if separate_countries:
+#         task_list = [download_cgrt_data.s(country, date_from, date_to) for country in countries]
+#     else:
+#         task_list = [download_cgrt_data.s(None, date_from, date_to)]
+#
+#     job = group(task_list)
+#     result = job.apply_async()
+#     result.wait()
+#     is_successful = result.susscessful()
+#     result.forget()
+#     return is_successful
 
 
 @app.task
 def crawl_policy_watch():
     """ Starts crawling process which fetches government policies from website covid19policywatch.org"""
-    os.environ['SCRAPY_SETTINGS_MODULE'] = 'crawler.COVIDPolicyWatch.settings'
-    spider = PolicyWatchSpider()
-    process = CrawlerProcess(spider)
+    # os.environ['SCRAPY_SETTINGS_MODULE'] = 'crawler.COVIDPolicyWatch.settings'
+    # spider = PolicyWatchSpider()
+    # process = CrawlerProcess(spider)
+    # process.start()
+    # process.join()
+    settings = Settings()
+    process = CrawlerProcess(settings)
+
+    process.crawl(PolicyWatchSpider)
     process.start()
     process.join()
 
 
-def last_crawling(crawler_name):
-    crawler_status_path = os.path.join(pdf_dir, crawler_name + '.json')
-    with open(crawler_status_path) as status_file:
-        status_json = json.load(status_file)
-        last_crawling_date = status_json['last_crawling_date']
 
-    return last_crawling_date
-
-
-@app.task
-def update_crawling_date(crawling_status, crawler_name):
-    curr_date = datetime.today().strftime('%Y-%m-%d')
-    crawler_status_path = os.path.join(pdf_dir, crawler_name + '.json')
-    with open(crawler_status_path) as status_file:
-        status_json = json.load(status_file)
-    status_json['last_crawling_date'] = curr_date
-    with open(crawler_status_path, 'w') as status_file:
-        json.dump(status_json, status_file)
+# def last_crawling(crawler_name):
+#     crawler_status_path = os.path.join(pdf_dir, crawler_name + '.json')
+#     with open(crawler_status_path) as status_file:
+#         status_json = json.load(status_file)
+#         last_crawling_date = status_json['last_crawling_date']
+#
+#     return last_crawling_date
+#
+#
+# @app.task
+# def update_crawling_date(crawling_status, crawler_name):
+#     curr_date = datetime.today().strftime('%Y-%m-%d')
+#     crawler_status_path = os.path.join(pdf_dir, crawler_name + '.json')
+#     with open(crawler_status_path) as status_file:
+#         status_json = json.load(status_file)
+#     status_json['last_crawling_date'] = curr_date
+#     with open(crawler_status_path, 'w') as status_file:
+#         json.dump(status_json, status_file)

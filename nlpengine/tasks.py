@@ -1,4 +1,5 @@
 import os
+import re
 import datetime
 from configparser import ConfigParser
 from datetime import datetime
@@ -19,25 +20,26 @@ es = Elasticsearch(hosts=es_hosts)
 
 INDEX_NAME = cfg['elasticsearch']['index_name']
 DOC_TYPE = cfg['elasticsearch']['doc_type']
+filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 
 SCRAP_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 @app.task
-def process_pdf_link(pdf_url):
+def process_pdf_link(pdf_url, document_type='ssd'):
     print(f"Received pdf: {pdf_url}")
 
     pdf_chain = \
         download_pdf.s() | \
         parse_pdf.s() | \
         translate_pdf.s() | \
-        process_document.s() \
+        process_document.s()
 
-    pdf_chain(pdf_url)
+    pdf_chain(pdf_url, document_type)
 
 
 @app.task
-def download_pdf(pdf_url):
+def download_pdf(pdf_url, document_type=''):
     pdf_filename = os.path.basename(pdf_url)
     pdf_path = os.path.join(pdf_dir, pdf_filename)
 
@@ -47,31 +49,45 @@ def download_pdf(pdf_url):
         "filename": pdf_filename
     })
 
+    date, keywords = pdfparser_tasks.get_metadata(pdf_path)
+    country_match = re.match('^http[s]?://([a-z0-9.-]+)/', pdf_url)
+    country_match = country_match.group(1) if country_match is not None else ''
+    country_match = country_match.split('.')[-1]
+
     return {
         "web_page": pdf_url,
-        "pdf_path": pdf_path
+        "pdf_path": pdf_path,
+        "keywords": keywords,
+        "info_date": date,
+        "country": country_match,
+        "document_type": document_type
     }
 
 
 @app.task
 def parse_pdf(body):
     pdf_path = body["pdf_path"]
-    parse_result = pdfparser_tasks.parse(pdf_path)
+    parse_result, is_ocr = pdfparser_tasks.parse(pdf_path)
 
-    body.update({"original_text": parse_result})
+    body.update({
+        "original_text": parse_result,
+        "text_parsing_type": "ocr" if is_ocr else "parser"})
     return body
 
 
 @app.task
-def translate_pdf(body):
+def translate_pdf(body, full_translation=False):
     original_text = body["original_text"]
 
     max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
 
-    text_to_translate = (original_text[:max_n_chars] + '<TRUNCATED_DOCUMENT>') if len(
-        original_text) > max_n_chars else original_text
-
-    result = translator_tasks.translate(text_to_translate)
+    if full_translation:
+        text_to_translate = original_text
+        result = translator_tasks.translate(text_to_translate, 'translated_text')
+    else:
+        text_to_translate = (original_text[:max_n_chars] + '<TRUNCATED_DOCUMENT>') if len(
+            original_text) > max_n_chars else original_text
+        result = translator_tasks.translate(text_to_translate)
 
     body.update(result)
     return body
@@ -80,15 +96,19 @@ def translate_pdf(body):
 @app.task
 def process_document(body):
     scrap_date = datetime.now().strftime(SCRAP_DATE_FORMAT)
-    print(body)
     body.update({
-        "document_type": "legalact",
-        "scrap_date": scrap_date,
-        "info_date": scrap_date[:10],
-        "text_parsing_type": "parser",
-        "keywords": []
+        "scrap_date": scrap_date
     })
-    print(body)
+
+    on_subject = pdfparser_tasks.check_content(body['original_text'] + ' ' + body['title'], filtering_keywords)
+
+    if on_subject:
+        body.update({'status': 'subject_accepted'})
+    else:
+        os.remove(body['pdf_path'])
+        body.update({'status': 'subject_rejected',
+                     'pdf_path': ''})
+
     index_document(body)
 
 
