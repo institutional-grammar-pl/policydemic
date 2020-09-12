@@ -22,13 +22,6 @@ class LadSpider(scrapy.spiders.CrawlSpider):
     # start_urls = ['https://ww2.mini.pw.edu.pl/']
     start_urls = []
 
-    # @staticmethod
-    # def download_pdf(dir_path, url):
-    #     filename = os.path.basename(url)
-    #     command = 'curl -o ' + os.path.join(dir_path, filename) + ' -L -O ' + url
-    #     print(command)
-    #     os.system(command)
-
     def __init__(self, urls, *args, **kwargs):
         super().__init__(**kwargs)
         self._link_extractor = LxmlLinkExtractor()

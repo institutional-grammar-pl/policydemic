@@ -8,7 +8,6 @@ import io
 from PIL import Image
 from wand.image import Image as wi
 
-
 # --- new pdf parsing --- #
 import os
 import sys
@@ -32,6 +31,7 @@ txts_dir = cfg['paths']['parsed_txts']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 pdf_dir = cfg['paths']['pdf_database']
 es_hosts = cfg['elasticsearch']['hosts']
+min_n_chars_per_page = cfg['pdfparser']['min_n_chars_per_page']
 
 es = Elasticsearch(hosts=es_hosts)
 
@@ -105,7 +105,6 @@ def pdf_ocr(path, pages=[], lang='eng'):
     return result_text
 
 
-# ---------- Simple criterion --------- #
 def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
     """
     simple_crit
@@ -145,15 +144,14 @@ def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
 
     at_least_words = splitted.intersection(set(keywords))
 
-    if len(at_least_words) > (at_least-1):
+    if len(at_least_words) > (at_least - 1):
         if bool(without):
             at_most_words = splitted.intersection(set(without))
-            return len(at_most_words) <= (at_most-1)
+            return len(at_most_words) <= (at_most - 1)
         else:
             return True
     else:
         return False
-# ------------------------------------- #
 
 
 @app.task
@@ -165,18 +163,20 @@ def parse(path):
     pagenos = set()
     device = TextConverter(rsrcmgr, outfp, laparams=laparams, imagewriter=None)
     with open(path, 'rb') as fp:
-            interpreter = PDFPageInterpreter(rsrcmgr, device)
-            for page in PDFPage.get_pages(fp, pagenos, password=password,
-                                          caching=True, check_extractable=True):
-                interpreter.process_page(page)
+        interpreter = PDFPageInterpreter(rsrcmgr, device)
+        pages = PDFPage.get_pages(fp, pagenos, password=password,
+                                  caching=True, check_extractable=True)
+        n_pages = len(pages)
+        for page in pages:
+            interpreter.process_page(page)
     device.close()
     contents = outfp.getvalue()
     outfp.close()
 
     contents = text_postprocessing(contents)
 
-    if contents == '':
-        contents =  pdf_ocr(path)
+    if len(contents) < n_pages * min_n_chars_per_page:
+        contents = pdf_ocr(path)
 
     with open(os.path.join(txts_dir, os.path.basename(path)) + '.txt', 'w+') as f:
         f.write(contents)
@@ -184,7 +184,8 @@ def parse(path):
 
 
 @app.task
-def check_content(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, similarity="hamming", threshold=5, crit="simple"):
+def check_content(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, similarity="hamming", threshold=5,
+                  crit="simple"):
     """
     check
 
@@ -217,6 +218,3 @@ def text_postprocessing(text):
     text = regex.sub(r'(?<=\n)(.|\s|\n){0,1}\n', r'', text)
 
     return text
-
-
-

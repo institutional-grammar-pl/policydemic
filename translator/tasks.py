@@ -73,7 +73,6 @@ def translate_all():
         return {"message": "Couldn't translate all of the documents.", "updated_documents_count": counter}
 
 
-@app.task
 def translate(text, translated_field='title'):
     base_language = 'en'
     lt_thresh = 0.4

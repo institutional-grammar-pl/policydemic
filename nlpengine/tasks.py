@@ -7,7 +7,6 @@ from datetime import datetime
 from elasticsearch import Elasticsearch
 
 from scheduler.celery import app
-import crawler.tasks as crawler_tasks
 import pdfparser.tasks as pdfparser_tasks
 import translator.tasks as translator_tasks
 
@@ -30,7 +29,7 @@ def process_pdf_link(pdf_url, document_type='ssd'):
     print(f"Received pdf: {pdf_url}")
 
     pdf_chain = \
-        download_pdf.si() | \
+        download_pdf.s() | \
         parse_pdf.s() | \
         translate_pdf.s() | \
         process_document.s()
@@ -44,11 +43,7 @@ def download_pdf(self, pdf_url, document_type=''):
     pdf_filename = os.path.basename(pdf_url)
     pdf_path = os.path.join(pdf_dir, pdf_filename)
 
-    pdfparser_tasks.download_pdf.apply(kwargs={
-        "url": pdf_url,
-        "directory": pdf_dir,
-        "filename": pdf_filename
-    })
+    pdfparser_tasks.download_pdf(pdf_url, pdf_dir, pdf_filename)
 
     if pdfparser_tasks.is_pdf(pdf_path):
         date, keywords = pdfparser_tasks.get_metadata(pdf_path)

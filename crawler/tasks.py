@@ -103,9 +103,9 @@ def crawl_lad():
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
     })
     settings.set('CONCURRENT_REQUESTS', 64)
+    settings.set('DEPTH_LIMIT', 6)
     process = CrawlerProcess(settings)
-    # for url in gov_sites:
-    #     process.crawl(LadSpider, [url])
+
     process.crawl(LadSpider, gov_sites)
     process.start()
     process.join()
