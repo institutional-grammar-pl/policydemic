@@ -17,6 +17,7 @@ pandas = "^1.0.5"
 ibm-watson = "^4.5.0"
 textdistance = "^4.2.0"
 "pdfminer.six" = "^20200726"
+pypdf2 = "^1.26.0"
 
 
 [tool.poetry.dev-dependencies]

@@ -111,14 +111,6 @@ def crawl_lad():
     process.join()
 
 
-# @app.task
-# def download_pdf(url, directory=pdf_dir, filename='document.pdf', chunk_size=1024):
-#     """download PDF file from url"""
-#     command = 'curl -o ' + os.path.join(directory, filename) + ' -L -O ' + url
-#     print(command)
-#     os.system(command)
-
-
 '''
 function takes records from Coronavirus Government Response Tracker csv file
 with specified country and date range 

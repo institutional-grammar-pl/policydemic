@@ -55,9 +55,6 @@
       },
       "title": {
         "type": "text"
-      },
-      "full_translation": {
-        "type": "boolean"
       }
     }
   }

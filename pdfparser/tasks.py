@@ -21,11 +21,55 @@ from pdfminer.pdfpage import PDFPage
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 
+import PyPDF2
+
+from elasticsearch import Elasticsearch
+
 cfg = ConfigParser()
 cfg.read('config.ini')
 tesseract_path = cfg['paths']['tesseract']
 txts_dir = cfg['paths']['parsed_txts']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
+pdf_dir = cfg['paths']['pdf_database']
+es_hosts = cfg['elasticsearch']['hosts']
+
+es = Elasticsearch(hosts=es_hosts)
+
+
+def is_pdf(path):
+    try:
+        PyPDF2.PdfFileReader(open(path, "rb"))
+    except (PyPDF2.utils.PdfReadError, OSError):
+        return False
+    else:
+        return True
+
+
+def is_duplicate(url):
+    """check if document with this URL is in ES database"""
+    query_web_url = {
+        "query": {
+            "match": {
+                "web_page": url
+            }
+        }
+    }
+    print("Elastic duplicates search")
+    rt = es.count(query_web_url, index='documents')
+    rt = rt['count']
+    print(rt)
+    if rt > 0:
+        print(f"Found {rt} documents with URL: {url}.")
+        return True
+    else:
+        return False
+
+
+def download_pdf(url, directory=pdf_dir, filename='document.pdf'):
+    """download PDF file from url"""
+    command = 'curl -o ' + os.path.join(directory, filename) + ' -L -O ' + url
+    print(command)
+    os.system(command)
 
 
 def pdf_ocr(path, pages=[], lang='eng'):
@@ -107,8 +151,10 @@ def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
             return len(at_most_words) <= (at_most-1)
         else:
             return True
-    else: return False
+    else:
+        return False
 # ------------------------------------- #
+
 
 @app.task
 def parse(path):
@@ -137,8 +183,6 @@ def parse(path):
     return contents
 
 
-
-# ----------  Check function  --------- #
 @app.task
 def check_content(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, similarity="hamming", threshold=5, crit="simple"):
     """
@@ -163,7 +207,7 @@ def check_content(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1
     """
     if crit == "simple":
         return simple_crit(pdf_text, keywords, without=without, at_least=at_least, at_most=at_most)
-# ------------------------------------- #
+
 
 def text_postprocessing(text):
     # line breaks

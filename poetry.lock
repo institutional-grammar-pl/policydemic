@@ -564,6 +564,14 @@ test = ["flaky", "pretend", "pytest (>=3.0.1)"]
 
 [[package]]
 category = "main"
+description = "PDF toolkit"
+name = "pypdf2"
+optional = false
+python-versions = "*"
+version = "1.26.0"
+
+[[package]]
+category = "main"
 description = "Multi-producer-multi-consumer signal dispatching mechanism"
 marker = "platform_python_implementation == \"PyPy\""
 name = "pypydispatcher"
@@ -852,7 +860,7 @@ test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [metadata]
-content-hash = "cc26cac2931657e2d4c29cbb9de289ca8929cd425031ba87c23a1cd6a7978a8b"
+content-hash = "a688dc8327085b4e8ec4271ee3b93aa9e318a6290138a2f13d3d1c0d289c294e"
 lock-version = "1.0"
 python-versions = "^3.8"
 
@@ -1210,6 +1218,9 @@ pylint = [
 pyopenssl = [
     {file = "pyOpenSSL-19.1.0-py2.py3-none-any.whl", hash = "sha256:621880965a720b8ece2f1b2f54ea2071966ab00e2970ad2ce11d596102063504"},
     {file = "pyOpenSSL-19.1.0.tar.gz", hash = "sha256:9a24494b2602aaf402be5c9e30a0b82d4a5c67528fe8fb475e3f3bc00dd69507"},
+]
+pypdf2 = [
+    {file = "PyPDF2-1.26.0.tar.gz", hash = "sha256:e28f902f2f0a1603ea95ebe21dff311ef09be3d0f0ef29a3e44a932729564385"},
 ]
 pypydispatcher = [
     {file = "PyPyDispatcher-2.1.2.tar.gz", hash = "sha256:b6bec5dfcff9d2535bca2b23c80eae367b1ac250a645106948d315fcfa9130f2"},

@@ -30,38 +30,44 @@ def process_pdf_link(pdf_url, document_type='ssd'):
     print(f"Received pdf: {pdf_url}")
 
     pdf_chain = \
-        download_pdf.s() | \
+        download_pdf.si() | \
         parse_pdf.s() | \
         translate_pdf.s() | \
         process_document.s()
 
-    pdf_chain(pdf_url, document_type)
+    if not pdfparser_tasks.is_duplicate(pdf_url):
+        pdf_chain(pdf_url, document_type)
 
 
-@app.task
-def download_pdf(pdf_url, document_type=''):
+@app.task(bind=True)
+def download_pdf(self, pdf_url, document_type=''):
     pdf_filename = os.path.basename(pdf_url)
     pdf_path = os.path.join(pdf_dir, pdf_filename)
 
-    crawler_tasks.download_pdf.apply(kwargs={
+    pdfparser_tasks.download_pdf.apply(kwargs={
         "url": pdf_url,
         "directory": pdf_dir,
         "filename": pdf_filename
     })
 
-    date, keywords = pdfparser_tasks.get_metadata(pdf_path)
-    country_match = re.match('^http[s]?://([a-z0-9.-]+)/', pdf_url)
-    country_match = country_match.group(1) if country_match is not None else ''
-    country_match = country_match.split('.')[-1]
+    if pdfparser_tasks.is_pdf(pdf_path):
+        date, keywords = pdfparser_tasks.get_metadata(pdf_path)
 
-    return {
-        "web_page": pdf_url,
-        "pdf_path": pdf_path,
-        "keywords": keywords,
-        "info_date": date,
-        "country": country_match,
-        "document_type": document_type
-    }
+        # get url domain as country identifier
+        country_match = re.match('^http[s]?://([a-z0-9.-]+)/', pdf_url)
+        country_match = country_match.group(1) if country_match is not None else ''
+        country_match = country_match.split('.')[-1]
+
+        return {
+            "web_page": pdf_url,
+            "pdf_path": pdf_path,
+            "keywords": keywords,
+            "info_date": date,
+            "country": country_match,
+            "document_type": document_type
+        }
+    else:
+        self.request.callbacks = None
 
 
 @app.task
@@ -76,16 +82,19 @@ def parse_pdf(body):
 
 
 @app.task
-def translate_pdf(body, full_translation=False):
-    original_text = body["original_text"]
+def translate_pdf(body=None, full_translation=False, _id=None):
 
-    max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
+    if _id is not None:
+        body = es.get(INDEX_NAME, _id)
+
+    original_text = body["original_text"]
 
     if full_translation:
         text_to_translate = original_text
         result = translator_tasks.translate(text_to_translate, 'translated_text')
     else:
-        text_to_translate = (original_text[:max_n_chars] + '<TRUNCATED_DOCUMENT>') if len(
+        max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
+        text_to_translate = original_text[:max_n_chars] if len(
             original_text) > max_n_chars else original_text
         result = translator_tasks.translate(text_to_translate)
 
