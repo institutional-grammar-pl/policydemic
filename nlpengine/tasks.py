@@ -63,6 +63,7 @@ def download_pdf(self, pdf_url, document_type=''):
         }
     else:
         self.request.callbacks = None
+        return {}
 
 
 @app.task

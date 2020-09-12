@@ -1,3 +1,5 @@
+import logging
+
 from configparser import ConfigParser
 from scheduler.celery import app
 
@@ -24,6 +26,7 @@ import PyPDF2
 
 from elasticsearch import Elasticsearch
 
+_log = logging.getLogger()
 cfg = ConfigParser()
 cfg.read('config.ini')
 tesseract_path = cfg['paths']['tesseract']
@@ -31,9 +34,29 @@ txts_dir = cfg['paths']['parsed_txts']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 pdf_dir = cfg['paths']['pdf_database']
 es_hosts = cfg['elasticsearch']['hosts']
-min_n_chars_per_page = cfg['pdfparser']['min_n_chars_per_page']
+min_n_chars_per_page = int(cfg['pdfparser']['min_n_chars_per_page'])
 
 es = Elasticsearch(hosts=es_hosts)
+
+
+def get_metadata(pdf_path):
+    parser = PDFParser(open(pdf_path, 'rb'))
+    doc = PDFDocument(parser)
+    metadata = doc.info[0]
+
+    creation_date = metadata.get('CreationDate', 'NA')
+
+    year = str(creation_date[2:6])
+    month = str(creation_date[6:8])
+    day = str(creation_date[8:10])
+    _log.info([year, month, day])
+    _log.debug([year, month, day])
+    _log.error([year, month, day])
+    creation_date = '-'.join([year, month, day])
+
+    keywords = metadata.get('Keywords', '')
+
+    return creation_date, keywords
 
 
 def is_pdf(path):
@@ -54,12 +77,10 @@ def is_duplicate(url):
             }
         }
     }
-    print("Elastic duplicates search")
     rt = es.count(query_web_url, index='documents')
     rt = rt['count']
-    print(rt)
     if rt > 0:
-        print(f"Found {rt} documents with URL: {url}.")
+        _log.warning(f"Duplicate search. Found {rt} documents with URL: {url}.")
         return True
     else:
         return False
@@ -68,7 +89,7 @@ def is_duplicate(url):
 def download_pdf(url, directory=pdf_dir, filename='document.pdf'):
     """download PDF file from url"""
     command = 'curl -o ' + os.path.join(directory, filename) + ' -L -O ' + url
-    print(command)
+    _log.info(command)
     os.system(command)
 
 
@@ -162,25 +183,28 @@ def parse(path):
     password = b''
     pagenos = set()
     device = TextConverter(rsrcmgr, outfp, laparams=laparams, imagewriter=None)
+    n_pages = 1
     with open(path, 'rb') as fp:
         interpreter = PDFPageInterpreter(rsrcmgr, device)
         pages = PDFPage.get_pages(fp, pagenos, password=password,
                                   caching=True, check_extractable=True)
-        n_pages = len(pages)
         for page in pages:
             interpreter.process_page(page)
+            n_pages += 1
     device.close()
     contents = outfp.getvalue()
     outfp.close()
 
+    is_ocr = False
     contents = text_postprocessing(contents)
 
     if len(contents) < n_pages * min_n_chars_per_page:
         contents = pdf_ocr(path)
+        is_ocr = True
 
     with open(os.path.join(txts_dir, os.path.basename(path)) + '.txt', 'w+') as f:
         f.write(contents)
-    return contents
+    return contents, is_ocr
 
 
 @app.task
