@@ -177,6 +177,7 @@ def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
 
 @app.task
 def parse(path):
+    is_ocr = False
     rsrcmgr = PDFResourceManager(caching=True)
     outfp = StringIO()
     laparams = LAParams()
@@ -195,7 +196,6 @@ def parse(path):
     contents = outfp.getvalue()
     outfp.close()
 
-    is_ocr = False
     contents = text_postprocessing(contents)
 
     if len(contents) < n_pages * min_n_chars_per_page:
