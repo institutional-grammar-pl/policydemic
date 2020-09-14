@@ -1,6 +1,7 @@
 import os
 import re
 import datetime
+import logging
 from configparser import ConfigParser
 from datetime import datetime
 
@@ -23,6 +24,9 @@ filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 
 SCRAP_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
+_log = logging.getLogger()
+_log.setLevel(logging.ERROR)
+
 
 @app.task
 def process_pdf_link(pdf_url, document_type='ssd'):
@@ -38,7 +42,7 @@ def process_pdf_link(pdf_url, document_type='ssd'):
         pdf_chain(pdf_url, document_type)
 
 
-@app.task(bind=True)
+@app.task(bind=True, ingore_result=True)
 def download_pdf(self, pdf_url, document_type=''):
     pdf_filename = os.path.basename(pdf_url)
     pdf_path = os.path.join(pdf_dir, pdf_filename)
@@ -62,18 +66,21 @@ def download_pdf(self, pdf_url, document_type=''):
             "document_type": document_type
         }
     else:
+        _log.error(f"{pdf_url} is not a pdf.")
         self.request.callbacks = None
-        return {}
 
 
 @app.task
 def parse_pdf(body):
+    if body is None:
+        _log.error("nlp_engine.parse_pdf error. Chain error.")
+        raise Exception("nlp_engine.parse_pdf error. Chain error.")
     pdf_path = body["pdf_path"]
-    parse_result, is_ocr = pdfparser_tasks.parse(pdf_path)
+    parse_result, method = pdfparser_tasks.parse(pdf_path)
 
     body.update({
         "original_text": parse_result,
-        "text_parsing_type": "ocr" if is_ocr else "parser"})
+        "text_parsing_type": method})
     return body
 
 

@@ -1,4 +1,7 @@
 import logging
+import subprocess
+import requests
+from pathlib import Path
 
 from configparser import ConfigParser
 from scheduler.celery import app
@@ -36,23 +39,26 @@ pdf_dir = cfg['paths']['pdf_database']
 es_hosts = cfg['elasticsearch']['hosts']
 min_n_chars_per_page = int(cfg['pdfparser']['min_n_chars_per_page'])
 
+default_date = '1900-01-01'
+
 es = Elasticsearch(hosts=es_hosts)
 
 
 def get_metadata(pdf_path):
     parser = PDFParser(open(pdf_path, 'rb'))
     doc = PDFDocument(parser)
-    metadata = doc.info[0]
+
+    metadata = doc.info[0] if not doc.info else {}
 
     creation_date = metadata.get('CreationDate', 'NA')
+    creation_date = creation_date.decode('utf-8') if isinstance(creation_date, (bytes, bytearray)) else creation_date
 
-    year = str(creation_date[2:6])
-    month = str(creation_date[6:8])
-    day = str(creation_date[8:10])
-    _log.info([year, month, day])
-    _log.debug([year, month, day])
-    _log.error([year, month, day])
-    creation_date = '-'.join([year, month, day])
+    year = creation_date[2:6]
+    month = creation_date[6:8]
+    day = creation_date[8:10]
+
+    creation_date = '-'.join([year, month, day]) if '-'.join([year, month, day]) != '--' else default_date
+
 
     keywords = metadata.get('Keywords', '')
 
@@ -61,7 +67,7 @@ def get_metadata(pdf_path):
 
 def is_pdf(path):
     try:
-        PyPDF2.PdfFileReader(open(path, "rb"))
+        PyPDF2.PdfFileReader(open(path, "rb"), strict=False)
     except (PyPDF2.utils.PdfReadError, OSError):
         return False
     else:
@@ -86,11 +92,47 @@ def is_duplicate(url):
         return False
 
 
-def download_pdf(url, directory=pdf_dir, filename='document.pdf'):
+def download_pdf(url, directory=pdf_dir, filename='document.pdf', method=None):
     """download PDF file from url"""
-    command = 'curl -o ' + os.path.join(directory, filename) + ' -L -O ' + url
-    _log.info(command)
-    os.system(command)
+    dir_path = Path(directory)
+    dir_path.mkdir(parents=True, exist_ok=True)
+    pdf_path = dir_path / filename
+
+    def curl_subprocess_download():
+        subprocess.call([
+            "curl", "-o", pdf_path, '-L',
+            '-O', url
+        ], shell=False)
+
+    def requests_download(chunk_size=1024):
+        # send the request to specified url
+        r = requests.get(url, stream=True)
+
+        # reject if not PDF file
+        if 'application/pdf' not in r.headers.get('content-type'):
+            print('File under this URL is not PDF')
+            _log.error(f'content-type not pdf: {url}')
+            return
+
+        # write to file
+        with open(pdf_path, "wb") as pdf:
+
+            # write in chunks in case of big files
+            for chunk in r.iter_content(chunk_size=chunk_size):
+
+                # writing one chunk at a time to pdf file
+                if chunk:
+                    pdf.write(chunk)
+
+    if method == 'curl':
+        curl_subprocess_download()
+    elif method == 'requests':
+        requests_download()
+    else:
+        try:
+            requests_download()
+        except Exception:
+            curl_subprocess_download()
 
 
 def pdf_ocr(path, pages=[], lang='eng'):
@@ -176,35 +218,44 @@ def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
 
 
 @app.task
-def parse(path):
-    is_ocr = False
-    rsrcmgr = PDFResourceManager(caching=True)
-    outfp = StringIO()
-    laparams = LAParams()
-    password = b''
-    pagenos = set()
-    device = TextConverter(rsrcmgr, outfp, laparams=laparams, imagewriter=None)
-    n_pages = 1
-    with open(path, 'rb') as fp:
-        interpreter = PDFPageInterpreter(rsrcmgr, device)
-        pages = PDFPage.get_pages(fp, pagenos, password=password,
-                                  caching=True, check_extractable=True)
-        for page in pages:
-            interpreter.process_page(page)
-            n_pages += 1
-    device.close()
-    contents = outfp.getvalue()
-    outfp.close()
+def parse(path, method='pdfminer'):
+    def pdf_miner():
+        rsrc_mgr = PDFResourceManager(caching=True)
+        outfp = StringIO()
+        la_params = LAParams()
+        password = b''
+        pagenos = set()
+        device = TextConverter(rsrc_mgr, outfp, laparams=la_params, imagewriter=None)
+        n_pages = 1
+        with open(path, 'rb') as fp:
+            interpreter = PDFPageInterpreter(rsrc_mgr, device)
+            pages = PDFPage.get_pages(fp, pagenos, password=password,
+                                      caching=True, check_extractable=True)
+            for page in pages:
+                interpreter.process_page(page)
+                n_pages += 1
+        device.close()
+        contents = outfp.getvalue()
+        outfp.close()
+        return contents, n_pages
+
+    if method == 'pdfminer':
+        contents, n_pages = pdf_miner()
+    elif method == 'pypdf2':
+        pass  # @TODO
+    elif method == 'tika':
+        pass  # @TODO
+    else:
+        contents, n_pages = pdf_miner()
+        method = 'pdfminer'
 
     contents = text_postprocessing(contents)
 
     if len(contents) < n_pages * min_n_chars_per_page:
         contents = pdf_ocr(path)
-        is_ocr = True
+        method = 'ocr'
 
-    with open(os.path.join(txts_dir, os.path.basename(path)) + '.txt', 'w+') as f:
-        f.write(contents)
-    return contents, is_ocr
+    return contents, method
 
 
 @app.task
