@@ -100,7 +100,7 @@ def download_pdf(pdf_url, document_type=''):
         else:
             return {
                 "status": "document_rejected",
-                "pdf_path": str(pdf_dir / 'document_rejected'),
+                "pdf_path": str(pdf_dir / 'document_rejected' / pdf_filename),
                 "web_page": pdf_url,
                 "document_type": document_type
             }
