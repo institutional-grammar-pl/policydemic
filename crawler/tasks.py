@@ -84,7 +84,7 @@ def crawl_gov():
 
 
 @app.task
-def crawl_lad():
+def crawl_lad(depth=5):
     """Starts crawling process which downloads pdfs from all prepared .gov websites"""
     gov_sites = list(get_gov_websites(gov_sites_path))
     settings = Settings()
@@ -103,7 +103,7 @@ def crawl_lad():
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
     })
     settings.set('CONCURRENT_REQUESTS', 64)
-    settings.set('DEPTH_LIMIT', 6)
+    settings.set('DEPTH_LIMIT', depth)
     process = CrawlerProcess(settings)
 
     process.crawl(LadSpider, gov_sites)

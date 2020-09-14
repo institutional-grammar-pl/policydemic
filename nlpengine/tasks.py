@@ -4,6 +4,8 @@ import datetime
 import logging
 from configparser import ConfigParser
 from datetime import datetime
+from pathlib import Path
+import shutil
 
 from elasticsearch import Elasticsearch
 
@@ -15,7 +17,7 @@ cfg = ConfigParser()
 cfg.read('config.ini')
 
 es_hosts = cfg['elasticsearch']['hosts']
-pdf_dir = cfg['paths']['pdf_database']
+pdf_dir = Path(cfg['paths']['pdf_database'])
 es = Elasticsearch(hosts=es_hosts)
 
 INDEX_NAME = cfg['elasticsearch']['index_name']
@@ -25,7 +27,6 @@ filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 SCRAP_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 _log = logging.getLogger()
-_log.setLevel(logging.ERROR)
 
 
 @app.task
@@ -40,12 +41,14 @@ def process_pdf_link(pdf_url, document_type='ssd'):
 
     if not pdfparser_tasks.is_duplicate(pdf_url):
         pdf_chain(pdf_url, document_type)
+    else:
+        _log.error("url already in database")
 
 
-@app.task(bind=True, ingore_result=True)
-def download_pdf(self, pdf_url, document_type=''):
+@app.task()
+def download_pdf(pdf_url, document_type=''):
     pdf_filename = os.path.basename(pdf_url)
-    pdf_path = os.path.join(pdf_dir, pdf_filename)
+    pdf_path = pdf_dir / pdf_filename
 
     pdfparser_tasks.download_pdf(pdf_url, pdf_dir, pdf_filename)
 
@@ -57,24 +60,58 @@ def download_pdf(self, pdf_url, document_type=''):
         country_match = country_match.group(1) if country_match is not None else ''
         country_match = country_match.split('.')[-1]
 
+        new_pdf_path = pdf_dir / 'document_accepted' / pdf_filename
+        os.makedirs(pdf_dir / 'document_accepted', exist_ok=True)
+        shutil.move(pdf_path, new_pdf_path)
+
+        print({
+            "web_page": pdf_url,
+            "pdf_path": str(new_pdf_path),
+            "keywords": keywords,
+            "info_date": date,
+            "country": country_match,
+            "document_type": document_type
+        })
         return {
             "web_page": pdf_url,
-            "pdf_path": pdf_path,
+            "pdf_path": str(pdf_path),
             "keywords": keywords,
             "info_date": date,
             "country": country_match,
             "document_type": document_type
         }
     else:
-        _log.error(f"{pdf_url} is not a pdf.")
-        self.request.callbacks = None
+        print({
+            "status": "document_rejected",
+            "pdf_path": str(pdf_dir / 'document_rejected'),
+            "web_page": pdf_url,
+            "document_type": document_type
+        })
+        os.makedirs(pdf_dir / 'document_rejected', exist_ok=True)
+        try:
+            shutil.move(pdf_path, pdf_dir / 'document_rejected' / pdf_filename)
+        except:
+            return {
+                "status": "document_rejected",
+                "pdf_path": '',
+                "web_page": pdf_url,
+                "document_type": document_type
+            }
+        else:
+            return {
+                "status": "document_rejected",
+                "pdf_path": str(pdf_dir / 'document_rejected'),
+                "web_page": pdf_url,
+                "document_type": document_type
+            }
 
 
 @app.task
 def parse_pdf(body):
-    if body is None:
-        _log.error("nlp_engine.parse_pdf error. Chain error.")
-        raise Exception("nlp_engine.parse_pdf error. Chain error.")
+    status = body.get("status", None)
+    if status == 'document_rejected' or status is None:
+        return body
+
     pdf_path = body["pdf_path"]
     parse_result, method = pdfparser_tasks.parse(pdf_path)
 
@@ -86,6 +123,9 @@ def parse_pdf(body):
 
 @app.task
 def translate_pdf(body=None, full_translation=False, _id=None):
+    status = body.get("status", None)
+    if status == 'document_rejected' or status is None:
+        return body
 
     if _id is not None:
         body = es.get(INDEX_NAME, _id)
@@ -112,14 +152,29 @@ def process_document(body):
         "scrap_date": scrap_date
     })
 
-    on_subject = pdfparser_tasks.check_content(body['original_text'] + ' ' + body['title'], filtering_keywords)
-
-    if on_subject:
-        body.update({'status': 'subject_accepted'})
+    status = body.get("status", None)
+    if status == 'document_rejected' or status is None:
+        pass  # do nothing
     else:
-        os.remove(body['pdf_path'])
-        body.update({'status': 'subject_rejected',
-                     'pdf_path': ''})
+        on_subject, in_text_keywords = \
+            pdfparser_tasks.check_content(
+                body.get('original_text', '') + ' ' + body.get('title', ''), filtering_keywords)
+
+        if on_subject:
+            _log.error([body.get('keywords', ''), in_text_keywords])
+            old_pdf_path = body.get("pdf_path")
+            pdf_filename = Path(old_pdf_path).name
+            new_pdf_path = pdf_dir / 'subject_accepted' / pdf_filename
+            os.makedirs(pdf_dir / 'subject_accepted', exist_ok=True)
+            shutil.move(old_pdf_path, new_pdf_path)
+            body.update({'status': 'subject_accepted',
+                         'keywords': ','.join([body.get('keywords', ''), in_text_keywords]),
+                         'pdf_path': str(new_pdf_path)
+                         })
+        else:
+            os.remove(body['pdf_path'])
+            body.update({'status': 'subject_rejected',
+                         'pdf_path': ''})
 
     index_document(body)
 

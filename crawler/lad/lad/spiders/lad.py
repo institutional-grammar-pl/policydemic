@@ -23,6 +23,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
     start_urls = []
 
     def __init__(self, urls, *args, **kwargs):
+        logging.getLogger('scrapy').setLevel(logging.ERROR)
         super().__init__(**kwargs)
         self._link_extractor = LxmlLinkExtractor()
         self.start_urls.extend(urls)

@@ -2,6 +2,7 @@ import logging
 import subprocess
 import requests
 from pathlib import Path
+import shutil
 
 from configparser import ConfigParser
 from scheduler.celery import app
@@ -48,19 +49,25 @@ def get_metadata(pdf_path):
     parser = PDFParser(open(pdf_path, 'rb'))
     doc = PDFDocument(parser)
 
-    metadata = doc.info[0] if not doc.info else {}
-
-    creation_date = metadata.get('CreationDate', 'NA')
-    creation_date = creation_date.decode('utf-8') if isinstance(creation_date, (bytes, bytearray)) else creation_date
-
-    year = creation_date[2:6]
-    month = creation_date[6:8]
-    day = creation_date[8:10]
-
-    creation_date = '-'.join([year, month, day]) if '-'.join([year, month, day]) != '--' else default_date
-
+    metadata = doc.info[0] if doc.info else {}
 
     keywords = metadata.get('Keywords', '')
+    creation_date = metadata.get('CreationDate', '')
+    try:
+        creation_date = creation_date.decode('utf-8') if isinstance(creation_date, (bytes, bytearray)) else creation_date
+
+        year = creation_date[2:6]
+        month = creation_date[6:8]
+        day = creation_date[8:10]
+
+        creation_date = '-'.join([year, month, day]) if '-'.join([year, month, day]) != '--' else default_date
+    except:
+        creation_date = default_date
+
+    try:
+        keywords = keywords.decode('utf-8') if isinstance(keywords, (bytes, bytearray)) else keywords
+    except:
+        keywords = ''
 
     return creation_date, keywords
 
@@ -99,10 +106,10 @@ def download_pdf(url, directory=pdf_dir, filename='document.pdf', method=None):
     pdf_path = dir_path / filename
 
     def curl_subprocess_download():
-        subprocess.call([
+        subprocess.run([
             "curl", "-o", pdf_path, '-L',
             '-O', url
-        ], shell=False)
+        ], timeout=45)
 
     def requests_download(chunk_size=1024):
         # send the request to specified url
@@ -210,11 +217,12 @@ def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
     if len(at_least_words) > (at_least - 1):
         if bool(without):
             at_most_words = splitted.intersection(set(without))
-            return len(at_most_words) <= (at_most - 1)
+            crit = len(at_most_words) <= (at_most - 1)
         else:
-            return True
+            crit = True
     else:
-        return False
+        crit = False
+    return crit, at_least_words
 
 
 @app.task
@@ -223,7 +231,7 @@ def parse(path, method='pdfminer'):
         rsrc_mgr = PDFResourceManager(caching=True)
         outfp = StringIO()
         la_params = LAParams()
-        password = b''
+        password = ''
         pagenos = set()
         device = TextConverter(rsrc_mgr, outfp, laparams=la_params, imagewriter=None)
         n_pages = 1
