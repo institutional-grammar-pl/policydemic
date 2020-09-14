@@ -36,11 +36,14 @@ class PolicyWatchSpider(scrapy.Spider):
             date_unified =  date_announced[:10]
         paragraphs = selector.xpath('//div[contains(@class, "field-name-field-policy-details")]/p/text()').getall() 
         textFormatted = "\n".join(paragraphs)
+        title = textFormatted if len(textFormatted) < 101 else textFormatted[:100]
         entry = {
             'country': country_name,
             'info-date': date_unified,
             'original_text': textFormatted,
-            'organization': SITE_NAME
+            'organization': SITE_NAME,
+            'document_type': 'secondary_source',
+            'title': title
         }
         yield entry
 
