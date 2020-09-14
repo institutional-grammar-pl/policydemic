@@ -1,163 +1,180 @@
-import PyPDF2
+import logging
+import subprocess
+import requests
+from pathlib import Path
+import shutil
 
-import collections
-
+from configparser import ConfigParser
 from scheduler.celery import app
 
 # --- required for ocr --- #
 import pytesseract
+import regex
 import io
 from PIL import Image
 from wand.image import Image as wi
-from .config import ConfigOcr
 
-# --- required for complex criterion --- #
-#import flair
-#from flair.embeddings import WordEmbeddings
-#import torch
-#import numpy as np
-#import pandas
-#from flair.data import Sentence
+# --- new pdf parsing --- #
+import os
+import sys
+from io import StringIO
+from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfparser import PDFParser
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.pdfdevice import PDFDevice, TagExtractor
+from pdfminer.pdfpage import PDFPage
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
 
-#emb = WordEmbeddings('glove')
-# -------------------------------------- #
+import PyPDF2
 
-import textdistance
+from elasticsearch import Elasticsearch
 
-'''
-Function return parsed text from pdf file using optical character recognition
-path = path to pdf file
-pages = pages to recognize
-'''
-@app.task
-def pdfocr(path, pages=[], lang='eng'):
+_log = logging.getLogger()
+cfg = ConfigParser()
+cfg.read('config.ini')
+tesseract_path = cfg['paths']['tesseract']
+txts_dir = cfg['paths']['parsed_txts']
+filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
+pdf_dir = cfg['paths']['pdf_database']
+es_hosts = cfg['elasticsearch']['hosts']
+min_n_chars_per_page = int(cfg['pdfparser']['min_n_chars_per_page'])
 
+default_date = '1900-01-01'
+
+es = Elasticsearch(hosts=es_hosts)
+
+
+def get_metadata(pdf_path):
+    parser = PDFParser(open(pdf_path, 'rb'))
+    doc = PDFDocument(parser)
+
+    metadata = doc.info[0] if doc.info else {}
+
+    keywords = metadata.get('Keywords', '')
+    creation_date = metadata.get('CreationDate', '')
+    try:
+        creation_date = creation_date.decode('utf-8') if isinstance(creation_date, (bytes, bytearray)) else creation_date
+
+        year = creation_date[2:6]
+        month = creation_date[6:8]
+        day = creation_date[8:10]
+
+        creation_date = '-'.join([year, month, day]) if '-'.join([year, month, day]) != '--' else default_date
+    except:
+        creation_date = default_date
+
+    try:
+        keywords = keywords.decode('utf-8') if isinstance(keywords, (bytes, bytearray)) else keywords
+    except:
+        keywords = ''
+
+    return creation_date, keywords
+
+
+def is_pdf(path):
+    try:
+        PyPDF2.PdfFileReader(open(path, "rb"), strict=False)
+    except (PyPDF2.utils.PdfReadError, OSError):
+        return False
+    else:
+        return True
+
+
+def is_duplicate(url):
+    """check if document with this URL is in ES database"""
+    query_web_url = {
+        "query": {
+            "match": {
+                "web_page": url
+            }
+        }
+    }
+    rt = es.count(query_web_url, index='documents')
+    rt = rt['count']
+    if rt > 0:
+        _log.warning(f"Duplicate search. Found {rt} documents with URL: {url}.")
+        return True
+    else:
+        return False
+
+
+def download_pdf(url, directory=pdf_dir, filename='document.pdf', method=None):
+    """download PDF file from url"""
+    dir_path = Path(directory)
+    dir_path.mkdir(parents=True, exist_ok=True)
+    pdf_path = dir_path / filename
+
+    def curl_subprocess_download():
+        subprocess.run([
+            "curl", "-o", pdf_path, '-L',
+            '-O', url
+        ], timeout=45)
+
+    def requests_download(chunk_size=1024):
+        # send the request to specified url
+        r = requests.get(url, stream=True)
+
+        # reject if not PDF file
+        if 'application/pdf' not in r.headers.get('content-type'):
+            print('File under this URL is not PDF')
+            _log.error(f'content-type not pdf: {url}')
+            return
+
+        # write to file
+        with open(pdf_path, "wb") as pdf:
+
+            # write in chunks in case of big files
+            for chunk in r.iter_content(chunk_size=chunk_size):
+
+                # writing one chunk at a time to pdf file
+                if chunk:
+                    pdf.write(chunk)
+
+    if method == 'curl':
+        curl_subprocess_download()
+    elif method == 'requests':
+        requests_download()
+    else:
+        try:
+            requests_download()
+        except Exception:
+            curl_subprocess_download()
+
+
+def pdf_ocr(path, pages=[], lang='eng'):
+    """Function return parsed text from pdf file using optical character recognition.
+
+    path = path to pdf file
+    pages = pages to recognize
+    """
     if len(path) == 0:
         print('Path is empty')
         return
 
-    pytesseract.pytesseract.tesseract_cmd = ConfigOcr.path_to_tesseract
+    pytesseract.pytesseract.tesseract_cmd = tesseract_path
     pdf = wi(filename=path, resolution=300)
-    pdfImage = pdf.convert('jpeg')
+    pdf_image = pdf.convert('jpeg')
 
-    imageBlobs = []
+    image_blobs = []
     count = 1
 
-    for img in pdfImage.sequence:
+    for img in pdf_image.sequence:
         if (not pages) or count in pages:
-            imgPage = wi(image=img)
-            imageBlobs.append(imgPage.make_blob('jpeg'))
+            img_page = wi(image=img)
+            image_blobs.append(img_page.make_blob('jpeg'))
         count = count + 1
 
     result_text = []
 
-    for imgBlob in imageBlobs:
+    for imgBlob in image_blobs:
         im = Image.open(io.BytesIO(imgBlob))
         text = pytesseract.image_to_string(im, lang=lang)
         result_text.append(text)
 
     return result_text
 
-# --------- Complex criterion --------- #
-#def cos(u,v):
-#    return u.dot(v) / u.norm() / v.norm()
-#def embedding_cosine(str1, str2):
-#    s1 = Sentence(str1)
-#    emb.embed(s1)
-#    s2 = Sentence(str2)
-#    emb.embed(s2)
-#
-#    return cos(s1[0].embedding, s2[0].embedding)
 
-#def complex_crit(text, keywords, without=set(), at_least=1, at_most=1, similarity="hamming", threshold=1):
-#    """
-#    complex_crit
-#
-#    Arguments:
-#    * text - STRING - the text of the .pdf document;
-#    * keywords - SET of STRING - a python set of words, that should be in the text;
-#    * without - SET of STRING - a python set of words, that shouldn't be in the text;
-#    * at_least - INT - an integer indicating, how many unique words from of the keywords set should at least be in the text. If the number of words is smaller, function returns False;
-#    * at_most - INT - an integer indicating, how many of the keywords should at most be in the text. If the number is bigger, function returns False;
-#
-#    * threshold - FLOAT - threshold for cosine distance. The smaller the more words the algorithm accepts as similar. Can be in range [-1,1].
-#    * similarity - textdistance algorithm or embedding_cosine - similarity algorithm. It can be from the textdistance package or embedding_cosine algorithm.
-#
-#    Return:
-#    * BOOL - True if the text fulfils the criterion.
-#
-#    "complex_crit" checks if the intersection of set of words in the text and keywords set has at least "at_least" elements. If it has more than "at_most" words from the "without" set, it returns False. However, we say that two words A and B are equivalent when their similarity is above "threshold". Similarity is any function, that takes two strings and returns real number, that expresses similarity between those words. There are several distances to choose from, including:
-#    * Embedding cosine similarity: two words A and B get transformed into their embeddings, cosine is computed between those embeddings and if it is greater than "threshold", two words are equivalent.
-#    * Hamming similarity: https://en.wikipedia.org/wiki/Hamming_distance
-#    * Levenshtein similarity: https://en.wikipedia.org/wiki/Levenshtein_distance
-#
-#    and others from the textdistance package: https://pypi.org/project/textdistance/.
-#
-#
-#   Example:
-#    ```python
-#    > text = "It would have made a dreadfully ugly child; but it makes rather a handsome pig.";
-#
-#    > keywords = {"toddler"};
-#
-#    > complex_crit(text, keywords)
-#    True
-#    ```
-
-#    The "complex_crit" returns True, because embeddings of the "toddler" word and the "child" word have a cosine greater than 0.3 and hence are equivalent.
-#    """
-#
-#    if type(similarity) == str:
-#        s = {
-#           "hamming": td.hamming.similarity,
-#            "levenshtein":td.levenshtein.similarity,
-#            "embedding":embedding_cosine,
-#            "embedding_cosine":embedding_cosine,
-#            "cosine":embedding_cosine
-#        }
-#        try:
-#            similarity = s[similarity]
-#        except:
-#            print("Similarity unknown. Please check your selected similarity measure.")
-
-
-#    # Keywords and without to lowercase
-#    keywords = {k.lower() for k in keywords}
-#    without = {w.lower() for w in without}
-#    # Lowered
-#    lowered = text.lower()
-#    # No punctuation
-#    for m in ['.', ',', ':', ';', '-', '(', ')', '[', ']', '!', '?', '/', '\\']:
-#        lowered = lowered.replace(m, ' ')
-#    # Split
-#    splitted = set(lowered.split())
-#
-#    ret_without = True
-#    ret_keywords = False
-#
-#    if bool(without):
-#        for ww in without:
-#            for tt in splitted:
-#                if similarity(tt, ww) >= threshold:
-#                    at_most -= 1
-#                    if at_most == 0:
-#                        ret_without = False
-#                    break
-#
-#    for kk in keywords:
-#        for tt in splitted:
-#            if similarity(tt, kk) >= threshold:
-#                at_least -= 1
-#                if at_least == 0:
-#                    ret_keywords = True
-#                break
-#
-#    return ret_without and ret_keywords
-# ------------------------------------- #
-
-
-
-# ---------- Simple criterion --------- #
 def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
     """
     simple_crit
@@ -197,72 +214,66 @@ def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
 
     at_least_words = splitted.intersection(set(keywords))
 
-    if len(at_least_words) > (at_least-1):
+    if len(at_least_words) > (at_least - 1):
         if bool(without):
             at_most_words = splitted.intersection(set(without))
-            return len(at_most_words) <= (at_most-1)
+            crit = len(at_most_words) <= (at_most - 1)
         else:
-            return True
-    else: return False
-# ------------------------------------- #
+            crit = True
+    else:
+        crit = False
+    return crit, at_least_words
 
 
-
-# ----------  Parse function  --------- #
 @app.task
-def parse(path):
-    """
-    parse
+def parse(path, method='pdfminer'):
+    def pdf_miner():
+        rsrc_mgr = PDFResourceManager(caching=True)
+        outfp = StringIO()
+        la_params = LAParams()
+        password = ''
+        pagenos = set()
+        device = TextConverter(rsrc_mgr, outfp, laparams=la_params, imagewriter=None)
+        n_pages = 1
+        with open(path, 'rb') as fp:
+            interpreter = PDFPageInterpreter(rsrc_mgr, device)
+            pages = PDFPage.get_pages(fp, pagenos, password=password,
+                                      caching=True, check_extractable=True)
+            for page in pages:
+                interpreter.process_page(page)
+                n_pages += 1
+        device.close()
+        contents = outfp.getvalue()
+        outfp.close()
+        return contents, n_pages
 
-    Arguments:
-    * path - STRING - a path to a single .pdf file;
+    if method == 'pdfminer':
+        contents, n_pages = pdf_miner()
+    elif method == 'pypdf2':
+        pass  # @TODO
+    elif method == 'tika':
+        pass  # @TODO
+    else:
+        contents, n_pages = pdf_miner()
+        method = 'pdfminer'
 
-    Return:
-    * STRING - the text of the chosen .pdf;
+    contents = text_postprocessing(contents)
 
-    "parse" task works as an endpoint. It takes a path of a pdf file as an argument and returns its text as a STRING.
+    if len(contents) < n_pages * min_n_chars_per_page:
+        contents = pdf_ocr(path)
+        method = 'ocr'
 
-    ### pdfocr Function
-
-    ```python
-    > pdfocr(path, lang='eng')
-    ```
-
-    Arguments:
-    * path - STRING - a path to a .pdf file;
-    * lang - STRING - language, english by default.
-
-    Return:
-    * STRING - the text of the chosen .pdf
-
-    The function returns parsed text from pdf file using OCR (optical character recognition). It takes a path of a pdf file as an argument and returns its text as a STRING.
-    """
-    pdf_text_list=[]
-    with open(path, 'rb') as pdf_file:
-        read_pdf = PyPDF2.PdfFileReader(pdf_file)
-        number_of_pages = read_pdf.getNumPages()
-        c = collections.Counter(range(number_of_pages))
-        for i in c:
-            page = read_pdf.getPage(i)
-            page_content = page.extractText()
-            pdf_text_list.append(page_content)
-        pdf_file.close()
-
-    pdf_text = " ".join(pdf_text_list)
-    return pdf_text
-# ------------------------------------- #
+    return contents, method
 
 
-
-
-
-# ----------  Check function  --------- #
 @app.task
-def check(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, similarity="hamming", threshold=5, crit="simple"):
+def check_content(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, similarity="hamming", threshold=5,
+                  crit="simple"):
     """
     check
 
     Arguments:
+
     * text - STRING - the text of the .pdf document;
     * keywords - SET of STRING - a python set of words, that should be in the text;
     * without - SET of STRING - a python set of words, that shouldn't be in the text;
@@ -273,18 +284,20 @@ def check(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, simila
     * similarity - textdistance algorithm or embedding_cosine - similarity algorithm. It can be from the textdistance package or embedding_cosine algorithm.
 
     Return:
+
     * BOOL - True if the text fulfils the criterion.
 
     check is a bridge to simple_crit and complex crit function. For details please check their documentation.
     """
     if crit == "simple":
-        return simple_cirt(pdf_text, keywords, without=without, at_least=at_least, at_most=at_most)
-    else:
-        return complex_crit(pdf_text, keywords, without=without, at_least=at_least, at_most=at_most, similarity=similarity, threshold=threshold)
-# ------------------------------------- #
+        return simple_crit(pdf_text, keywords, without=without, at_least=at_least, at_most=at_most)
 
-# ----------  link processing --------- #
-@app.task
-def process_pdf_link(http_url):
-    print(f"Received pdf: {http_url}")
-# ------------------------------------- #
+
+def text_postprocessing(text):
+    # line breaks
+    text = regex.sub(r'(.)-\n', r'\1', text)
+
+    # one-character or empty lines
+    text = regex.sub(r'(?<=\n)(.|\s|\n){0,1}\n', r'', text)
+
+    return text

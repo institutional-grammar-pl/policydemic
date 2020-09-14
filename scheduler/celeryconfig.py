@@ -18,3 +18,4 @@ imports = (
     "pdfparser.tasks",
     "translator.tasks",
 )
+worker_concurrency = 2

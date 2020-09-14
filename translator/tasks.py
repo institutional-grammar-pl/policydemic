@@ -1,7 +1,12 @@
-from scheduler.celery import app
-from ibm_watson import LanguageTranslatorV3
 import requests
 import json
+import traceback
+import logging
+
+from scheduler.celery import app
+from ibm_watson import LanguageTranslatorV3
+
+_log = logging.getLogger()
 
 
 @app.task
@@ -71,11 +76,10 @@ def translate_all():
         return {"message": "Couldn't translate all of the documents.", "updated_documents_count": counter}
 
 
-@app.task
-def translate(text):
-    BASE_LANGUAGE = 'en'
-    LT_THRESH = 0.4
-    LT_PAIRS = {
+def translate(text, translated_field='title'):
+    base_language = 'en'
+    lt_thresh = 0.4
+    lt_pairs = {
         'ar': 'Arabic',
         'bn': 'Bengali',
         'bg': 'Bulgarian',
@@ -130,12 +134,12 @@ def translate(text):
         translator = LanguageTranslatorV3(
             version='2018-05-01'
         )
-    except:
+    except Exception:
+        _log.error(traceback.format_exc())
         return {
             'message': 'Please bind your language translator service',
             'translation_type': 'missing',
-            'original_text': text,
-            'translated_text': '',
+            translated_field: '',
             'language': ''
         }
 
@@ -145,53 +149,49 @@ def translate(text):
         res = response.get_result()
     else:
         res = None
-    if res and res['languages'][0]['confidence'] > LT_THRESH:
+    if res and res['languages'][0]['confidence'] > lt_thresh:
         language = res['languages'][0]['language']
     elif res is None:
-        language = BASE_LANGUAGE
+        language = base_language
     else:
         return {
             'message': 'Sorry, I am not able to detect the language you are speaking. Please try rephrasing.',
             'translation_type': 'missing',
-            'original_text': text,
-            'translated_text': '',
+            translated_field: '',
             'language': ''
         }
 
     # validate support for language
-    if language not in LT_PAIRS.keys():
+    if language not in lt_pairs.keys():
         return {
             'message': 'Sorry, I do not know how to translate between {} and {} yet.'.format(
-                BASE_LANGUAGE, language
+                base_language, language
             ),
             'translation_type': 'missing',
-            'original_text': text,
-            'translated_text': '',
+            translated_field: '',
             'language': ''
         }
 
     # translate to base language if needed
-    if language != BASE_LANGUAGE:
+    if language != base_language:
         response = translator.translate(
             text,
             source=language,
-            target=BASE_LANGUAGE
+            target=base_language
         )
         res = response.get_result()
         output = res['translations'][0]['translation']
-        language_name = LT_PAIRS[language]
+        language_name = lt_pairs[language]
         # print(output)
         return {
             'translation_type': 'auto',
-            'original_text': text,
-            'translated_text': output,
+            translated_field: output,
             'language': language_name
         }
     else:
         return {
             'translation_type': 'auto',
-            'original_text': text,
-            'translated_text': text,
-            'language': LT_PAIRS[BASE_LANGUAGE]
+            translated_field: text,
+            'language': lt_pairs[base_language]
         }
 

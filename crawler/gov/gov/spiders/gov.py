@@ -7,22 +7,37 @@ from scrapy.spiders import Rule
 
 from crawler.gov.gov.items import PdfItem
 
-import datetime
+import time
+import logging
+
 
 class GovDuSpider(scrapy.Spider):
     name = 'govdu'
     start_urls = ['http://dziennikustaw.gov.pl/DU/rok/2020']
     allowed_domains = ['gov.pl']
 
-    def __init__(self, data_from, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+
+        logging.info("GOV DU SPIDER INIT 1")
+
         super().__init__(**kwargs)
         self._link_extractor = LxmlLinkExtractor(allow_domains=['gov.pl'])
+
+        # default date
+        self.date_from = None
+        logging.info("GOV DU SPIDER 2")
+        self.logger.info('init')
+    
+    def set_date_from(self, date_from):
         self.date_from = date_from
 
     def start_requests(self):
+        logging.info("start requests")
+        self.logger.info('start requests')
         yield Request(url=self.start_urls[0], callback=self.parse_page_list)
 
     def parse_page_list(self, response):
+        logging.info("parse_page_list")
         for link in self._link_extractor.extract_links(response):
             if '/DU/rok/2020/' in link.url:
                 yield response.follow(link, callback=self.parse_filtered_list)
@@ -35,10 +50,7 @@ class GovDuSpider(scrapy.Spider):
             url = response.urljoin(href)
             date = item.xpath('td[4]/text()').get().strip()
 
-            # check last (successful) crawling date
-            curr_doc_date = date.split('-')
-            if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
-                yield PdfItem(file_urls=[url], date=date)
+            yield PdfItem(file_urls=[url], date=date)
 
 
 class GovMpSpider(scrapy.Spider):
@@ -46,9 +58,12 @@ class GovMpSpider(scrapy.Spider):
     start_urls = ['http://www.monitorpolski.gov.pl/MP/rok/2020']
     allowed_domains = ['gov.pl']
 
-    def __init__(self, date_from, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self._link_extractor = LxmlLinkExtractor(allow_domains=['gov.pl'])
+        self.date_from = None
+    
+    def set_date_from(self, date_from):
         self.date_from = date_from
 
     def start_requests(self):
@@ -67,13 +82,17 @@ class GovMpSpider(scrapy.Spider):
             url = response.urljoin(href)
             date = item.xpath('td[4]/text()').get().strip()
 
-            # check last (successful) crawling date
-            curr_doc_date = date.split('-')
-            if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
+            if self.date_from is not None:
+                # check last (successful) crawling date
+                curr_doc_date = date.split('-')
+                if time.strptime('-'.join(self.date_from), '%Y-%m-%d') <= time.strptime('-'.join(curr_doc_date), '%Y-%m-%d'):
+                    # if datetime.datetime(self.date_from) <= datetime.datetime(curr_doc_date):
+                    yield PdfItem(file_urls=[url], date=date)
+            else:
                 yield PdfItem(file_urls=[url], date=date)
 
 
-class GovCrawler(scrapy.spiders.CrawlSpider):
+class GovPlCrawler(scrapy.spiders.CrawlSpider):
     name = 'gov'
     start_urls = ['http://gov.pl/']
     allowed_domains = ['gov.pl']
@@ -90,3 +109,7 @@ class GovCrawler(scrapy.spiders.CrawlSpider):
     def parse_item(self, response: Response):
         if 'content-type' in response.headers and b'application/pdf' in response.headers['content-type']:
             yield PdfItem(file_urls=[response.url])
+
+
+
+

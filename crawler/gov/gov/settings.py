@@ -11,30 +11,33 @@ DEFAULT_REQUEST_HEADERS = {
     'dnt': '1',
     'Host': 'gov.pl',
     'Upgrade-Insecure-Requests': '1',
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
 }
+
+# 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
+# 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    'gov.middlewares.GovSpiderMiddleware': 543,
-#}
+SPIDER_MIDDLEWARES = {
+   'gov.middlewares.GovSpiderMiddleware': 543,
+}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'gov.middlewares.GovDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   'gov.middlewares.GovDownloaderMiddleware': 543,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
-#    'scrapy.extensions.telnet.TelnetConsole': None,
-#}
+EXTENSIONS = {
+   'scrapy.extensions.telnet.TelnetConsole': None,
+}
 
 ITEM_PIPELINES = {
-   'crawler.gov.gov.pipelines.CreateProcessPdfTaskPipeline': 0,  # Calls PDF processing task in celery
-   # 'crawler.gov.gov.pipelines.DropDuplicatesPipeline': 100,  # Removes duplicated PDFs based on local file system
+ #  'crawler.gov.gov.pipelines.DropDuplicatesPipeline': 0,   # Removes duplicated PDFs based on local file system
+   'crawler.gov.gov.pipelines.CreateProcessPdfTaskPipeline': 100,  # Calls PDF processing task in celery
    # 'scrapy.pipelines.files.FilesPipeline': 200,  # Downloads PDFs from given url
    # 'crawler.gov.gov.pipelines.RenamePdfFilesPipeline': 300,  # Clusters in directories downloaded PDFs by date
 }
@@ -62,7 +65,7 @@ MEDIA_ALLOW_REDIRECTS = True
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-DEPTH_LIMIT = 100
+DEPTH_LIMIT = 150
 SCHEDULER_PRIORITY_QUEUE = 'scrapy.pqueues.DownloaderAwarePriorityQueue'
 CONCURRENT_REQUESTS = 100
 COOKIES_ENABLED = False
