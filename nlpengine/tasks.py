@@ -104,38 +104,40 @@ def parse_pdf(body):
     status = body.get("status", None)
     if status == 'document_rejected' or status is None:
         return body
+    else:
+        pdf_path = body["pdf_path"]
+        parse_result, method = pdfparser_tasks.parse(pdf_path)
 
-    pdf_path = body["pdf_path"]
-    parse_result, method = pdfparser_tasks.parse(pdf_path)
-
-    body.update({
-        "original_text": parse_result,
-        "text_parsing_type": method})
-    return body
+        body.update({
+            "original_text": parse_result,
+            "text_parsing_type": method})
+        return body
 
 
 @app.task
 def translate_pdf(body=None, full_translation=False, _id=None):
     status = body.get("status", None)
-    if status == 'document_rejected' or status is None:
+    if status == 'document_rejected':
         return body
-
-    if _id is not None:
-        body = es.get(INDEX_NAME, _id)
-
-    original_text = body["original_text"]
-
-    if full_translation:
-        text_to_translate = original_text
-        result = translator_tasks.translate(text_to_translate, 'translated_text')
+    elif status is None:
+        _log.error(f"translate_pdf status=None: {body}")
     else:
-        max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
-        text_to_translate = original_text[:max_n_chars] if len(
-            original_text) > max_n_chars else original_text
-        result = translator_tasks.translate(text_to_translate)
+        if _id is not None:
+            body = es.get(INDEX_NAME, _id)
 
-    body.update(result)
-    return body
+        original_text = body["original_text"]
+
+        if full_translation:
+            text_to_translate = original_text
+            result = translator_tasks.translate(text_to_translate, 'translated_text')
+        else:
+            max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
+            text_to_translate = original_text[:max_n_chars] if len(
+                original_text) > max_n_chars else original_text
+            result = translator_tasks.translate(text_to_translate)
+
+        body.update(result)
+        return body
 
 
 @app.task
