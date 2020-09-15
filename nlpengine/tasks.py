@@ -64,21 +64,14 @@ def download_pdf(pdf_url, document_type=''):
         os.makedirs(pdf_dir / 'document_accepted', exist_ok=True)
         shutil.move(pdf_path, new_pdf_path)
 
-        print({
-            "web_page": pdf_url,
-            "pdf_path": str(new_pdf_path),
-            "keywords": keywords,
-            "info_date": date,
-            "country": country_match,
-            "document_type": document_type
-        })
         return {
             "web_page": pdf_url,
             "pdf_path": str(pdf_path),
             "keywords": keywords,
             "info_date": date,
             "country": country_match,
-            "document_type": document_type
+            "document_type": document_type,
+            "status": "document_accepted"
         }
     else:
         print({
