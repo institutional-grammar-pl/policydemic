@@ -98,8 +98,8 @@ def download_pdf(pdf_url, document_type=''):
 
 @app.task
 def parse_pdf(body):
-    status = body.get("status", None)
-    if status == 'document_rejected' or status is None:
+    status = body.get("status")
+    if status == 'document_rejected':
         return body
     else:
         pdf_path = body["pdf_path"]
@@ -113,15 +113,12 @@ def parse_pdf(body):
 
 @app.task
 def translate_pdf(body=None, full_translation=False, _id=None):
-    status = body.get("status", None)
+    if _id is not None:
+        body = es.get(INDEX_NAME, _id)
+    status = body.get("status")
     if status == 'document_rejected':
         return body
-    elif status is None:
-        _log.error(f"translate_pdf status=None: {body}")
     else:
-        if _id is not None:
-            body = es.get(INDEX_NAME, _id)
-
         original_text = body["original_text"]
 
         if full_translation:
