@@ -2,6 +2,7 @@ import os
 import re
 import datetime
 import logging
+import tempfile
 from configparser import ConfigParser
 from datetime import datetime
 from pathlib import Path
@@ -30,7 +31,7 @@ _log = logging.getLogger()
 
 
 @app.task
-def process_pdf_link(pdf_url, document_type='ssd'):
+def process_pdf_link(pdf_url, document_type='secondary_source'):
     print(f"Received pdf: {pdf_url}")
 
     pdf_chain = \
@@ -47,8 +48,10 @@ def process_pdf_link(pdf_url, document_type='ssd'):
 
 @app.task()
 def download_pdf(pdf_url, document_type=''):
-    pdf_filename = os.path.basename(pdf_url)
-    pdf_path = pdf_dir / pdf_filename
+    fd, pdf_path = tempfile.mkstemp(prefix='doc_', suffix='.pdf', dir=pdf_dir)
+    os.close(fd)
+
+    pdf_filename = os.path.basename(pdf_path)
 
     pdfparser_tasks.download_pdf(pdf_url, pdf_dir, pdf_filename)
 
@@ -66,7 +69,7 @@ def download_pdf(pdf_url, document_type=''):
 
         return {
             "web_page": pdf_url,
-            "pdf_path": str(pdf_path),
+            "pdf_path": str(new_pdf_path),
             "keywords": keywords,
             "info_date": date,
             "country": country_match,
@@ -74,12 +77,6 @@ def download_pdf(pdf_url, document_type=''):
             "status": "document_accepted"
         }
     else:
-        print({
-            "status": "document_rejected",
-            "pdf_path": str(pdf_dir / 'document_rejected'),
-            "web_page": pdf_url,
-            "document_type": document_type
-        })
         os.makedirs(pdf_dir / 'document_rejected', exist_ok=True)
         try:
             shutil.move(pdf_path, pdf_dir / 'document_rejected' / pdf_filename)
