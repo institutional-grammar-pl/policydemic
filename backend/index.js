@@ -83,6 +83,30 @@ router.get('/documents/:id', async (ctx) => {
     }
 })
 
+router.get('/documents/:id/pdf', async (ctx) => {
+    console.log('get pdf', ctx.params.id)
+    try {
+        const query = await client.get({
+            index: 'documents',
+            id: ctx.params.id
+        })
+
+        if (!query.body._source.pdf_path) {
+            ctx.body = 'Document has no file!'
+            ctx.status = 404
+            return
+        }
+
+        const src = fs.createReadStream(query.body._source.pdf_path);
+        ctx.response.set("content-type", "application/pdf");
+        ctx.body = src;
+    } catch (e) {
+        console.error('get id ', ctx.params.id, ' threw error: ', e);
+        ctx.body = e.toString();
+        ctx.status = 422;
+    }
+})
+
 
 router.get('/', (ctx) => {
   ctx.body = "Hello world!"
