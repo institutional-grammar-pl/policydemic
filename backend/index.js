@@ -72,6 +72,9 @@ router.get('/documents/:id', async (ctx) => {
             body[k] = body[vars[k]]
             delete body[vars[k]] 
         }
+        if (body.keywords === '') { 
+            body.keywords = []
+        }
         ctx.status = 200
     } catch (e) {
         console.error('get id ', ctx.params.id, ' threw error: ', e);
@@ -262,14 +265,16 @@ function parseData(data){
     const parsedData = [];
     if (!data) data = [];
     data.forEach(element => {
+        const k = element._source.keywords
         parsedData.push({
+            title: element._source.title,
             id: element._id,
-            /* source: element._source.organization,*/
-            source: element._source.web_page,
+            source: element._source.source,
+            /*source: element._source.web_page,*/
             infoDate: element._source.info_date,
             language: element._source.language,
-            keywords: element._source.keywords,
-            country: element._source.country
+            keywords: k === '' ? [] : k,
+            country: element._source.country,
         })
     });
     return parsedData;
@@ -298,7 +303,7 @@ function constructParams(body, documentType){
         params.body.query.bool.must.push({ range: { info_date: { gte: body.infoDateFrom, lte: body.infoDateTo }}},)
     }
 
-    let fields = ["web_page", "country", "language", "keywords" ];
+    let fields = ["title", "source", "country", "language", "keywords" ];
 
     for(let i = 0; i < fields.length; i++){
 
@@ -331,12 +336,12 @@ function constructParams(body, documentType){
 
 router.post('/lad/search', async (ctx) => {
     console.log(ctx.request)
-    await getDocuments(ctx, "legalact");
+    await getDocuments(ctx, "legal_act");
 });
 
 router.post('/ssd/search', upload.none(), async (ctx) => {
     console.log(ctx.request.body)
-    await getDocuments(ctx, "secondary");
+    await getDocuments(ctx, "secondary_source");
 });
 
 router.post('/lad', async (ctx) => {
