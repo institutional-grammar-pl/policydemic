@@ -13,6 +13,7 @@ from elasticsearch import Elasticsearch
 from scheduler.celery import app
 import pdfparser.tasks as pdfparser_tasks
 import translator.tasks as translator_tasks
+from nlpengine.country_domains import country_domains
 
 cfg = ConfigParser()
 cfg.read('config.ini')
@@ -62,6 +63,7 @@ def download_pdf(pdf_url, document_type=''):
         country_match = re.match('^http[s]?://([a-z0-9.-]+)/', pdf_url)
         country_match = country_match.group(1) if country_match is not None else ''
         country_match = country_match.split('.')[-1]
+        country = country_domains.get(country_match, country_match)
 
         new_pdf_path = pdf_dir / 'document_accepted' / pdf_filename
         os.makedirs(pdf_dir / 'document_accepted', exist_ok=True)
@@ -72,7 +74,7 @@ def download_pdf(pdf_url, document_type=''):
             "pdf_path": str(new_pdf_path),
             "keywords": keywords,
             "info_date": date,
-            "country": country_match,
+            "country": country,
             "document_type": document_type,
             "status": "document_accepted"
         }
