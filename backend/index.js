@@ -409,7 +409,7 @@ async function postDocument(ctx){
 }
 
 async function updateDocument(ctx){
-
+    
     const body = { ...ctx.request.body }
     const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
         originalText: 'original_text' }

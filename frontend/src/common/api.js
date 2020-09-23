@@ -10,8 +10,9 @@ export default class Api {
         return this._postJsonData(type.toLowerCase(), data);
     }
 
-    static createDataForRow(id, source, infoDate, language, keywords, country) {
+    static createDataForRow(title, id, source, infoDate, language, keywords, country) {
         return {
+            title: title, 
             id: id,
             source: source,
             infoDate: infoDate,
