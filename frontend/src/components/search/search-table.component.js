@@ -56,7 +56,6 @@ function stableSort(array, comparator) {
 
 const headCells = [
     { id: 'title', alignLeft: false, label: 'Title' },
-    { id: 'source', alignLeft: false, label: 'Source' },
     { id: 'infoDate', alignLeft: false, label: 'Info date' },
     /*{ id: 'language', alignLeft: false, label: 'Language' },*/
     { id: 'keywords', alignLeft: false, label: 'Keywords' },
