@@ -318,7 +318,8 @@ function constructParams(body, documentType){
             query:{
                 bool: {
                     must: [
-                        { match: { document_type: documentType}}],
+                        { match: { document_type: documentType}},
+                        { match: { status: 'subject_accepted'}}],
                 }
             }
         }, 
