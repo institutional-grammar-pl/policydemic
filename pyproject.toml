@@ -18,6 +18,7 @@ ibm-watson = "^4.5.0"
 textdistance = "^4.2.0"
 "pdfminer.six" = "^20200726"
 pypdf2 = "^1.26.0"
+beautifulsoup4 = "^4.9.1"
 
 
 [tool.poetry.dev-dependencies]

@@ -3,11 +3,14 @@ from pathlib import Path
 import json
 from datetime import datetime
 import logging
-from configparser import ConfigParser
+from configparser import RawConfigParser
 
 from twisted.internet import reactor
 from scrapy.settings import Settings
 from scrapy.crawler import CrawlerProcess
+
+from crawler.ilo.ilo_script import get_lio_data
+from crawler.ilo.ilo_script import unpack_country_info
 
 from crawler.cgrt import CGRT
 from crawler.gov.gov.spiders.gov import GovDuSpider, GovPlCrawler, GovMpSpider
@@ -18,10 +21,15 @@ from celery import group
 
 from .lad.lad.gov_sites import get_gov_websites
 
-cfg = ConfigParser()
+import nlpengine
+
+cfg = RawConfigParser()
 cfg.read('config.ini')
 pdf_dir = cfg['paths']['pdf_database']
 gov_sites_path = cfg['paths']['gov_websites']
+
+SCRAP_DATE_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
+max_n_chars_to_translate = int(cfg['translator']['max_n_chars_to_translate'])
 
 # class CrawlerProcess(Process):
 #     """ This class allows to run scrapy Crawlers using multiprocessing from billiard """
@@ -163,6 +171,25 @@ def crawl_policy_watch():
     process.start()
     process.join()
 
+
+@app.task
+def crawl_ilo():
+    results = get_lio_data()
+    for r in results:
+        country, doc = unpack_country_info(*r)
+        body = {
+            "country": country,
+            "organization": "International Labour Organization",
+            "scrap_date": datetime.now().strftime(SCRAP_DATE_FORMAT),
+            "original_text": doc,
+            "title": doc[:max_n_chars_to_translate],
+            "document_type": "secondary_source",
+            "info_date": cfg['pdfparser']['default_date']
+        }
+        ilo_chain = nlpengine.tasks.translate_pdf.s() | \
+            nlpengine.tasks.index_doc_task.s()
+
+        ilo_chain(body)
 
 
 # def last_crawling(crawler_name):

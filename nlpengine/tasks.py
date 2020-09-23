@@ -3,7 +3,7 @@ import re
 import datetime
 import logging
 import tempfile
-from configparser import ConfigParser
+from configparser import RawConfigParser
 from datetime import datetime
 from pathlib import Path
 import shutil
@@ -13,8 +13,9 @@ from elasticsearch import Elasticsearch
 from scheduler.celery import app
 import pdfparser.tasks as pdfparser_tasks
 import translator.tasks as translator_tasks
+from nlpengine.country_domains import country_domains
 
-cfg = ConfigParser()
+cfg = RawConfigParser()
 cfg.read('config.ini')
 
 es_hosts = cfg['elasticsearch']['hosts']
@@ -25,7 +26,7 @@ INDEX_NAME = cfg['elasticsearch']['index_name']
 DOC_TYPE = cfg['elasticsearch']['doc_type']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 
-SCRAP_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+SCRAP_DATE_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
 
 _log = logging.getLogger()
 
@@ -62,6 +63,7 @@ def download_pdf(pdf_url, document_type=''):
         country_match = re.match('^http[s]?://([a-z0-9.-]+)/', pdf_url)
         country_match = country_match.group(1) if country_match is not None else ''
         country_match = country_match.split('.')[-1]
+        country = country_domains.get(country_match, country_match)
 
         new_pdf_path = pdf_dir / 'document_accepted' / pdf_filename
         os.makedirs(pdf_dir / 'document_accepted', exist_ok=True)
@@ -72,7 +74,7 @@ def download_pdf(pdf_url, document_type=''):
             "pdf_path": str(new_pdf_path),
             "keywords": keywords,
             "info_date": date,
-            "country": country_match,
+            "country": country,
             "document_type": document_type,
             "status": "document_accepted"
         }
@@ -182,6 +184,11 @@ def index_document(body):
         doc_type=DOC_TYPE,
         body=body
     )
+
+
+@app.task
+def index_doc_task(body):
+    index_document(body)
 
 
 def update_document(doc_id, body):

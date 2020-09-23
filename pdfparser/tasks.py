@@ -40,7 +40,7 @@ pdf_dir = cfg['paths']['pdf_database']
 es_hosts = cfg['elasticsearch']['hosts']
 min_n_chars_per_page = int(cfg['pdfparser']['min_n_chars_per_page'])
 
-default_date = '1900-01-01'
+default_date = cfg['pdfparser']['default_date']
 
 es = Elasticsearch(hosts=es_hosts)
 
