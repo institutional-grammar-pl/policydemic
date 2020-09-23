@@ -321,7 +321,8 @@ function constructParams(body, documentType){
                         { match: { document_type: documentType}}],
                 }
             }
-        }
+        }, 
+        size: 100
     }
 
     if(body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0){
