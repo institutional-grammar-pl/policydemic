@@ -12,8 +12,7 @@
         "type": "keyword"
       },
       "pdf_path": {
-        "type": "keyword",
-        "index": false
+        "type": "keyword"
       },
       "scrap_date": {
         "type": "date",

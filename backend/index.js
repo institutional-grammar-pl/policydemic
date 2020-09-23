@@ -3,6 +3,7 @@ const KoaRouter = require('koa-router');
 const bodyParser = require('koa-bodyparser');
 const multer = require('koa-multer');
 const cors = require('@koa/cors');
+const fs = require('fs');
 const { Client } = require('@elastic/elasticsearch')
 const client = new Client({node: 'http:/localhost:9200'})
 
@@ -72,7 +73,34 @@ router.get('/documents/:id', async (ctx) => {
             body[k] = body[vars[k]]
             delete body[vars[k]] 
         }
+        if (body.keywords === '') { 
+            body.keywords = []
+        }
         ctx.status = 200
+    } catch (e) {
+        console.error('get id ', ctx.params.id, ' threw error: ', e);
+        ctx.body = e.toString();
+        ctx.status = 422;
+    }
+})
+
+router.get('/documents/:id/pdf', async (ctx) => {
+    console.log('get pdf', ctx.params.id)
+    try {
+        const query = await client.get({
+            index: 'documents',
+            id: ctx.params.id
+        })
+
+        if (!query.body._source.pdf_path) {
+            ctx.body = 'Document has no file!'
+            ctx.status = 404
+            return
+        }
+
+        const src = fs.createReadStream(query.body._source.pdf_path);
+        ctx.response.set("content-type", "application/pdf");
+        ctx.body = src;
     } catch (e) {
         console.error('get id ', ctx.params.id, ' threw error: ', e);
         ctx.body = e.toString();
@@ -262,14 +290,16 @@ function parseData(data){
     const parsedData = [];
     if (!data) data = [];
     data.forEach(element => {
+        const k = element._source.keywords
         parsedData.push({
+            title: element._source.title,
             id: element._id,
-            /* source: element._source.organization,*/
-            source: element._source.web_page,
+            source: element._source.source,
+            /*source: element._source.web_page,*/
             infoDate: element._source.info_date,
             language: element._source.language,
-            keywords: element._source.keywords,
-            country: element._source.country
+            keywords: k === '' ? [] : k,
+            country: element._source.country,
         })
     });
     return parsedData;
@@ -291,14 +321,15 @@ function constructParams(body, documentType){
                         { match: { document_type: documentType}}],
                 }
             }
-        }
+        }, 
+        size: 100
     }
 
     if(body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0){
         params.body.query.bool.must.push({ range: { info_date: { gte: body.infoDateFrom, lte: body.infoDateTo }}},)
     }
 
-    let fields = ["web_page", "country", "language", "keywords" ];
+    let fields = ["title", "source", "country", "language", "keywords" ];
 
     for(let i = 0; i < fields.length; i++){
 
@@ -331,12 +362,12 @@ function constructParams(body, documentType){
 
 router.post('/lad/search', async (ctx) => {
     console.log(ctx.request)
-    await getDocuments(ctx, "legalact");
+    await getDocuments(ctx, "legal_act");
 });
 
 router.post('/ssd/search', upload.none(), async (ctx) => {
     console.log(ctx.request.body)
-    await getDocuments(ctx, "secondary");
+    await getDocuments(ctx, "secondary_source");
 });
 
 router.post('/lad', async (ctx) => {
@@ -380,7 +411,7 @@ async function postDocument(ctx){
 }
 
 async function updateDocument(ctx){
-
+    
     const body = { ...ctx.request.body }
     const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
         originalText: 'original_text' }

@@ -43,6 +43,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
     const { register, handleSubmit, setValue } = useForm({
         defaultValues: document ? {
+            title: document.title,
             webPage: document.webPage,
             organization: document.organization,
             section: document.section,
@@ -60,6 +61,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         if (pdfUpload) {
             register({ name: 'pdf' });
         }
+        register({ name: "title"  });
         register({ name: "keywords"  });
         register({ name: "infoDate" });
         register({ name: "scrapDate" });

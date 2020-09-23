@@ -29,7 +29,13 @@ export default function SsdTabComponent() {
     }
 
     const handleOnDelete = (selected) => {
-        alert(selected.join(','));
+        //alert(selected.join(','));
+        Api.deleteDocuments(selected).catch(()=>{}).then(()=>{
+            console.log(searchResults)
+            const newSearchResults = searchResults.filter(row=>!selected.includes(row.id))
+            console.log(newSearchResults)
+            setSearchResults(newSearchResults)
+        })
     }
 
     return (<Container>
@@ -37,6 +43,7 @@ export default function SsdTabComponent() {
         <NewDocDialogComponent open={openDialog} onClose={handleCloseDialog}>
             <NewDocFormComponent type="SSD" onSuccessfulSend={handleCloseDialog}/>
         </NewDocDialogComponent>
+        
         {
             editedDocumentId && (
                 <EditDocDialogComponent

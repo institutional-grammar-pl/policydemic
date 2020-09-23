@@ -55,12 +55,11 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-    { id: 'source', alignLeft: false, label: 'Source' },
-    { id: 'infoDate', alignLeft: true, label: 'Info date' },
-    { id: 'language', alignLeft: false, label: 'Language' },
+    { id: 'title', alignLeft: false, label: 'Title' },
+    { id: 'infoDate', alignLeft: false, label: 'Info date' },
+    /*{ id: 'language', alignLeft: false, label: 'Language' },*/
     { id: 'keywords', alignLeft: false, label: 'Keywords' },
     { id: 'country', alignLeft: false, label: 'Country' },
-    { id: 'more', alignLeft: false, label: '' },
 ];
 
 function EnhancedTableHead(props) {
@@ -181,12 +180,6 @@ const EnhancedTableToolbar = (props) => {
             ) : <Container
                 style={{ display: 'flex', justifyContent: 'right' }}
             >
-
-                    <Tooltip title="Upload JSON">
-                        <IconButton aria-label="delete" onClick={(event) => props.onUploadJSONClick(event)}>
-                            <CloudUploadIcon />
-                        </IconButton>
-                    </Tooltip>
 
                     <Tooltip title="Add New">
                         <IconButton aria-label="addNew" onClick={(event) => props.onAddNewItemClick(event)}>
@@ -366,14 +359,14 @@ export default function EnhancedTable(props) {
                                                     inputProps={{ 'aria-labelledby': labelId }}
                                                 />
                                             </TableCell>
-                                            <TableCell component="th" id={labelId} scope="row" padding="none">
-                                                {row.source}
-                                            </TableCell>
-                                            <TableCell align="right">{row.infoDate}</TableCell>
-                                            <TableCell align="right">{row.language}</TableCell>
-                                            <TableCell align="right">{row.keywords}</TableCell>
-                                            <TableCell align="right">{row.country}</TableCell>
-                                            <TableCell align="right">
+                                            <TableCell align="left">{row.title}</TableCell>
+
+                                            
+                                            <TableCell align="left">{row.infoDate}</TableCell>
+                                            <TableCell align="left">{row.language}</TableCell>
+                                            <TableCell align="left">{row.keywords}</TableCell>
+                                            <TableCell align="left">{row.country}</TableCell>
+                                            <TableCell align="left">
                                                 <Tooltip title="Edit">
                                                     <IconButton aria-label="edit" onClick={(event) => { event.stopPropagation(); onEdit(row.id); }}>
                                                         <EditIcon />

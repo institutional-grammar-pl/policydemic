@@ -87,6 +87,15 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                     Search
                 </Typography>
 
+                <TextField
+                    name="keywords"
+                    inputRef={register}
+                    label="Any phrase"
+                    margin="normal"
+                    onChange={(event) => setValue("keywords", event.target.value)}
+                    aria-invalid={errors['keywords'] ? "true" : "false"}
+                />
+
                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
                     <Grid container justify="space-around">
                         <KeyboardDatePicker
@@ -119,7 +128,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
 
                         {/* TODO: https://material-ui.com/components/autocomplete/#asynchronous-requests */}
 
-                        <AsyncAutocomplete
+                        {/*<AsyncAutocomplete
                             name="web_page"
                             collectionName="webpages"
                             inputRef={register}
@@ -133,22 +142,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                     {...params}
                                     inputRef={register}
                                     label="Web page" margin="normal" />}
-                        />
-
-                        <AsyncAutocomplete
-                            name="language"
-                            collectionName="languages"
-                            style={{ width: 300 }}
-                            openOnFocus
-                            fullWidth
-                            multiple
-                            renderInput={(params) =>
-                                <TextField
-                                    {...params}
-                                    inputRef={register}
-                                    label="Language" margin="normal" />}
-                            onChange={(_, opts) => setValue("language", opts.map(o => o.value))}
-                        />
+                        />*/}
 
                         <AsyncAutocomplete
                             name="country"
@@ -166,14 +160,6 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             onChange={(e, opts) => setValue("country", opts.map(o => o.value), e)}
                         />
 
-                        <TextField
-                            name="keywords"
-                            inputRef={register}
-                            label="Any phrase"
-                            margin="normal"
-                            onChange={(event) => setValue("keywords", event.target.value)}
-                            aria-invalid={errors['keywords'] ? "true" : "false"}
-                        />
                     </Grid>
                 </MuiPickersUtilsProvider>
 

@@ -5,8 +5,9 @@ import SearchTableComponent from './search-table.component.js';
 
 export default class SearchResultsListComponent extends React.Component {
 
-    createDataForRow(source, infoDate, language, keywords, country) {
+    createDataForRow(title, source, infoDate, language, keywords, country) {
         return {
+            title: title,
             source: source,
             infoDate: infoDate,
             language: language,
