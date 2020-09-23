@@ -128,7 +128,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
 
                         {/* TODO: https://material-ui.com/components/autocomplete/#asynchronous-requests */}
 
-                        <AsyncAutocomplete
+                        /*<AsyncAutocomplete
                             name="web_page"
                             collectionName="webpages"
                             inputRef={register}
@@ -142,22 +142,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                     {...params}
                                     inputRef={register}
                                     label="Web page" margin="normal" />}
-                        />
-
-                        <AsyncAutocomplete
-                            name="language"
-                            collectionName="languages"
-                            style={{ width: 300 }}
-                            openOnFocus
-                            fullWidth
-                            multiple
-                            renderInput={(params) =>
-                                <TextField
-                                    {...params}
-                                    inputRef={register}
-                                    label="Language" margin="normal" />}
-                            onChange={(_, opts) => setValue("language", opts.map(o => o.value))}
-                        />
+                        />*/
 
                         <AsyncAutocomplete
                             name="country"
