@@ -24,6 +24,8 @@ export default class Api {
 
     static getSearchResults(type, data) {
         console.log('getSearchResults', type, data)
+        data['status'] = 'subject_accepted'
+        console.log('data2', data)
         return this._postJsonData(type.toLowerCase() + '/search', data).then((request) => request.data)
     }
 
