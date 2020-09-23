@@ -3,6 +3,7 @@ const KoaRouter = require('koa-router');
 const bodyParser = require('koa-bodyparser');
 const multer = require('koa-multer');
 const cors = require('@koa/cors');
+const fs = require('fs');
 const { Client } = require('@elastic/elasticsearch')
 const client = new Client({node: 'http:/localhost:9200'})
 
