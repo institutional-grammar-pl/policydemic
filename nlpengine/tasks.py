@@ -149,10 +149,10 @@ def process_document(body):
             pdfparser_tasks.check_content(
                 body.get('original_text', '') + ' ' + body.get('title', ''), filtering_keywords)
 
+        old_pdf_path = body.get("pdf_path")
+        pdf_filename = Path(old_pdf_path).name
         if on_subject:
             _log.error([body.get('keywords', ''), in_text_keywords])
-            old_pdf_path = body.get("pdf_path")
-            pdf_filename = Path(old_pdf_path).name
             new_pdf_path = pdf_dir / 'subject_accepted' / pdf_filename
             os.makedirs(pdf_dir / 'subject_accepted', exist_ok=True)
             shutil.move(old_pdf_path, new_pdf_path)
@@ -161,9 +161,11 @@ def process_document(body):
                          'pdf_path': str(new_pdf_path)
                          })
         else:
-            os.remove(body['pdf_path'])
+            new_pdf_path = pdf_dir / 'subject_rejected' / pdf_filename
+            os.makedirs(pdf_dir / 'subject_rejected', exist_ok=True)
+            shutil.move(old_pdf_path, new_pdf_path)
             body.update({'status': 'subject_rejected',
-                         'pdf_path': ''})
+                        'pdf_path': str(new_pdf_path)})
 
     index_document(body)
 
