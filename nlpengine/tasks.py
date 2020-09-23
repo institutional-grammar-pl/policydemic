@@ -157,7 +157,7 @@ def process_document(body):
             os.makedirs(pdf_dir / 'subject_accepted', exist_ok=True)
             shutil.move(old_pdf_path, new_pdf_path)
             body.update({'status': 'subject_accepted',
-                         'keywords': ','.join([body.get('keywords', ''), in_text_keywords]),
+                         'keywords': ','.join([body.get('keywords', '')] + list(in_text_keywords)),
                          'pdf_path': str(new_pdf_path)
                          })
         else:
