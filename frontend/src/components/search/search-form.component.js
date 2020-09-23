@@ -87,6 +87,15 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                     Search
                 </Typography>
 
+                <TextField
+                    name="keywords"
+                    inputRef={register}
+                    label="Any phrase"
+                    margin="normal"
+                    onChange={(event) => setValue("keywords", event.target.value)}
+                    aria-invalid={errors['keywords'] ? "true" : "false"}
+                />
+
                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
                     <Grid container justify="space-around">
                         <KeyboardDatePicker
@@ -166,14 +175,6 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             onChange={(e, opts) => setValue("country", opts.map(o => o.value), e)}
                         />
 
-                        <TextField
-                            name="keywords"
-                            inputRef={register}
-                            label="Any phrase"
-                            margin="normal"
-                            onChange={(event) => setValue("keywords", event.target.value)}
-                            aria-invalid={errors['keywords'] ? "true" : "false"}
-                        />
                     </Grid>
                 </MuiPickersUtilsProvider>
 
