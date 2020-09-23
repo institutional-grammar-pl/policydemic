@@ -161,9 +161,8 @@ def process_document(body):
                          'pdf_path': str(new_pdf_path)
                          })
         else:
-            os.remove(body['pdf_path'])
-            body.update({'status': 'subject_rejected',
-                         'pdf_path': ''})
+            #os.remove(body['pdf_path'])
+            body.update({'status': 'subject_rejected'})
 
     index_document(body)
 
