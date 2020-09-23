@@ -359,14 +359,14 @@ export default function EnhancedTable(props) {
                                                     inputProps={{ 'aria-labelledby': labelId }}
                                                 />
                                             </TableCell>
-                                            <TableCell align="right">{row.title}</TableCell>
+                                            <TableCell align="left">{row.title}</TableCell>
 
                                             
-                                            <TableCell align="right">{row.infoDate}</TableCell>
-                                            <TableCell align="right">{row.language}</TableCell>
-                                            <TableCell align="right">{row.keywords}</TableCell>
-                                            <TableCell align="right">{row.country}</TableCell>
-                                            <TableCell align="right">
+                                            <TableCell align="left">{row.infoDate}</TableCell>
+                                            <TableCell align="left">{row.language}</TableCell>
+                                            <TableCell align="left">{row.keywords}</TableCell>
+                                            <TableCell align="left">{row.country}</TableCell>
+                                            <TableCell align="left">
                                                 <Tooltip title="Edit">
                                                     <IconButton aria-label="edit" onClick={(event) => { event.stopPropagation(); onEdit(row.id); }}>
                                                         <EditIcon />
