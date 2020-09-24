@@ -60,8 +60,7 @@ async function autocompleteField(field) {
     })
     
     unique_values = results.body.aggregations.unique.buckets
-    ctx.body = unique_values.map((row)=>({name: row.key, value:row.key}))
-    return ctx.body
+    return unique_values.map((row)=>({name: row.key, value:row.key}))
 }
 
 router.get('/autocomplete/languages', (ctx) => {
