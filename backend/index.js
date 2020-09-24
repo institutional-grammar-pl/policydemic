@@ -25,12 +25,28 @@ router.get('/autocomplete/webpages', (ctx) => {
 })
 
 router.get('/autocomplete/countries', (ctx) => {
-  ctx.body = JSON.stringify([
+
+    const results = await client.search({
+        index: 'documents',
+        body: {
+             "size":"0",
+             "aggs" : {
+               "uniq_country" : {
+               "terms" : { "field" : "country" }
+               }
+             }
+        }
+    })
+    
+    unique_country = results.body.aggregations.uniq_country.buckets
+    ctx.body = unique_country.map((row)=>({name: row.key, value:row.key}))
+
+/*  ctx.body = JSON.stringify([
     {name: "Poland", value: "Poland"},
     {name: "USA", value: "USA"},
     {name: "China", value: "China"},
     {name: "Italy", value: "Italy"},
-  ])
+  ]) */
 })
 
 router.get('/autocomplete/languages', (ctx) => {
