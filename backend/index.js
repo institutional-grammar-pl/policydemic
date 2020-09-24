@@ -24,7 +24,7 @@ router.get('/autocomplete/webpages', (ctx) => {
   ])
 })
 
-router.get('/autocomplete/countries', (ctx) => {
+router.get('/autocomplete/countries', async (ctx) => {
 
     const results = await client.search({
         index: 'documents',
