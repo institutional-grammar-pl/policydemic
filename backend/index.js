@@ -24,27 +24,6 @@ router.get('/autocomplete/webpages', (ctx) => {
   ])
 })
 
-router.get('/autocomplete/countries', async (ctx) => {
-
-    /*const results = await client.search({
-        index: 'documents',
-        body: {
-             "size":"0",
-             "aggs" : {
-               "uniq_country" : {
-               "terms" : { "field" : "country" }
-               }
-             }
-        }
-    })
-    
-    unique_country = results.body.aggregations.uniq_country.buckets
-    ctx.body = unique_country.map((row)=>({name: row.key, value:row.key}))*/
-
-    ctx.body = autocompleteField("country")    
-
-})
-
 async function autocompleteField(field) {
 
     const results = await client.search({
@@ -63,28 +42,20 @@ async function autocompleteField(field) {
     return unique_values.map((row)=>({name: row.key, value:row.key}))
 }
 
-router.get('/autocomplete/languages', (ctx) => {
-  ctx.body = JSON.stringify([
-    {name: "Polish", value: "Polish"},
-    {name: "English", value: "English"},
-    {name: "Chinese", value: "Chinese"},
-    {name: "Italian", value: "Italian"},
-  ])
+router.get('/autocomplete/countries', async (ctx) => {
+    ctx.body = await autocompleteField("country")
 })
 
-router.get('/autocomplete/keywords', (ctx) => {
-  ctx.body = JSON.stringify([
-    {name: "School Closing", value: "School Closing"},
-    {name: "Shopping restrictions", value: "Shopping restrictions"},
-  ])
+router.get('/autocomplete/languages', async (ctx) => {
+    ctx.body = await autocompleteField("language")
 })
 
-router.get('/autocomplete/translationTypes', (ctx) => {
-  ctx.body = JSON.stringify([
-    {name: "none", value: "none"},
-    {name: "Google Translate", value: "Google Translate"},
-    {name: "DeepL", value: "DeepL"},
-  ])
+router.get('/autocomplete/keywords', async (ctx) => {
+    ctx.body = await autocompleteField("keywords")
+})
+
+router.get('/autocomplete/translationTypes', async (ctx) => {
+    ctx.body = await autocompleteField("translation_type")
 })
 
 router.get('/documents/:id', async (ctx) => {
