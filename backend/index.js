@@ -362,20 +362,14 @@ function constructParams(body, documentType){
 }
 
 router.post('/lad/search', async (ctx) => {
-    console.log(ctx.request)
+    console.log('ctx.request', ctx.request)
     await getDocuments(ctx, "legal_act");
 });
 
-router.post('/ssd/search', upload.none(), async (ctx) => {
-    console.log(ctx.request.body)
+router.post('/ssd/search', async (ctx) => {
+    console.log('ctx.request', ctx.request)
     await getDocuments(ctx, "secondary_source");
 });
-
-/*router.post('/ssd/search', async (ctx) => {
-    console.log(ctx.request)
-    await getDocuments(ctx, "secondary_source");
-});*/
-
 
 router.post('/lad', async (ctx) => {
   console.log('post /lad');
