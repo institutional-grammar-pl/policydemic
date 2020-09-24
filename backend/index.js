@@ -26,7 +26,7 @@ router.get('/autocomplete/webpages', (ctx) => {
 
 router.get('/autocomplete/countries', async (ctx) => {
 
-    const results = await client.search({
+    /*const results = await client.search({
         index: 'documents',
         body: {
              "size":"0",
@@ -39,15 +39,30 @@ router.get('/autocomplete/countries', async (ctx) => {
     })
     
     unique_country = results.body.aggregations.uniq_country.buckets
-    ctx.body = unique_country.map((row)=>({name: row.key, value:row.key}))
+    ctx.body = unique_country.map((row)=>({name: row.key, value:row.key}))*/
 
-/*  ctx.body = JSON.stringify([
-    {name: "Poland", value: "Poland"},
-    {name: "USA", value: "USA"},
-    {name: "China", value: "China"},
-    {name: "Italy", value: "Italy"},
-  ]) */
+    ctx.body = autocompleteField("country")    
+
 })
+
+async function autocompleteField(field) {
+
+    const results = await client.search({
+        index: 'documents',
+        body: {
+             "size":"0",
+             "aggs" : {
+               "unique" : {
+               "terms" : { "field" : field }
+               }
+             }
+        }
+    })
+    
+    unique_values = results.body.aggregations.unique.buckets
+    ctx.body = unique_values.map((row)=>({name: row.key, value:row.key}))
+    return ctx.body
+}
 
 router.get('/autocomplete/languages', (ctx) => {
   ctx.body = JSON.stringify([
