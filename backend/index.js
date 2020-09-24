@@ -306,6 +306,7 @@ function parseData(data){
 }
 
 async function fetchDocumentsFromElastic(body, documentType){
+    console.log('body', body)
     let params = constructParams(body, documentType)
     let request = await client.search(params);
     return request.body.hits.hits;
