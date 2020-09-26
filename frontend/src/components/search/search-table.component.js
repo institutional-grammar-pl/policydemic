@@ -57,8 +57,6 @@ function stableSort(array, comparator) {
 const headCells = [
     { id: 'title', alignLeft: false, label: 'Title' },
     { id: 'infoDate', alignLeft: false, label: 'Info date' },
-    /*{ id: 'language', alignLeft: false, label: 'Language' },*/
-    { id: 'keywords', alignLeft: false, label: 'Keywords' },
     { id: 'country', alignLeft: false, label: 'Country' },
 ];
 
@@ -162,11 +160,11 @@ const EnhancedTableToolbar = (props) => {
                     style={{ display: 'flex', justifyContent: 'right' }}
                 >
 
-                    <Tooltip title="Download Selected" >
+                    {/*<Tooltip title="Download Selected" >
                         <IconButton aria-label="download" onClick={(event) => props.onDownloadSelectedClick(event)}>
                             <CloudDownloadIcon />
                         </IconButton>
-                    </Tooltip>
+                    </Tooltip>*/}
 
                     <Tooltip title="Delete">
                         <IconButton aria-label="delete" onClick={(event) => props.onDeleteClick(event)}>
@@ -360,11 +358,7 @@ export default function EnhancedTable(props) {
                                                 />
                                             </TableCell>
                                             <TableCell align="left">{row.title}</TableCell>
-
-                                            
                                             <TableCell align="left">{row.infoDate}</TableCell>
-                                            <TableCell align="left">{row.language}</TableCell>
-                                            <TableCell align="left">{row.keywords}</TableCell>
                                             <TableCell align="left">{row.country}</TableCell>
                                             <TableCell align="left">
                                                 <Tooltip title="Edit">

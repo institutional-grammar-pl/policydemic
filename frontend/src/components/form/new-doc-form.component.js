@@ -9,6 +9,8 @@ import DateFnsUtils from '@date-io/date-fns';
 import { useForm, Controller } from "react-hook-form";
 import Api from "../../common/api";
 
+import { Document, Page } from 'react-pdf'
+
 import AsyncAutocomplete from "./async-autocomplete.component";
 import UploadPdfComponent from './upload-pdf.component';
 
@@ -47,7 +49,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             webPage: document.webPage,
             organization: document.organization,
             section: document.section,
-            keywords: document.keywords.join(","),
+            keywords: document.keywords || [],
             infoDate: document.infoDate,
             scrapDate: document.scrapDate,
             country: document.country,
@@ -75,11 +77,10 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     const onSubmit = data => {
         console.log('onSubmit document',document)
         console.log('onSubmit data', data)
-        if (data.keywords == undefined) {
-            data.keywords = ''
-        }
-        data.keywords = data.keywords.split(',')
-        console.log(data.keywords)
+        // if (data.keywords == undefined) {
+        //     data.keywords = []
+        // }
+        console.log('kw:', data.keywords)
         if (document) {
             console.log('editDocument in onSubmit')
             Api.editDocument(type, document.id, data)
@@ -134,7 +135,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                 fullWidth
                                 multiple
                                 defaultValue={
-                                    document ? document.keywords.map(k => ({
+                                    document ? (document.keywords || []).map(k => ({
                                         name: k,
                                         value: k,
                                     })) : undefined
@@ -144,7 +145,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                         {...params}
                                         label="Keywords" margin="normal" />}
 
-                                onChange={(_, opts) => setValue("keywords", opts.map(o => o.value).join(','))}
+                                onChange={(_, opts) => setValue("keywords", opts.map(o => o.value))}
                             />
                         </Grid>
                         <Grid item md={4}>
@@ -271,6 +272,11 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                         />
                     </Grid>
 
+                    {/*{(document && <Grid container item xs={12}>
+                        <Document file={`/documents/${document.id}/pdf`}>
+                            <Page pageNumber={1} />
+                        </Document>
+                    </Grid>)}*/}
                 </Grid>
             </MuiPickersUtilsProvider>
         </form >

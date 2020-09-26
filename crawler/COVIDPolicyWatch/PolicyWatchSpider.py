@@ -40,7 +40,7 @@ class PolicyWatchSpider(scrapy.Spider):
         title = textFormatted if len(textFormatted) < 101 else textFormatted[:100]
         entry = {
             'country': country_name,
-            'info-date': date_unified,
+            'info_date': date_unified,
             'original_text': textFormatted,
             'organization': SITE_NAME,
             'document_type': 'secondary_source',

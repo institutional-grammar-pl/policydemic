@@ -24,37 +24,38 @@ router.get('/autocomplete/webpages', (ctx) => {
   ])
 })
 
-router.get('/autocomplete/countries', (ctx) => {
-  ctx.body = JSON.stringify([
-    {name: "Poland", value: "Poland"},
-    {name: "USA", value: "USA"},
-    {name: "China", value: "China"},
-    {name: "Italy", value: "Italy"},
-  ])
+async function autocompleteField(field) {
+
+    const results = await client.search({
+        index: 'documents',
+        body: {
+             "size":"0",
+             "aggs" : {
+               "unique" : {
+               "terms" : { "field" : field }
+               }
+             }
+        }
+    })
+    
+    unique_values = results.body.aggregations.unique.buckets
+    return unique_values.map((row)=>({name: row.key, value:row.key}))
+}
+
+router.get('/autocomplete/countries', async (ctx) => {
+    ctx.body = await autocompleteField("country")
 })
 
-router.get('/autocomplete/languages', (ctx) => {
-  ctx.body = JSON.stringify([
-    {name: "Polish", value: "Polish"},
-    {name: "English", value: "English"},
-    {name: "Chinese", value: "Chinese"},
-    {name: "Italian", value: "Italian"},
-  ])
+router.get('/autocomplete/languages', async (ctx) => {
+    ctx.body = await autocompleteField("language")
 })
 
-router.get('/autocomplete/keywords', (ctx) => {
-  ctx.body = JSON.stringify([
-    {name: "School Closing", value: "School Closing"},
-    {name: "Shopping restrictions", value: "Shopping restrictions"},
-  ])
+router.get('/autocomplete/keywords', async (ctx) => {
+    ctx.body = await autocompleteField("keywords")
 })
 
-router.get('/autocomplete/translationTypes', (ctx) => {
-  ctx.body = JSON.stringify([
-    {name: "none", value: "none"},
-    {name: "Google Translate", value: "Google Translate"},
-    {name: "DeepL", value: "DeepL"},
-  ])
+router.get('/autocomplete/translationTypes', async (ctx) => {
+    ctx.body = await autocompleteField("translation_type")
 })
 
 router.get('/documents/:id', async (ctx) => {
@@ -306,6 +307,7 @@ function parseData(data){
 }
 
 async function fetchDocumentsFromElastic(body, documentType){
+    console.log('body', body)
     let params = constructParams(body, documentType)
     let request = await client.search(params);
     return request.body.hits.hits;
@@ -318,7 +320,8 @@ function constructParams(body, documentType){
             query:{
                 bool: {
                     must: [
-                        { match: { document_type: documentType}}],
+                        { match: { document_type: documentType}}
+                       ],
                 }
             }
         }, 
@@ -361,12 +364,12 @@ function constructParams(body, documentType){
 }
 
 router.post('/lad/search', async (ctx) => {
-    console.log(ctx.request)
+    console.log('ctx.request', ctx.request)
     await getDocuments(ctx, "legal_act");
 });
 
-router.post('/ssd/search', upload.none(), async (ctx) => {
-    console.log(ctx.request.body)
+router.post('/ssd/search', async (ctx) => {
+    console.log('ctx.request', ctx.request)
     await getDocuments(ctx, "secondary_source");
 });
 
