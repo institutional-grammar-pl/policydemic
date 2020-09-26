@@ -4,6 +4,7 @@ import json
 BASE_URL = 'https://covid19policywatch.org/'
 SITE_NAME = 'COVID-19 Policy Watch'
 
+
 class PolicyWatchSpider(scrapy.Spider):
     """crawls government policies from website covid19policywatch.org"""
     name = 'policywatch'
@@ -57,4 +58,4 @@ class CreateInsertDocumentTaskPipeline:
         from nlpengine.tasks import index_document
         index_document(json_item)
         return item
-        
+
