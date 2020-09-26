@@ -181,6 +181,8 @@ def crawl_ilo():
             if html is None:
                 continue
             doc = extract_html(html)
+            if len(doc) <= 26:
+                continue
             body = {
                 "country": country,
                 "organization": "International Labour Organization",
