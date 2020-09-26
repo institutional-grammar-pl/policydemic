@@ -10,7 +10,7 @@ from scrapy.settings import Settings
 from scrapy.crawler import CrawlerProcess
 
 from crawler.ilo.ilo_script import get_lio_data
-from crawler.ilo.ilo_script import unpack_country_info
+from crawler.ilo.ilo_script import extract_html
 
 from crawler.cgrt import CGRT
 from crawler.gov.gov.spiders.gov import GovDuSpider, GovPlCrawler, GovMpSpider
@@ -176,20 +176,25 @@ def crawl_policy_watch():
 def crawl_ilo():
     results = get_lio_data()
     for r in results:
-        country, doc = unpack_country_info(*r)
-        body = {
-            "country": country,
-            "organization": "International Labour Organization",
-            "scrap_date": datetime.now().strftime(SCRAP_DATE_FORMAT),
-            "original_text": doc,
-            "title": doc[:max_n_chars_to_translate],
-            "document_type": "secondary_source",
-            "info_date": cfg['pdfparser']['default_date']
-        }
-        ilo_chain = nlpengine.tasks.translate_pdf.s() | \
-            nlpengine.tasks.index_doc_task.s()
+        country, html_dict = r
+        for section, html in html_dict.items():
+            if html is None:
+                continue
+            doc = extract_html(html)
+            body = {
+                "country": country,
+                "organization": "International Labour Organization",
+                "scrap_date": datetime.now().strftime(SCRAP_DATE_FORMAT),
+                "original_text": doc,
+                "section": section,
+                "title": doc[:max_n_chars_to_translate],
+                "document_type": "secondary_source",
+                "info_date": cfg['pdfparser']['default_date']
+            }
+            ilo_chain = nlpengine.tasks.translate_pdf.s() | \
+                nlpengine.tasks.index_doc_task.s()
 
-        ilo_chain(body)
+            ilo_chain(body)
 
 
 # def last_crawling(crawler_name):

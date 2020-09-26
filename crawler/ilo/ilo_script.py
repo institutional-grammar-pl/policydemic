@@ -50,12 +50,12 @@ def extract_html(html_str):
     return ' '.join(list(soup.stripped_strings))
 
 
-def unpack_country_info(country, html_dict):
-    info = []
-    for title, html in html_dict.items():
-        if html is None:
-            continue
-        info.append(f'\n{title}:\n')
-        info.append(extract_html(html))
-    return country, ' '.join(info)
+# def unpack_country_info(country, html_dict):
+#     info = []
+#     for title, html in html_dict.items():
+#         if html is None:
+#             continue
+#         info.append(f'\n{title}:\n')
+#         info.append(extract_html(html))
+#     return country, ' '.join(info)
 
