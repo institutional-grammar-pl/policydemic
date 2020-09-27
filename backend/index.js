@@ -324,6 +324,7 @@ async function fetchDocumentsFromElastic(body, documentType){
 }
 
 function constructParams(body, documentType, any_phrase){
+    
     if (any_phrase) {
             let params = {
             index: 'documents',
@@ -342,19 +343,20 @@ function constructParams(body, documentType, any_phrase){
             size: 100
         }
     } else {
-            let params = {
-        index: 'documents',
-        body: {
-            query:{
-                bool: {
-                    must: [
-                        { match: { document_type: documentType}}
-                       ],
-                },
-            }
-        }, 
-        size: 100
-    }
+        let params = {
+            index: 'documents',
+            body: {
+                query:{
+                    bool: {
+                        must: [
+                            { match: { document_type: documentType}}
+                           ]
+                        }
+                    }
+                }
+            ) 
+            size: 100
+        }
     }
 
     console.log('params1', params)
