@@ -331,20 +331,6 @@ function constructParams(body, documentType, any_phrase){
     let params = {
         index: 'documents',
         body: {
-            query:{
-                bool: {
-                    must: [
-                        { match: { document_type: documentType}}
-                       ],
-                }
-            }
-        }, 
-        size: 100
-    }
-
-    /*let params = {
-        index: 'documents',
-        body: {
             query: {
                 bool: {
                     must: [
@@ -364,7 +350,7 @@ function constructParams(body, documentType, any_phrase){
             }
         }, 
         size: 100
-    }*/
+    }
 
     if(body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0){
         params.body.query.bool.must.push({ range: { info_date: { gte: body.infoDateFrom, lte: body.infoDateTo }}},)
