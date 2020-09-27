@@ -117,25 +117,16 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
                     <Grid container item xs={12} spacing={8} justify="space-around">
                         <Grid item md={4}>
-                           <AsyncAutocomplete
+                            <TextField
                                 name="webPage"
-                                collectionName="webPages"
-                                style={{ width: 300 }}
-                                openOnFocus
-                                onChange={(_, opt) => setValue("webPage", opt.value)}
-                                defaultValue={document ? {
-                                    name: document.webPage,
-                                    value: document.webPage,
-                                } : undefined}
-                                renderInput={(params) =>
-                                    <TextField
-                                        {...params}
-                                        inputRef={register}
-                                        label="Web page" margin="normal" />}
+                                inputRef={register}
+                                label="Web page"
+                                margin="normal"
+                                fullWidth
                             />
                         </Grid>
                         <Grid item md={4}>
-                           <AsyncAutocomplete
+                             <AsyncAutocomplete
                                 name="organization"
                                 collectionName="organizations"
                                 style={{ width: 300 }}

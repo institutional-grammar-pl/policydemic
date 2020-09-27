@@ -38,9 +38,6 @@ router.get('/autocomplete/countries', async (ctx) => {
     ctx.body = await autocompleteField("country")
 })
 
-router.get('/autocomplete/webpages', async (ctx) => {
-    ctx.body = await autocompleteField("web_page")
-})
 
 router.get('/autocomplete/languages', async (ctx) => {
     ctx.body = await autocompleteField("language")
