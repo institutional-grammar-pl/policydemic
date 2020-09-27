@@ -9,8 +9,6 @@ import DateFnsUtils from '@date-io/date-fns';
 import { useForm, Controller } from "react-hook-form";
 import Api from "../../common/api";
 
-import { Document, Page } from 'react-pdf'
-
 import AsyncAutocomplete from "./async-autocomplete.component";
 import UploadPdfComponent from './upload-pdf.component';
 
@@ -272,11 +270,9 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                         />
                     </Grid>)}
 
-                    {/*{(document && <Grid container item xs={12}>
-                        <Document file={`/documents/${document.id}/pdf`}>
-                            <Page pageNumber={1} />
-                        </Document>
-                    </Grid>)}*/}
+                    {(document && <Grid container item xs={12}>
+                        <iframe style="width: 100%; height: 30rem" src={`/documents/${document.id}/pdf`}/>
+                    </Grid>)}
                 </Grid>
             </MuiPickersUtilsProvider>
         </form >
