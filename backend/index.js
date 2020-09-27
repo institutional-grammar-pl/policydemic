@@ -316,7 +316,11 @@ function parseData(data){
 
 async function fetchDocumentsFromElastic(body, documentType){
     console.log('body', body)
-    let any_phrase = body.keywords[0]
+    let any_phrase = ""
+    if (body.keywords != undefined) {
+        any_phrase = body.keywords[0]
+    }
+    console.log(any_phrase)
     let params = constructParams(body, documentType, any_phrase)
     let request = await client.search(params);
     return request.body.hits.hits;
@@ -351,7 +355,7 @@ function constructParams(body, documentType, any_phrase){
                         {match_phrase: {
                             original_text: {
                                 query: any_phrase,
-                                zero_terms_query: all
+                                zero_terms_query: "all"
                                 } 
                             }
                         }
@@ -366,7 +370,7 @@ function constructParams(body, documentType, any_phrase){
         params.body.query.bool.must.push({ range: { info_date: { gte: body.infoDateFrom, lte: body.infoDateTo }}},)
     }
 
-    let fields = ["title", "source", "country", "language", "keywords" ];
+    let fields = ["country", "section", "organization"];
 
     for(let i = 0; i < fields.length; i++){
 
