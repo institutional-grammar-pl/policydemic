@@ -346,7 +346,7 @@ function constructParams(body, documentType, any_phrase){
                             }
                         }
                     ], 
-                    should: {} 
+                    should: []
                 }
             }
         }, 
@@ -358,35 +358,35 @@ function constructParams(body, documentType, any_phrase){
     }*/
 
     if(body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0){
-        params.body.query.bool.should.push( [{
-                    "range": {
-                        "info_date": {
-                            "gte": "",
-                            "lte": "2020-12-12"
+        params.body.query.bool.should.push( {
+            "range": {
+                    "info_date": {
+                        "gte": body.infoDateFrom,
+                        "lte": body.infoDateTo
+                    }
+                }
+            },
+            {"bool": {
+                "must": [{
+                        "range": {
+                            "info_date": {
+                                "gte": "1900-01-01",
+                                "lte": "1900-01-01"
+                            }
+                        }
+                    },
+                    {
+                        "range": {
+                            "scrap_date": {
+                                "gte": body.infoDateFrom + " 00:00:01",
+                                "lte": body.infoDateTo + " 23:59:59"
+                            }
                         }
                     }
-                },
-                {"bool": {
-                    "must": [{
-                            "range": {
-                                "info_date": {
-                                    "gte": "1900-01-01",
-                                    "lte": "1900-01-01"
-                                }
-                            }
-                        },
-                        {
-                            "range": {
-                                "scrap_date": {
-                                    "gte": "",
-                                    "lte": "2020-09-30 23:59:59"
-                                }
-                            }
-                        }
-                    ]
+                ]
                 }
             }
-        ])
+        )
     }
 
     console.log(params)
