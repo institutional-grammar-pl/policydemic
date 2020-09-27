@@ -16,14 +16,6 @@ router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
 
-router.get('/autocomplete/webpages', (ctx) => {
-  ctx.body = JSON.stringify([
-      {name: 'google.com', value: 'google.com'},
-      {name: 'test', value: 'test_webpage.com'},
-      {name: 'bing.com', value: 'bing.com'},
-  ])
-})
-
 async function autocompleteField(field) {
 
     const results = await client.search({
@@ -44,6 +36,10 @@ async function autocompleteField(field) {
 
 router.get('/autocomplete/countries', async (ctx) => {
     ctx.body = await autocompleteField("country")
+})
+
+router.get('/autocomplete/webpages', async (ctx) => {
+    ctx.body = await autocompleteField("web_page")
 })
 
 router.get('/autocomplete/languages', async (ctx) => {

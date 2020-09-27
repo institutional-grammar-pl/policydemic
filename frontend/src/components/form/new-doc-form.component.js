@@ -103,32 +103,71 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         <form id={document ? "edit-doc-form" : "new-doc-form"} onSubmit={handleSubmit(onSubmit)}>
             <MuiPickersUtilsProvider utils={DateFnsUtils}>
                 <Grid container spacing={5}>
+                    <Grid container item xs={12} spacing={4} justify="center">
+                        <Grid item md={8}>
+                            <TextField
+                                name="title"
+                                inputRef={register}
+                                label="Title"
+                                margin="normal"
+                                fullWidth
+                            />
+                        </Grid>
+                    </Grid>
+
                     <Grid container item xs={12} spacing={8} justify="space-around">
                         <Grid item md={4}>
-                            <TextField
+                           <AsyncAutocomplete
                                 name="webPage"
-                                inputRef={register}
-                                label="Web page"
-                                margin="normal"
-                                fullWidth
+                                collectionName="webPages"
+                                style={{ width: 300 }}
+                                openOnFocus
+                                onChange={(_, opt) => setValue("webPage", opt.value)}
+                                defaultValue={document ? {
+                                    name: document.webPage,
+                                    value: document.webPage,
+                                } : undefined}
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        inputRef={register}
+                                        label="Web page" margin="normal" />}
                             />
                         </Grid>
                         <Grid item md={4}>
-                            <TextField
+                           <AsyncAutocomplete
                                 name="organization"
-                                inputRef={register}
-                                label="Organization"
-                                margin="normal"
-                                fullWidth
+                                collectionName="organizations"
+                                style={{ width: 300 }}
+                                openOnFocus
+                                onChange={(_, opt) => setValue("organization", opt.value)}
+                                defaultValue={document ? {
+                                    name: document.organization,
+                                    value: document.organization,
+                                } : undefined}
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        inputRef={register}
+                                        label="Organization" margin="normal" />}
                             />
                         </Grid>
                         <Grid item md={4}>
-                            <TextField
+                           <AsyncAutocomplete
                                 name="section"
-                                inputRef={register}
-                                label="Section"
-                                margin="normal"
-                                fullWidth
+                                collectionName="sections"
+                                style={{ width: 300 }}
+                                openOnFocus
+                                onChange={(_, opt) => setValue("section", opt.value)}
+                                defaultValue={document ? {
+                                    name: document.section,
+                                    value: document.section,
+                                } : undefined}
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        inputRef={register}
+                                        label="Section" margin="normal" />}
                             />
                         </Grid>
                     </Grid>

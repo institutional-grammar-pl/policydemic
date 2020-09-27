@@ -90,111 +90,109 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                 <Typography variant="h5" gutterBottom >
                     Search
                 </Typography>
-
-                <TextField
-                    name="keywords"
-                    inputRef={register}
-                    label="Any phrase"
-                    margin="normal"
-                    onChange={(event) => setValue("keywords", event.target.value)}
-                    aria-invalid={errors['keywords'] ? "true" : "false"}
-                />
-
+                
                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                    <Grid container justify="space-around">
-                        <KeyboardDatePicker
-                            disableToolbar
-                            variant="inline"
-                            format="yyyy-MM-dd"
-                            margin="normal"
-                            name="infoDateFrom"
-                            label="Info date from"
-                            value={selectedDateFrom}
-                            onChange={handleChangeDateFrom}
-                            KeyboardButtonProps={{
-                                'aria-label': 'change date',
-                            }}
-                        />
 
-                        <KeyboardDatePicker
-                            disableToolbar
-                            variant="inline"
-                            format="yyyy-MM-dd"
-                            margin="normal"
-                            name="infoDateTo"
-                            label="Info date to"
-                            value={selectedDateTo}
-                            onChange={handleChangeDateTo}
-                            KeyboardButtonProps={{
-                                'aria-label': 'change date',
-                            }}
-                        />
+                    <Grid container item xs={12} spacing={1} justify="space-around"> 
+                        <Grid item xs={4}>
+                            <TextField
+                                name="keywords"
+                                inputRef={register}
+                                label="Any phrase"
+                                margin="normal"
+                                onChange={(event) => setValue("keywords", event.target.value)}
+                                aria-invalid={errors['keywords'] ? "true" : "false"}
+                            />
+                        </Grid>
 
-                        {/* TODO: https://material-ui.com/components/autocomplete/#asynchronous-requests */}
+                        <Grid item xs={4}>
+                            <KeyboardDatePicker
+                                disableToolbar
+                                variant="inline"
+                                format="yyyy-MM-dd"
+                                margin="normal"
+                                name="infoDateFrom"
+                                label="Info date from"
+                                value={selectedDateFrom}
+                                onChange={handleChangeDateFrom}
+                                KeyboardButtonProps={{
+                                    'aria-label': 'change date',
+                                }}
+                            />
+                        </Grid>
 
-                        {/*<AsyncAutocomplete
-                            name="web_page"
-                            collectionName="webpages"
-                            inputRef={register}
-                            style={{ width: 300 }}
-                            openOnFocus
-                            fullWidth
-                            multiple
-                            onChange={(_, opts) => setValue("web_page", opts.map(o => o.value))}
-                            renderInput={(params) =>
-                                <TextField
-                                    {...params}
-                                    inputRef={register}
-                                    label="Web page" margin="normal" />}
-                        />*/}
+                        <Grid item xs={4}>
+                            <KeyboardDatePicker
+                                disableToolbar
+                                variant="inline"
+                                format="yyyy-MM-dd"
+                                margin="normal"
+                                name="infoDateTo"
+                                label="Info date to"
+                                value={selectedDateTo}
+                                onChange={handleChangeDateTo}
+                                KeyboardButtonProps={{
+                                    'aria-label': 'change date',
+                                }}
+                            />
+                        </Grid>
 
-                        <AsyncAutocomplete
-                            name="country"
-                            collectionName="countries"
-                            style={{ width: 300 }}
-                            openOnFocus
-                            fullWidth
-                            multiple
-                            renderInput={(params) =>
-                                <TextField
-                                    {...params}
-                                    name="country"
-                                    inputRef={register}
-                                    label="Country" margin="normal" />}
-                            onChange={(e, opts) => setValue("country", opts.map(o => o.value), e)}
-                        />
+                    </Grid>
+                    <Grid container item xs={12} spacing={1} justify="space-around">
 
-                        <AsyncAutocomplete
-                            name="organization"
-                            collectionName="organizations"
-                            style={{ width: 300 }}
-                            openOnFocus
-                            fullWidth
-                            multiple
-                            renderInput={(params) =>
-                                <TextField
-                                    {...params}
-                                    name="organization"
-                                    inputRef={register}
-                                    label="Organization" margin="normal" />}
-                            onChange={(e, opts) => setValue("organization", opts.map(o => o.value), e)}
-                        />
+                        <Grid item xs={4}>
+                            <AsyncAutocomplete
+                                name="country"
+                                collectionName="countries"
+                                style={{ width: 250 }}
+                                openOnFocus
+                                fullWidth
+                                multiple
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        name="country"
+                                        inputRef={register}
+                                        label="Country" margin="normal" />}
+                                onChange={(e, opts) => setValue("country", opts.map(o => o.value), e)}
+                            />
+                        </Grid>
 
-                        <AsyncAutocomplete
-                            name="section"
-                            collectionName="sections"
-                            style={{ width: 300 }}
-                            openOnFocus
-                            fullWidth
-                            multiple
-                            renderInput={(params) =>
-                                <TextField
-                                    {...params}
-                                    name="section"
-                                    inputRef={register}
-                                    label="Section" margin="normal" />}
-                            onChange={(e, opts) => setValue("section", opts.map(o => o.value), e)}
-                        />
+                        <Grid item xs={4}>
+                            <AsyncAutocomplete
+                                name="organization"
+                                collectionName="organizations"
+                                style={{ width: 250 }}
+                                openOnFocus
+                                fullWidth
+                                multiple
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        name="organization"
+                                        inputRef={register}
+                                        label="Organization" margin="normal" />}
+                                onChange={(e, opts) => setValue("organization", opts.map(o => o.value), e)}
+                            />
+                        </Grid>
+
+                        <Grid item xs={4}>
+                            <AsyncAutocomplete
+                                name="section"
+                                collectionName="sections"
+                                style={{ width: 250 }}
+                                openOnFocus
+                                fullWidth
+                                multiple
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        name="section"
+                                        inputRef={register}
+                                        label="Section" margin="normal" />}
+                                onChange={(e, opts) => setValue("section", opts.map(o => o.value), e)}
+                            />
+                        </Grid>
 
                     </Grid>
                 </MuiPickersUtilsProvider>
