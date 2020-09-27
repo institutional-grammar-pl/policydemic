@@ -13,12 +13,22 @@ import AsyncAutocomplete from "./async-autocomplete.component";
 import UploadPdfComponent from './upload-pdf.component';
 
 const selectDate = (v) => {
-    const offset = v.getTimezoneOffset() * 60 * 1000
-    return new Date(v - offset).toISOString().substr(0,10)
+    try {
+        const offset = v.getTimezoneOffset() * 60 * 1000
+        return new Date(v - offset).toISOString().substr(0,10)
+    } catch (e) {
+        console.error(e)
+        return v
+    }
 }
 const selectDateTime = (v) => {
-    const offset = v.getTimezoneOffset() * 60 * 1000
-    return new Date(v - offset).toISOString().split(/[.T]/).splice(0, 2).join(' ')
+    try {
+        const offset = v.getTimezoneOffset() * 60 * 1000
+        return new Date(v - offset).toISOString().split(/[.T]/).splice(0, 2).join(' ')
+    } catch (e) {
+        console.error(e)
+        return v
+    }
 }
 
 export default function NewDocFormComponent({ document, type, onSuccessfulSend }) {
@@ -271,7 +281,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                     </Grid>)}
 
                     {(document && <Grid container item xs={12}>
-                        <iframe style="width: 100%; height: 30rem" src={`/documents/${document.id}/pdf`}/>
+                        <iframe style={{width: '100%', height: '30rem'}} src={`/documents/${document.id}/pdf`}/>
                     </Grid>)}
                 </Grid>
             </MuiPickersUtilsProvider>

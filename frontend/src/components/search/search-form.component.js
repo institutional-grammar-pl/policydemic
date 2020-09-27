@@ -14,8 +14,13 @@ import Typography from '@material-ui/core/Typography';
 import AsyncAutocomplete from '../form/async-autocomplete.component';
 
 const selectDate = (v) => {
-    const offset = v.getTimezoneOffset() * 60 * 1000
-    return new Date(v - offset).toISOString().substr(0,10)
+    try {
+        const offset = v.getTimezoneOffset() * 60 * 1000
+        return new Date(v - offset).toISOString().substr(0,10)
+    } catch (e) {
+        console.error(e)
+        return v
+    }
 }
 
 export default function SearchFormComponent({ type, onSearch, onReset }) {
