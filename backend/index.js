@@ -24,7 +24,7 @@ async function autocompleteField(field) {
              "size":"0",
              "aggs" : {
                "unique" : {
-               "terms" : { "field" : field }
+               "terms" : { "field" : field, "size": 1000 }
                }
              }
         }
