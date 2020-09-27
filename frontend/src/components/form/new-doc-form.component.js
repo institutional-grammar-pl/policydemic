@@ -116,7 +116,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                     </Grid>
 
                     <Grid container item xs={12} spacing={8} justify="space-around">
-                        <Grid item md={4}>
+                        <Grid item mdvim={4}>
                             <TextField
                                 name="webPage"
                                 inputRef={register}
@@ -310,7 +310,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                         />
                     </Grid>)}
 
-                    {(document && <Grid container item xs={12}>
+                    {(document && (type === "LAD") && <Grid container item xs={12}>
                         <iframe style={{width: '100%', height: '30rem'}} src={`/documents/${document.id}/pdf`}/>
                     </Grid>)}
                 </Grid>
