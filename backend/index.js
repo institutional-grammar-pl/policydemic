@@ -58,7 +58,7 @@ router.get('/autocomplete/sections', async (ctx) => {
     ctx.body = await autocompleteField("section")
 })
 
-router.get('/autocomplete/organization', async (ctx) => {
+router.get('/autocomplete/organizations', async (ctx) => {
     ctx.body = await autocompleteField("organization")
 })
 
