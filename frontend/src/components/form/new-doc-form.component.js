@@ -257,7 +257,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                         />
                     </Grid>
 
-                    <Grid container item xs={12}>
+                    {(type === "LAD") && (<Grid container item xs={12}>
                         <TextField
                             name="translated_text"
                             inputRef={register}
@@ -270,7 +270,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             fullWidth
                             variant="outlined"
                         />
-                    </Grid>
+                    </Grid>)}
 
                     {/*{(document && <Grid container item xs={12}>
                         <Document file={`/documents/${document.id}/pdf`}>
