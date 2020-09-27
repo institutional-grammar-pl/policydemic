@@ -316,13 +316,33 @@ function parseData(data){
 
 async function fetchDocumentsFromElastic(body, documentType){
     console.log('body', body)
-    let params = constructParams(body, documentType)
+    let any_phrase = body.keywords
+    console.log(any_phrase)
+    let params = constructParams(body, documentType, any_phrase)
     let request = await client.search(params);
     return request.body.hits.hits;
 }
 
-function constructParams(body, documentType){
-    let params = {
+function constructParams(body, documentType, any_phrase){
+    if (any_phrase) {
+            let params = {
+            index: 'documents',
+            body: {
+                query:{
+                    bool: {
+                        must: [
+                            { match: { document_type: documentType}}
+                           ],
+                    },
+                    match_phrase: {
+                        original_text: any_phrase
+                    }
+                }
+            }, 
+            size: 100
+        }
+    } else {
+            let params = {
         index: 'documents',
         body: {
             query:{
@@ -330,11 +350,14 @@ function constructParams(body, documentType){
                     must: [
                         { match: { document_type: documentType}}
                        ],
-                }
+                },
             }
         }, 
         size: 100
     }
+    }
+
+    console.log('params1', params)
 
     if(body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0){
         params.body.query.bool.must.push({ range: { info_date: { gte: body.infoDateFrom, lte: body.infoDateTo }}},)
@@ -367,7 +390,7 @@ function constructParams(body, documentType){
             }
         }
 
-    console.log(JSON.stringify(params))
+    console.log('params2', JSON.stringify(params))
     return params
 }
 
