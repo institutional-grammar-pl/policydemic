@@ -341,6 +341,11 @@ export default function EnhancedTable(props) {
                                     const isItemSelected = isSelected(row.id);
                                     const labelId = `enhanced-table-checkbox-${index}`;
 
+                                    if (row.infoDate == "1900-01-01"): {
+                                        row.infoDate = ""
+                                    }
+                                    console.log(row.infoDate)
+
                                     return (
                                         <TableRow
                                             hover

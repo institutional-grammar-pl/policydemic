@@ -5,7 +5,12 @@ import SearchTableComponent from './search-table.component.js';
 
 export default class SearchResultsListComponent extends React.Component {
 
-    createDataForRow(title, source, infoDate, language, keywords, country) {
+    /*createDataForRow(title, source, infoDate, language, keywords, country) {
+
+        if (infoDate == "1900-01-01") {
+            infoDate = ''
+        }
+
         return {
             title: title,
             source: source,
@@ -14,7 +19,7 @@ export default class SearchResultsListComponent extends React.Component {
             keywords: keywords,
             country: country
         };
-      }
+      }*/
 
     render() {
         return (
