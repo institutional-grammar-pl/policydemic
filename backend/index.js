@@ -324,42 +324,23 @@ async function fetchDocumentsFromElastic(body, documentType){
 }
 
 function constructParams(body, documentType, any_phrase){
-    
-    if (any_phrase) {
-            let params = {
-            index: 'documents',
-            body: {
-                query:{
-                    bool: {
-                        must: [
-                            { match: { document_type: documentType}}
-                           ],
-                    },
-                    match_phrase: {
-                        original_text: any_phrase
-                    }
-                }
-            }, 
-            size: 100
-        }
-    } else {
-        let params = {
-            index: 'documents',
-            body: {
-                query:{
-                    bool: {
-                        must: [
-                            { match: { document_type: documentType}}
-                           ]
-                        }
-                    }
-                }
-            ) 
-            size: 100
-        }
-    }
 
-    console.log('params1', params)
+    let params = {
+        index: 'documents',
+        body: {
+            query:{
+                bool: {
+                    must: [
+                        { match: { document_type: documentType}}
+                       ],
+                },
+                match_phrase: {
+                    original_text: any_phrase
+                }
+            }
+        }, 
+        size: 100
+    }
 
     if(body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0){
         params.body.query.bool.must.push({ range: { info_date: { gte: body.infoDateFrom, lte: body.infoDateTo }}},)
@@ -392,7 +373,7 @@ function constructParams(body, documentType, any_phrase){
             }
         }
 
-    console.log('params2', JSON.stringify(params))
+    console.log(JSON.stringify(params))
     return params
 }
 
