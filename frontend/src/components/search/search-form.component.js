@@ -63,9 +63,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
     useEffect(() => {
         register({ name: "infoDateFrom"  });
         register({ name: "infoDateTo" });
-        register({ name: "web_page" });
-
-        register({ name: "language" });
+        register({ name: "section" });
         register({ name: "country" });
         register({ name: "keywords" });
 
@@ -159,6 +157,23 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                     label="Country" margin="normal" />}
                             onChange={(e, opts) => setValue("country", opts.map(o => o.value), e)}
                         />
+
+                        <AsyncAutocomplete
+                            name="section"
+                            collectionName="section"
+                            style={{ width: 300 }}
+                            openOnFocus
+                            fullWidth
+                            multiple
+                            renderInput={(params) =>
+                                <TextField
+                                    {...params}
+                                    name="section"
+                                    inputRef={register}
+                                    label="Section" margin="normal" />}
+                            onChange={(e, opts) => setValue("section", opts.map(o => o.value), e)}
+                        />
+
 
                     </Grid>
                 </MuiPickersUtilsProvider>
