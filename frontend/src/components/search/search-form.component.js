@@ -64,6 +64,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
         register({ name: "infoDateFrom"  });
         register({ name: "infoDateTo" });
         register({ name: "section" });
+        register({ name: "organization" });
         register({ name: "country" });
         register({ name: "keywords" });
 
@@ -172,6 +173,22 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                     inputRef={register}
                                     label="Section" margin="normal" />}
                             onChange={(e, opts) => setValue("section", opts.map(o => o.value), e)}
+                        />
+
+                        <AsyncAutocomplete
+                            name="organization"
+                            collectionName="organization"
+                            style={{ width: 300 }}
+                            openOnFocus
+                            fullWidth
+                            multiple
+                            renderInput={(params) =>
+                                <TextField
+                                    {...params}
+                                    name="organization"
+                                    inputRef={register}
+                                    label="Organization" margin="normal" />}
+                            onChange={(e, opts) => setValue("organization", opts.map(o => o.value), e)}
                         />
 
 
