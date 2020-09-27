@@ -220,7 +220,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                         label="Language" margin="normal" />}
                             />
                         </Grid>
-                        <Grid item md={4}>
+                        {(type === "LAD") && (<Grid item md={4}>
                             <AsyncAutocomplete
                                 name="translationType"
                                 collectionName="translationTypes"
@@ -238,7 +238,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                         inputRef={register}
                                         label="Translation type" margin="normal" />}
                             />
-                        </Grid>
+                        </Grid>)}
                     </Grid>
 
                     <Grid container item xs={12}>
