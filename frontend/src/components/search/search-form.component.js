@@ -160,24 +160,8 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                         />
 
                         <AsyncAutocomplete
-                            name="section"
-                            collectionName="section"
-                            style={{ width: 300 }}
-                            openOnFocus
-                            fullWidth
-                            multiple
-                            renderInput={(params) =>
-                                <TextField
-                                    {...params}
-                                    name="section"
-                                    inputRef={register}
-                                    label="Section" margin="normal" />}
-                            onChange={(e, opts) => setValue("section", opts.map(o => o.value), e)}
-                        />
-
-                        <AsyncAutocomplete
                             name="organization"
-                            collectionName="organization"
+                            collectionName="organizations"
                             style={{ width: 300 }}
                             openOnFocus
                             fullWidth
@@ -191,6 +175,21 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             onChange={(e, opts) => setValue("organization", opts.map(o => o.value), e)}
                         />
 
+                        <AsyncAutocomplete
+                            name="section"
+                            collectionName="sections"
+                            style={{ width: 300 }}
+                            openOnFocus
+                            fullWidth
+                            multiple
+                            renderInput={(params) =>
+                                <TextField
+                                    {...params}
+                                    name="section"
+                                    inputRef={register}
+                                    label="Section" margin="normal" />}
+                            onChange={(e, opts) => setValue("section", opts.map(o => o.value), e)}
+                        />
 
                     </Grid>
                 </MuiPickersUtilsProvider>
