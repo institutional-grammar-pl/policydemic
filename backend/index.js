@@ -16,14 +16,6 @@ router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
 
-router.get('/autocomplete/webpages', (ctx) => {
-  ctx.body = JSON.stringify([
-      {name: 'google.com', value: 'google.com'},
-      {name: 'test', value: 'test_webpage.com'},
-      {name: 'bing.com', value: 'bing.com'},
-  ])
-})
-
 async function autocompleteField(field) {
 
     const results = await client.search({
@@ -32,7 +24,7 @@ async function autocompleteField(field) {
              "size":"0",
              "aggs" : {
                "unique" : {
-               "terms" : { "field" : field }
+               "terms" : { "field" : field, "size": 1000 }
                }
              }
         }
@@ -46,12 +38,21 @@ router.get('/autocomplete/countries', async (ctx) => {
     ctx.body = await autocompleteField("country")
 })
 
+
 router.get('/autocomplete/languages', async (ctx) => {
     ctx.body = await autocompleteField("language")
 })
 
 router.get('/autocomplete/keywords', async (ctx) => {
     ctx.body = await autocompleteField("keywords")
+})
+
+router.get('/autocomplete/sections', async (ctx) => {
+    ctx.body = await autocompleteField("section")
+})
+
+router.get('/autocomplete/organizations', async (ctx) => {
+    ctx.body = await autocompleteField("organization")
 })
 
 router.get('/autocomplete/translationTypes', async (ctx) => {
@@ -308,31 +309,79 @@ function parseData(data){
 
 async function fetchDocumentsFromElastic(body, documentType){
     console.log('body', body)
-    let params = constructParams(body, documentType)
+    let any_phrase = ""
+    if (body.keywords != undefined) {
+        any_phrase = body.keywords[0]
+    }
+    console.log(any_phrase)
+    let params = constructParams(body, documentType, any_phrase)
     let request = await client.search(params);
     return request.body.hits.hits;
 }
 
-function constructParams(body, documentType){
+function constructParams(body, documentType, any_phrase){
+    
     let params = {
         index: 'documents',
         body: {
-            query:{
+            query: {
                 bool: {
                     must: [
-                        { match: { document_type: documentType}}
-                       ],
+                        {match: {
+                            document_type: documentType
+                            }
+                        },
+                        {match_phrase: {
+                            original_text: {
+                                query: any_phrase,
+                                zero_terms_query: "all"
+                                } 
+                            }
+                        }
+                    ], 
+                    should: []
                 }
             }
         }, 
         size: 100
     }
 
+
     if(body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0){
-        params.body.query.bool.must.push({ range: { info_date: { gte: body.infoDateFrom, lte: body.infoDateTo }}},)
+        params.body.query.bool.should.push( {
+            "range": {
+                    "info_date": {
+                        "gte": body.infoDateFrom,
+                        "lte": body.infoDateTo
+                    }
+                }
+            },
+            {"bool": {
+                "must": [{
+                        "range": {
+                            "info_date": {
+                                "gte": "1900-01-01",
+                                "lte": "1900-01-01"
+                            }
+                        }
+                    },
+                    {
+                        "range": {
+                            "scrap_date": {
+                                "gte": body.infoDateFrom + " 00:00:01",
+                                "lte": body.infoDateTo + " 23:59:59"
+                            }
+                        }
+                    }
+                ]
+                }
+            }
+        )
     }
 
-    let fields = ["title", "source", "country", "language", "keywords" ];
+    console.log(params)
+
+    let fields = ["country", "section", "organization"];
 
     for(let i = 0; i < fields.length; i++){
 

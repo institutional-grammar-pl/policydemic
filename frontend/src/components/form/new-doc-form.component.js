@@ -9,18 +9,26 @@ import DateFnsUtils from '@date-io/date-fns';
 import { useForm, Controller } from "react-hook-form";
 import Api from "../../common/api";
 
-import { Document, Page } from 'react-pdf'
-
 import AsyncAutocomplete from "./async-autocomplete.component";
 import UploadPdfComponent from './upload-pdf.component';
 
 const selectDate = (v) => {
-    const offset = v.getTimezoneOffset() * 60 * 1000
-    return new Date(v - offset).toISOString().substr(0,10)
+    try {
+        const offset = v.getTimezoneOffset() * 60 * 1000
+        return new Date(v - offset).toISOString().substr(0,10)
+    } catch (e) {
+        console.error(e)
+        return v
+    }
 }
 const selectDateTime = (v) => {
-    const offset = v.getTimezoneOffset() * 60 * 1000
-    return new Date(v - offset).toISOString().split(/[.T]/).splice(0, 2).join(' ')
+    try {
+        const offset = v.getTimezoneOffset() * 60 * 1000
+        return new Date(v - offset).toISOString().split(/[.T]/).splice(0, 2).join(' ')
+    } catch (e) {
+        console.error(e)
+        return v
+    }
 }
 
 export default function NewDocFormComponent({ document, type, onSuccessfulSend }) {
@@ -95,8 +103,20 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         <form id={document ? "edit-doc-form" : "new-doc-form"} onSubmit={handleSubmit(onSubmit)}>
             <MuiPickersUtilsProvider utils={DateFnsUtils}>
                 <Grid container spacing={5}>
+                    <Grid container item xs={12} spacing={4} justify="center">
+                        <Grid item md={8}>
+                            <TextField
+                                name="title"
+                                inputRef={register}
+                                label="Title"
+                                margin="normal"
+                                fullWidth
+                            />
+                        </Grid>
+                    </Grid>
+
                     <Grid container item xs={12} spacing={8} justify="space-around">
-                        <Grid item md={4}>
+                        <Grid item mdvim={4}>
                             <TextField
                                 name="webPage"
                                 inputRef={register}
@@ -106,21 +126,39 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             />
                         </Grid>
                         <Grid item md={4}>
-                            <TextField
+                             <AsyncAutocomplete
                                 name="organization"
-                                inputRef={register}
-                                label="Organization"
-                                margin="normal"
-                                fullWidth
+                                collectionName="organizations"
+                                style={{ width: 300 }}
+                                openOnFocus
+                                onChange={(_, opt) => setValue("organization", opt.value)}
+                                defaultValue={document ? {
+                                    name: document.organization,
+                                    value: document.organization,
+                                } : undefined}
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        inputRef={register}
+                                        label="Organization" margin="normal" />}
                             />
                         </Grid>
                         <Grid item md={4}>
-                            <TextField
+                           <AsyncAutocomplete
                                 name="section"
-                                inputRef={register}
-                                label="Section"
-                                margin="normal"
-                                fullWidth
+                                collectionName="sections"
+                                style={{ width: 300 }}
+                                openOnFocus
+                                onChange={(_, opt) => setValue("section", opt.value)}
+                                defaultValue={document ? {
+                                    name: document.section,
+                                    value: document.section,
+                                } : undefined}
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        inputRef={register}
+                                        label="Section" margin="normal" />}
                             />
                         </Grid>
                     </Grid>
@@ -220,7 +258,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                         label="Language" margin="normal" />}
                             />
                         </Grid>
-                        <Grid item md={4}>
+                        {(type === "LAD") && (<Grid item md={4}>
                             <AsyncAutocomplete
                                 name="translationType"
                                 collectionName="translationTypes"
@@ -238,7 +276,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                         inputRef={register}
                                         label="Translation type" margin="normal" />}
                             />
-                        </Grid>
+                        </Grid>)}
                     </Grid>
 
                     <Grid container item xs={12}>
@@ -257,7 +295,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                         />
                     </Grid>
 
-                    <Grid container item xs={12}>
+                    {(type === "LAD") && (<Grid container item xs={12}>
                         <TextField
                             name="translated_text"
                             inputRef={register}
@@ -270,13 +308,11 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             fullWidth
                             variant="outlined"
                         />
-                    </Grid>
+                    </Grid>)}
 
-                    {/*{(document && <Grid container item xs={12}>
-                        <Document file={`/documents/${document.id}/pdf`}>
-                            <Page pageNumber={1} />
-                        </Document>
-                    </Grid>)}*/}
+                    {(document && (type === "LAD") && <Grid container item xs={12}>
+                        <iframe style={{width: '100%', height: '30rem'}} src={`/documents/${document.id}/pdf`}/>
+                    </Grid>)}
                 </Grid>
             </MuiPickersUtilsProvider>
         </form >

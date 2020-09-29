@@ -10,7 +10,7 @@ import SwipeableViews from 'react-swipeable-views';
 
 import LadTabComponent from './lad-tab.component.js';
 import SsdTabComponent from './ssd-tab.component.js';
-import CrawlerConfigComponent from './crawler-config-tab.component.js';
+/*import CrawlerConfigComponent from './crawler-config-tab.component.js';*/
 
 // https://material-ui.com/components/tabs/
 
@@ -77,7 +77,7 @@ export default function MainTabs() {
         <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">
           <Tab label="LAD" {...a11yProps(0)} />
           <Tab label="SSD" {...a11yProps(1)} />
-          <Tab label="CRAWLER CONFIG" {...a11yProps(2)} />
+          {/*<Tab label="CRAWLER CONFIG" {...a11yProps(2)} />*/}
         </Tabs>
       </AppBar>
       <SwipeableViews
@@ -91,9 +91,9 @@ export default function MainTabs() {
         <TabPanel value={value} index={1}>
           <SsdTabComponent />
         </TabPanel>
-        <TabPanel value={value} index={2}>
+        {/*<TabPanel value={value} index={2}>
           <CrawlerConfigComponent />
-        </TabPanel>
+        </TabPanel>*/}
       </SwipeableViews>
     </div>
   );

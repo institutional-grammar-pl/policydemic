@@ -19,6 +19,7 @@ textdistance = "^4.2.0"
 "pdfminer.six" = "^20200726"
 pypdf2 = "^1.26.0"
 beautifulsoup4 = "^4.9.1"
+flower = "^0.9.5"
 
 
 [tool.poetry.dev-dependencies]
