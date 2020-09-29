@@ -47,6 +47,63 @@ def process_pdf_link(pdf_url, document_type='secondary_source'):
         _log.error("url already in database")
 
 
+@app.task
+def process_pdf_path(pdf_path, document_type='legal_act'):
+    print(f"Received pdf: {pdf_path}")
+
+    pdf_chain = \
+        get_local_pdf.s() | \
+        parse_pdf.s() | \
+        translate_pdf.s() | \
+        process_document.s()
+
+    pdf_chain(pdf_path, document_type)
+
+
+@app.task()
+def get_local_pdf(old_pdf_path, document_type=''):
+    fd, pdf_path = tempfile.mkstemp(prefix='doc_', suffix='.pdf', dir=pdf_dir)
+    os.close(fd)
+
+    pdf_filename = os.path.basename(pdf_path)
+
+    shutil.move(old_pdf_path, pdf_path)
+
+    if pdfparser_tasks.is_pdf(pdf_path):
+        date, keywords = pdfparser_tasks.get_metadata(pdf_path)
+
+        new_pdf_path = pdf_dir / 'document_accepted' / pdf_filename
+        os.makedirs(pdf_dir / 'document_accepted', exist_ok=True)
+        shutil.move(pdf_path, new_pdf_path)
+
+        return {
+            "web_page": 'added_manually',
+            "pdf_path": str(new_pdf_path),
+            "keywords": keywords,
+            "info_date": date,
+            "document_type": document_type,
+            "status": "document_accepted"
+        }
+    else:
+        os.makedirs(pdf_dir / 'document_rejected', exist_ok=True)
+        try:
+            shutil.move(pdf_path, pdf_dir / 'document_rejected' / pdf_filename)
+        except:
+            return {
+                "status": "document_rejected",
+                "pdf_path": '',
+                "web_page": 'added_manually',
+                "document_type": document_type
+            }
+        else:
+            return {
+                "status": "document_rejected",
+                "pdf_path": str(pdf_dir / 'document_rejected' / pdf_filename),
+                "web_page": 'added_manually',
+                "document_type": document_type
+            }
+
+
 @app.task()
 def download_pdf(pdf_url, document_type=''):
     fd, pdf_path = tempfile.mkstemp(prefix='doc_', suffix='.pdf', dir=pdf_dir)
