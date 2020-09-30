@@ -9,6 +9,7 @@ from twisted.internet import reactor
 from scrapy.settings import Settings
 from scrapy.crawler import CrawlerProcess
 
+from crawler.imf import extract_imf_articles
 from crawler.ilo.ilo_script import get_lio_data
 from crawler.ilo.ilo_script import extract_html
 
@@ -30,6 +31,7 @@ gov_sites_path = cfg['paths']['gov_websites']
 
 SCRAP_DATE_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
 max_n_chars_to_translate = int(cfg['translator']['max_n_chars_to_translate'])
+
 
 # class CrawlerProcess(Process):
 #     """ This class allows to run scrapy Crawlers using multiprocessing from billiard """
@@ -100,15 +102,15 @@ def crawl_lad(depth=5):
     settings.set('SCHEDULER_PRIORITY_QUEUE', 'scrapy.pqueues.DownloaderAwarePriorityQueue')
     settings.set('COOKIES_ENABLED', False)
     settings.set('DEFAULT_REQUEST_HEADERS', {
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'Accept-Encoding': 'gzip, deflate',
-    'Accept-Language': 'pl-PL,pl;q=0.9,en-GB;q=0.8,en;q=0.7,en-US;q=0.6',
-    'Cache-Control': 'max-age=0',
-    'Connection': 'keep-alive',
-    'dnt': '1',
-    'Host': 'gov.pl',
-    'Upgrade-Insecure-Requests': '1',
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Language': 'pl-PL,pl;q=0.9,en-GB;q=0.8,en;q=0.7,en-US;q=0.6',
+        'Cache-Control': 'max-age=0',
+        'Connection': 'keep-alive',
+        'dnt': '1',
+        'Host': 'gov.pl',
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
     })
     settings.set('CONCURRENT_REQUESTS', 64)
     settings.set('DEPTH_LIMIT', depth)
@@ -194,10 +196,33 @@ def crawl_ilo():
                 "info_date": cfg['pdfparser']['default_date']
             }
             ilo_chain = nlpengine.tasks.translate_pdf.s() | \
-                nlpengine.tasks.index_doc_task.s()
+                        nlpengine.tasks.index_doc_task.s()
 
             ilo_chain(body)
 
+
+@app.task
+def crawl_imf():
+    country_data = extract_imf_articles()
+    for country in country_data.keys():
+        for section, text in country_data[country].items():
+            if section in {
+                'Fiscal', 'Monetary and macro-financial',
+                    'Exchange rate and balance of payments', 'Background.', 'Reopening of the economy.'}:
+                body = {
+                    "country": country,
+                    "organization": "International Monetary Fund",
+                    "scrap_date": datetime.now().strftime(SCRAP_DATE_FORMAT),
+                    "original_text": text,
+                    "section": section,
+                    "title": text[:max_n_chars_to_translate],
+                    "document_type": "secondary_source",
+                    "info_date": cfg['pdfparser']['default_date']
+                }
+                imf_chain = nlpengine.tasks.translate_pdf.s() | \
+                            nlpengine.tasks.index_doc_task.s()
+
+                imf_chain(body)
 
 # def last_crawling(crawler_name):
 #     crawler_status_path = os.path.join(pdf_dir, crawler_name + '.json')
