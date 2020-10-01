@@ -62,12 +62,12 @@ export default function UploadPdfComponent({ name, setValue }) {
                             endIcon={<CloudUploadIcon />}
                             component="span"
                         >
-                            Upload document
-                </Button>
+                            Upload PDF document
+                        </Button>
                     </label>
                 </div>
             </Grid>
-            {file && (
+            {/*{file && (
                 <Grid item xs={12}>
                     <Card> 
                         <CardHeader title="PDF Preview" />
@@ -88,7 +88,7 @@ export default function UploadPdfComponent({ name, setValue }) {
                         </CardActions>
                     </Card>
                 </Grid>
-            )}
+            )}*/}
         </Grid>
 
     )

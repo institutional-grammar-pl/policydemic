@@ -25,6 +25,10 @@ import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import AddBoxIcon from '@material-ui/icons/AddBox';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteConfirmationDialogComponent from './delete-dialog.component.js';
+import UploadPdfComponent from '../form/upload-pdf.component';
+
+import Api from '../../common/api.js';
+
 
 function descendingComparator(a, b, orderBy) 
 {
@@ -179,13 +183,14 @@ const EnhancedTableToolbar = (props) => {
                 style={{ display: 'flex', justifyContent: 'right' }}
             >
 
-                    <Tooltip title="Add New">
+                    {/*<Tooltip title="Add New">
                         <IconButton aria-label="addNew" onClick={(event) => props.onAddNewItemClick(event)}>
                             <AddBoxIcon />
                         </IconButton>
-                    </Tooltip>
+                    </Tooltip>*/}
 
                 </Container>}
+                    
         </Toolbar>
     );
 };
@@ -394,6 +399,19 @@ export default function EnhancedTable(props) {
                 />
             </Paper>
         </Container>
+
+        <Container>
+            <UploadPdfComponent name="pdf" setValue={function() {
+                console.log(arguments)
+                Api.uploadPDF(arguments.file).then((resp) => 
+                {
+                    console.log('uploaded')
+                });
+                }}
+            /> 
+        </Container>
+
         </div>
+
     );
 }

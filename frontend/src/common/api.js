@@ -73,4 +73,8 @@ export default class Api {
     static deleteDocuments(documentIds){
         return this._postJsonData('delete', {ids:documentIds})
     }
+
+    static uploadPDF(pdfFile) {
+        return this._postJsonData('upload', {pdf:pdfFile})
+    }
 }

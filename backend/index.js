@@ -11,6 +11,12 @@ const app = new Koa();
 const router = new KoaRouter();
 const upload = multer();
 
+const celery = require('celery-node');
+const celery_worker = celery.createWorker(
+  "amqp://",
+  "amqp://"
+);
+
 
 router.get('/', (ctx) => {
   ctx.body = "Hello world!"
@@ -149,133 +155,6 @@ router.post('/delete', async (ctx) => {
   ctx.status = 200
 });*/
 
-/*router.get('/populate', (ctx) => {
-    populate().then(r => console.log(r)).catch(console.log)
-    ctx.status = 200
-})
-async function populate (){
-
-    await client.index({
-        index: 'documents',
-        body:{
-                web_page: 'test_webpage23.com',
-                document_type: 'legalact',
-                pdf_path: 'test_path',
-                scrap_date: '2020-10-23 10:00:00',
-                info_date: '2020-07-12',
-                country: "Poland",
-                language: "Polish",
-                translation_type: "automatic",
-                text_parsing_type: "ocr",
-                keywords: ["test_kw"],
-                original_text: "Oryginalny tekst dokumentu",
-                translated_text: "Original text of the document",
-                organization: "Test1",
-                section: null
-        }
-    })
-        .catch(e => {
-            console.log(e)
-        });
-
-    await client.index({
-        index: 'documents',
-        body:{
-            web_page: 'test_webpage.gov.pl',
-            document_type: 'secondary',
-            pdf_path: 'test_path',
-            scrap_date: '2020-10-05 10:00:00',
-            info_date: '2020-07-15',
-            country: "Poland",
-            language: "Polish",
-            translation_type: "automatic",
-            text_parsing_type: "ocr",
-            keywords: ["si", "certo", "torro"],
-            original_text: "Oryginalny tekst dokumentu",
-            translated_text: "Original text of the document",
-            organization: "Test2",
-            section: null
-        }
-    })
-        .catch(e => {
-            console.log(e)
-        });
-
-    await client.index({
-        index: 'documents',
-        body:{
-            web_page: 'test_webpageDE.com',
-            document_type: 'legalact',
-            pdf_path: 'test_path',
-            scrap_date: '2020-11-23 10:00:00',
-            info_date: '2020-07-12',
-            country: "Germany",
-            language: "German",
-            translation_type: "manual",
-            text_parsing_type: "parser",
-            keywords: ["covid", "bulk"],
-            original_text: "Oryginalny tekst dokumentu",
-            organization: "Test3",
-            translated_text: "Original text of the document",
-            section: null
-        }
-    })
-        .catch(e => {
-            console.log(e)
-        });
-
-    await client.index({
-        index: 'documents',
-        body:{
-            web_page: 'italian.gov.com',
-            document_type: 'secondary',
-            pdf_path: 'test_path',
-            scrap_date: '2020-01-23 10:00:00',
-            info_date: '2020-07-12',
-            country: "Italy",
-            language: "Italian",
-            translation_type: "automatic",
-            text_parsing_type: "ocr",
-            keywords: ["testIT", "pizza", "espresso"],
-            original_text: "Oryginalny tekst dokumentu",
-            organization: "Test1",
-            translated_text: "Original text of the document",
-            section: null
-        }
-    })
-        .catch(e => {
-            console.log(e)
-        });
-
-    await client.index({
-        index: 'documents',
-        body:{
-            web_page: 'test_webpage23.com',
-            document_type: 'secondary',
-            pdf_path: 'test_path',
-            scrap_date: '2020-10-23 10:00:00',
-            info_date: '2020-07-12',
-            country: "Poland",
-            language: "Polish",
-            translation_type: "automatic",
-            text_parsing_type: "ocr",
-            keywords: "test_kw",
-            original_text: "Oryginalny tekst dokumentu",
-            organization: "Test2",
-            translated_text: "Original text of the document",
-            section: null
-        }
-    })
-        .catch(e => {
-            console.log(e)
-        });
-
-
-
-    await client.indices.refresh({
-        index: 'documents'
-    })
-}*/
 
 async function getDocuments(ctx, documentType) {
     const data = await fetchDocumentsFromElastic(ctx.request.body, documentType)
@@ -483,6 +362,12 @@ async function updateDocument(ctx){
         }
     })
 }
+
+router.post('/upload', (ctx) => {
+    console.log(ctx)
+    worker.register("tasks.process_pdf_path", ctx.path);
+    worker.start();
+});
 
 module.exports = constructParams;
 app
