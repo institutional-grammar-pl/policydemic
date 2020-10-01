@@ -75,6 +75,7 @@ export default class Api {
     }
 
     static uploadPDF(pdfFile) {
-        return this._postJsonData('upload', {pdf:pdfFile})
+        console.log(pdfFile)
+        return this._postJsonData('upload', {pdf: pdfFile})
     }
 }

@@ -12,7 +12,8 @@ const router = new KoaRouter();
 const upload = multer();
 
 const celery = require('celery-node');
-const celery_worker = celery.createWorker(
+
+const celery_client = celery.createClient(
   "amqp://",
   "amqp://"
 );
@@ -365,8 +366,12 @@ async function updateDocument(ctx){
 
 router.post('/upload', (ctx) => {
     console.log(ctx)
-    worker.register("tasks.process_pdf_path", ctx.path);
-    worker.start();
+    const task = celery_client.createTask("tasks.process_pdf_path");
+    const result = task.applyAsync(ctx.path);
+    result.get().then(data => {
+      console.log(data);
+      celery_client.disconnect();
+    });
 });
 
 module.exports = constructParams;

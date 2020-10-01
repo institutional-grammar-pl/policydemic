@@ -403,7 +403,7 @@ export default function EnhancedTable(props) {
         <Container>
             <UploadPdfComponent name="pdf" setValue={function() {
                 console.log(arguments)
-                Api.uploadPDF(arguments.file).then((resp) => 
+                Api.uploadPDF(arguments.File).then((resp) => 
                 {
                     console.log('uploaded')
                 });
