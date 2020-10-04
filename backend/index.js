@@ -364,14 +364,33 @@ async function updateDocument(ctx){
     })
 }
 
-router.post('/upload', (ctx) => {
-    console.log(ctx)
-    const task = celery_client.createTask("tasks.process_pdf_path");
-    const result = task.applyAsync(ctx.path);
-    result.get().then(data => {
-      console.log(data);
-      celery_client.disconnect();
-    });
+router.post('/upload', upload.single('pdf'), (ctx) => {
+    const pdf = ctx.req.file // originalname, encoding, mimetype, buffer, size
+    if (!ctx.req.file) {
+        ctx.body = "No file given!";
+        ctx.status = 422;
+        return
+    }
+    return new Promise((resolve, reject) => {
+        const path = "/tmp/policydemic_" + pdf.originalname
+        fs.writeFile(path, pdf.buffer, (err) => {
+            if (err) {
+                reject(err)
+                return
+            }
+            const task = celery_client.createTask("nlpengine.tasks.process_pdf_path");
+            const result = task.applyAsync([path]);
+
+            ctx.body = "File sent for processing!"
+            ctx.status = 200
+            resolve(ctx)
+
+            console.log('request processed, started celery task for pdf ', pdf.originalname)
+            result.get().then(data => {
+              console.log('celery task finished for pdf ', pdf.originalname, "\nresult:\n", data);
+            });
+        })
+    })
 });
 
 module.exports = constructParams;
