@@ -232,10 +232,6 @@ function constructParams(body, documentType, any_phrase){
         size: 100
     }
 
-    if (documentType=='legal_act' && body.status) {
-        params.body.query.bool.must.match.push({status: body.status[0]})
-    }
-
 
     if(body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0){
         params.body.query.bool.should.push( {
