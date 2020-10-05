@@ -66,6 +66,12 @@ router.get('/autocomplete/translationTypes', async (ctx) => {
     ctx.body = await autocompleteField("translation_type")
 })
 
+router.get('/autocomplete/status', async (ctx) => {
+  ctx.body = JSON.stringify([
+      {name: 'subject_accepted', value: 'subject_accepted'},
+      {name: 'subject_rejected', value: 'subject_rejected'}
+  ])})
+
 router.get('/documents/:id', async (ctx) => {
     console.log('get id', ctx.params.id)
     try {
@@ -226,6 +232,11 @@ function constructParams(body, documentType, any_phrase){
         size: 100
     }
 
+    if (documentType=='legal_act' && body.status) {
+        console.
+        params.body.query.bool.must.match.push({status: body.status[0]})
+    }
+
 
     if(body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0){
         params.body.query.bool.should.push( {
@@ -261,7 +272,7 @@ function constructParams(body, documentType, any_phrase){
 
     console.log(params)
 
-    let fields = ["country", "section", "organization"];
+    let fields = ["country", "section", "organization", "status"];
 
     for(let i = 0; i < fields.length; i++){
 

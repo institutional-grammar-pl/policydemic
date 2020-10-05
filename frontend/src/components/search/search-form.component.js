@@ -13,6 +13,9 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import AsyncAutocomplete from '../form/async-autocomplete.component';
 
+import DropdownTreeSelect from 'react-dropdown-tree-select'
+import 'react-dropdown-tree-select/dist/styles.css'
+
 const selectDate = (v) => {
     try {
         const offset = v.getTimezoneOffset() * 60 * 1000
@@ -72,6 +75,8 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
         register({ name: "organization" });
         register({ name: "country" });
         register({ name: "keywords" });
+        register({ name: "status" });
+
 
     }, [register])
 
@@ -158,7 +163,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             />
                         </Grid>
 
-                        <Grid item xs={4}>
+                        {(type === "SSD") && (<Grid item xs={4}>
                             <AsyncAutocomplete
                                 name="organization"
                                 collectionName="organizations"
@@ -174,9 +179,9 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                         label="Organization" margin="normal" />}
                                 onChange={(e, opts) => setValue("organization", opts.map(o => o.value), e)}
                             />
-                        </Grid>
+                        </Grid>)}
 
-                        <Grid item xs={4}>
+                        {(type === "SSD") && (<Grid item xs={4}>
                             <AsyncAutocomplete
                                 name="section"
                                 collectionName="sections"
@@ -192,7 +197,26 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                         label="Section" margin="normal" />}
                                 onChange={(e, opts) => setValue("section", opts.map(o => o.value), e)}
                             />
-                        </Grid>
+                        </Grid>)}
+
+                        {(type === "LAD") && (<Grid item xs={4}>
+                            <AsyncAutocomplete
+                                name="status"
+                                collectionName="status"
+                                style={{ width: 250 }}
+                                openOnFocus
+                                fullWidth
+                                multiple
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        name="status"
+                                        inputRef={register}
+                                        label="Status" margin="normal" />}
+                                onChange={(e, opts) => setValue("status", opts.map(o => o.value), e)}
+                            />
+                        </Grid>)}
+                        
 
                     </Grid>
                 </MuiPickersUtilsProvider>

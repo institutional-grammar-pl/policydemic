@@ -39,7 +39,7 @@ export default function SsdTabComponent() {
     }
 
     return (<Container>
-        <SearchFormComponent onSearch={handleSearch} onReset={handleReset}/>
+        <SearchFormComponent type="SSD" onSearch={handleSearch} onReset={handleReset}/>
         <NewDocDialogComponent open={openDialog} onClose={handleCloseDialog}>
             <NewDocFormComponent type="SSD" onSuccessfulSend={handleCloseDialog}/>
         </NewDocDialogComponent>

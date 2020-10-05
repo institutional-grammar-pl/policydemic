@@ -29,7 +29,6 @@ export default function LadTabComponent() {
     }
 
     const handleOnDelete = (selected) => {
-        //alert(selected.join(','));
         Api.deleteDocuments(selected).catch(()=>{}).then(()=>{
             console.log(searchResults)
             const newSearchResults = searchResults.filter(row=>!selected.includes(row.id))
@@ -39,7 +38,7 @@ export default function LadTabComponent() {
     }
 
     return (<Container>
-        <SearchFormComponent onSearch={handleSearch} onReset={handleReset}/>
+        <SearchFormComponent type="LAD" onSearch={handleSearch} onReset={handleReset}/>
         <NewDocDialogComponent open={openDialog} onClose={handleCloseDialog}>
             <NewDocFormComponent type="LAD" onSuccessfulSend={handleCloseDialog}/>
         </NewDocDialogComponent>
