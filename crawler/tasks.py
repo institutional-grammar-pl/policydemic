@@ -12,6 +12,7 @@ from scrapy.crawler import CrawlerProcess
 from crawler.imf import extract_imf_articles
 from crawler.ilo.ilo_script import get_lio_data
 from crawler.ilo.ilo_script import extract_html
+from crawler.utils import _short_text_
 
 from crawler.cgrt import CGRT
 from crawler.gov.gov.spiders.gov import GovDuSpider, GovPlCrawler, GovMpSpider
@@ -51,46 +52,46 @@ max_n_chars_to_translate = int(cfg['translator']['max_n_chars_to_translate'])
 #         reactor.run()
 
 
-@app.task
-def crawl_gov_du():
-    """ Starts crawling process which downloads pdfs from dziennikustaw.gov.pl """
-    logging.info("crawl gov du")
-    spider = GovDuSpider()
-    process = CrawlerProcess(spider)
-    process.start()
-    process.join()
+# @app.task
+# def crawl_gov_du():
+#     """ Starts crawling process which downloads pdfs from dziennikustaw.gov.pl """
+#     logging.info("crawl gov du")
+#     spider = GovDuSpider()
+#     process = CrawlerProcess(spider)
+#     process.start()
+#     process.join()
 
 
-@app.task
-def crawl_gov_mp():
-    """ Starts crawling process which downloads pdfs from monitorpolski.gov.pl """
-    spider = GovMpSpider()
-    process = CrawlerProcess(spider)
-    process.start()
-    process.join()
+# @app.task
+# def crawl_gov_mp():
+#     """ Starts crawling process which downloads pdfs from monitorpolski.gov.pl """
+#     spider = GovMpSpider()
+#     process = CrawlerProcess(spider)
+#     process.start()
+#     process.join()
 
 
-@app.task
-def run_crawl_gov_du():
-    run_task = crawl_gov_du.s()
-    run_task.link(update_crawling_date.s('GovDuSpider'))
-    run_task.delay()
+# @app.task
+# def run_crawl_gov_du():
+#     run_task = crawl_gov_du.s()
+#     run_task.link(update_crawling_date.s('GovDuSpider'))
+#     run_task.delay()
 
 
-@app.task
-def run_crawl_gov_mp():
-    run_task = crawl_gov_mp.s()
-    run_task.link(update_crawling_date.s('GovMpSpider'))
-    run_task.delay()
+# @app.task
+# def run_crawl_gov_mp():
+#     run_task = crawl_gov_mp.s()
+#     run_task.link(update_crawling_date.s('GovMpSpider'))
+#     run_task.delay()
 
 
-@app.task
-def crawl_gov():
-    """Starts crawling process which downloads pdfs from all websites in domain gov.pl"""
-    crawler = GovPlCrawler()
-    process = CrawlerProcess(crawler)
-    process.start()
-    process.join()
+# @app.task
+# def crawl_gov():
+#     """Starts crawling process which downloads pdfs from all websites in domain gov.pl"""
+#     crawler = GovPlCrawler()
+#     process = CrawlerProcess(crawler)
+#     process.start()
+#     process.join()
 
 
 @app.task
@@ -108,7 +109,6 @@ def crawl_lad(depth=5):
         'Cache-Control': 'max-age=0',
         'Connection': 'keep-alive',
         'dnt': '1',
-        'Host': 'gov.pl',
         'Upgrade-Insecure-Requests': '1',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
     })
@@ -191,7 +191,7 @@ def crawl_ilo():
                 "scrap_date": datetime.now().strftime(SCRAP_DATE_FORMAT),
                 "original_text": doc,
                 "section": section,
-                "title": doc[:max_n_chars_to_translate],
+                "title": _short_text_(doc, max_n_chars_to_translate),
                 "document_type": "secondary_source",
                 "info_date": cfg['pdfparser']['default_date']
             }
@@ -215,7 +215,7 @@ def scrape_imf():
                     "scrap_date": datetime.now().strftime(SCRAP_DATE_FORMAT),
                     "original_text": text,
                     "section": section,
-                    "title": text[:max_n_chars_to_translate],
+                    "title": _short_text_(text, max_n_chars_to_translate),
                     "document_type": "secondary_source",
                     "info_date": cfg['pdfparser']['default_date']
                 }
