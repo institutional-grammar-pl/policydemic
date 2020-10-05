@@ -202,7 +202,7 @@ def crawl_ilo():
 
 
 @app.task
-def crawl_imf():
+def scrape_imf():
     country_data = extract_imf_articles()
     for country in country_data.keys():
         for section, text in country_data[country].items():
