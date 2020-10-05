@@ -65,6 +65,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             translationType: document.translationType,
             translated_text: document.translated_text,
             original_text: document.originalText,
+            status: document.status
         } : undefined
     });
     useEffect(() => {
@@ -79,6 +80,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         register({ name: "country" });
         register({ name: "language" });
         register({ name: "translationType" });
+        register({ name: "status" });
 
     }, [register, pdfUpload])
 
@@ -99,6 +101,13 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         }
     };
 
+    if (typeof document.keywords=== 'string') {
+        document.keywords = document.keywords.split(',')
+        document.keywords = document.keywords.filter(function (el) {
+              return el != "";
+        });
+    }
+
     return (
         <form id={document ? "edit-doc-form" : "new-doc-form"} onSubmit={handleSubmit(onSubmit)}>
             <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -116,7 +125,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                     </Grid>
 
                     <Grid container item xs={12} spacing={8} justify="space-around">
-                        <Grid item mdvim={4}>
+                        <Grid item md={4}>
                             <TextField
                                 name="webPage"
                                 inputRef={register}
@@ -125,7 +134,25 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                 fullWidth
                             />
                         </Grid>
-                        <Grid item md={4}>
+                        {(type === "LAD") && (<Grid item md={4}>
+                             <AsyncAutocomplete
+                                name="status"
+                                collectionName="status"
+                                style={{ width: 300 }}
+                                openOnFocus
+                                onChange={(_, opt) => setValue("status", opt.value)}
+                                defaultValue={document ? {
+                                    name: document.status,
+                                    value: document.status,
+                                } : undefined}
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        inputRef={register}
+                                        label="Status" margin="normal" />}
+                            />
+                        </Grid>)}
+                        {(type === "SSD") && (<Grid item md={4}>
                              <AsyncAutocomplete
                                 name="organization"
                                 collectionName="organizations"
@@ -142,8 +169,8 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                         inputRef={register}
                                         label="Organization" margin="normal" />}
                             />
-                        </Grid>
-                        <Grid item md={4}>
+                        </Grid>)}
+                        {(type === "SSD") && (<Grid item md={4}>
                            <AsyncAutocomplete
                                 name="section"
                                 collectionName="sections"
@@ -160,7 +187,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                         inputRef={register}
                                         label="Section" margin="normal" />}
                             />
-                        </Grid>
+                        </Grid>)}
                     </Grid>
 
                     <Grid container item xs={12} spacing={8} justify="space-around">
@@ -168,7 +195,6 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             <AsyncAutocomplete
                                 name="keywords"
                                 collectionName="keywords"
-                                style={{ width: 300 }}
                                 openOnFocus
                                 fullWidth
                                 multiple

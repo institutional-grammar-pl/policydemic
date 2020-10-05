@@ -233,7 +233,6 @@ function constructParams(body, documentType, any_phrase){
     }
 
     if (documentType=='legal_act' && body.status) {
-        console.
         params.body.query.bool.must.match.push({status: body.status[0]})
     }
 
