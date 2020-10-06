@@ -185,12 +185,7 @@ def translate_pdf(body=None, full_translation=False, _id=None):
         else:
             max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
 
-            if not body.get('title', None):
-                text_to_translate = body['original_text']
-            else:
-                text_to_translate = body['title']
-
-            text_to_translate = _short_text_(text_to_translate, max_n_chars)
+            text_to_translate = body.get('title', _short_text_(body['original_text'], max_n_chars))
             result = translator_tasks.translate(text_to_translate)
 
         body.update(result)
