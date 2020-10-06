@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import os
 import requests
 from pathlib import Path
 import shutil
@@ -43,6 +44,8 @@ min_n_chars_per_page = int(cfg['pdfparser']['min_n_chars_per_page'])
 default_date = cfg['pdfparser']['default_date']
 
 es = Elasticsearch(hosts=es_hosts)
+
+os.environ['OMP_THREAD_LIMIT'] = '1'
 
 
 def get_metadata(pdf_path):
