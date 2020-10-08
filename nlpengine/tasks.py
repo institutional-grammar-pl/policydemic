@@ -14,6 +14,7 @@ from scheduler.celery import app
 import pdfparser.tasks as pdfparser_tasks
 import translator.tasks as translator_tasks
 from nlpengine.country_domains import country_domains
+from crawler.utils import _short_text_
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
@@ -178,15 +179,13 @@ def translate_pdf(body=None, full_translation=False, _id=None):
     if status == 'document_rejected':
         return body
     else:
-        original_text = body["original_text"]
-
         if full_translation:
-            text_to_translate = original_text
+            text_to_translate = body["original_text"]
             result = translator_tasks.translate(text_to_translate, 'translated_text')
         else:
             max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
-            text_to_translate = original_text[:max_n_chars] if len(
-                original_text) > max_n_chars else original_text
+
+            text_to_translate = body.get('title', _short_text_(body['original_text'], max_n_chars))
             result = translator_tasks.translate(text_to_translate)
 
         body.update(result)
