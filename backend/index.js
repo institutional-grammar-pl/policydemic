@@ -66,6 +66,52 @@ router.get('/autocomplete/translationTypes', async (ctx) => {
     ctx.body = await autocompleteField("translation_type")
 })
 
+router.get('/autocomplete/sectionOptions', async (ctx) => {
+ctx.body = [{
+    label: 'COVID-19 Policy Watch',
+    children: [
+        {label: 'Physical distancing'},
+        {label: 'Border measures'},
+        {label: 'Business support'},
+        {label: 'Wage and income support'},
+        {label: 'Health services'},
+        {label: 'Financial markets and monetary policy'},
+        {label: 'Industry interventions'},
+        {label: 'Testing and tracing'},
+        {label: 'Emergency government'},
+        {label: 'Medical products and medicines'},
+        {label: 'Food and necessities'},
+        {label: 'Public information'},
+        {label: 'Citizens abroad'},
+        {label: 'Public services'},
+        {label: 'International cooperation'},
+        {label: 'Education'},
+        {label: 'Housing'},
+        {label: 'Domestic travel'},
+        {label: 'Policing and justice'},
+        {label: 'Healthcare workers'},
+        {label: 'Research'}]
+}, {
+    label: 'International Labour Organization',
+    children: [
+        {label: 'stimulateEmployment'},
+        {label: 'protectWorkers'},
+        {label: 'supportIncomes'},
+        {label: 'employerActivities'},
+        {label: 'iloActions'},
+        {label: 'otherMeasures'},
+        {label: 'workerActivities'},
+        {label: 'socialDialogue'}]
+}, {
+    label: 'International Monetary Fund',
+    children: [
+        {label: 'Fiscal'},
+        {label: 'Exchange rate and balance of payments'},
+        {label: 'Monetary and macro-financial'}
+    ]
+}]
+})
+
 router.get('/autocomplete/status', async (ctx) => {
   ctx.body = JSON.stringify([
       {name: 'subject_accepted', value: 'subject_accepted'},

@@ -14,7 +14,9 @@ import Typography from '@material-ui/core/Typography';
 import AsyncAutocomplete from '../form/async-autocomplete.component';
 
 import DropdownTreeSelect from 'react-dropdown-tree-select'
-import 'react-dropdown-tree-select/dist/styles.css'
+import './dropdown_styles.css'
+
+import Api from '../../common/api';
 
 const selectDate = (v) => {
     try {
@@ -83,6 +85,46 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
     setValue('infoDateFrom', selectedDateFrom);
     setValue('infoDateTo', selectedDateTo);
 
+    const [sectionOptions, setSectionOptions] = React.useState(null);
+    if (type === "SSD" && sectionOptions === null) {
+        setSectionOptions([])
+        Api.getAutocompleteOptions('sectionOptions')
+            .then((response) => response.data)
+            .then((opts) => {
+                setSectionOptions(opts)
+            })
+    }
+
+    const updateSectionNode = node => {
+        const data = sectionOptions
+        const loc = node._id.split('-')
+        let v = data[loc[1]]
+        if (loc[2]) {
+            v = v.children[loc[2]]
+        }
+        v.expanded = node.expanded
+        v.checked = node.checked
+    }
+
+    const onSectionChanged = (node, all) => {
+        updateSectionNode(node)
+        const data = sectionOptions
+        const result = []
+
+        all.forEach((val) => {
+            const loc = val._id.split('-')
+            const v = data[loc[1]]
+            if (loc[2]) {
+                result.push(v.children[loc[2]])
+            } else {
+                result.push(...v.children)
+            }
+        })
+        const sections = result.map((e) => e.value || e.label)
+        setValue('section', sections)
+    }
+
+
     return (
         <form id="search-form" onSubmit={handleSubmit(onSubmit)}>
             <Box
@@ -149,7 +191,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             <AsyncAutocomplete
                                 name="country"
                                 collectionName="countries"
-                                style={{ width: 250 }}
+                                // style={{ width: 250 }}
                                 openOnFocus
                                 fullWidth
                                 multiple
@@ -163,7 +205,8 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             />
                         </Grid>
 
-                        {(type === "SSD") && (<Grid item xs={4}>
+                        {(type === "SSD") && /*
+                        <Grid item xs={4}>
                             <AsyncAutocomplete
                                 name="organization"
                                 collectionName="organizations"
@@ -179,9 +222,9 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                         label="Organization" margin="normal" />}
                                 onChange={(e, opts) => setValue("organization", opts.map(o => o.value), e)}
                             />
-                        </Grid>)}
+                        </Grid>,
 
-                        {(type === "SSD") && (<Grid item xs={4}>
+                        <Grid item xs={4}>
                             <AsyncAutocomplete
                                 name="section"
                                 collectionName="sections"
@@ -197,13 +240,16 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                         label="Section" margin="normal" />}
                                 onChange={(e, opts) => setValue("section", opts.map(o => o.value), e)}
                             />
+                        </Grid>*/
+
+                        (<Grid item xs={5}>
+                            <DropdownTreeSelect data={sectionOptions} onChange={onSectionChanged} onNodeToggle={updateSectionNode} texts={{placeholder:"Section"}}/>
                         </Grid>)}
 
                         {(type === "LAD") && (<Grid item xs={4}>
                             <AsyncAutocomplete
                                 name="status"
                                 collectionName="status"
-                                style={{ width: 250 }}
                                 openOnFocus
                                 fullWidth
                                 multiple
