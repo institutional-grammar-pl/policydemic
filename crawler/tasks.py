@@ -206,23 +206,20 @@ def scrape_imf():
     country_data = extract_imf_articles()
     for country in country_data.keys():
         for section, text in country_data[country].items():
-            if section in {
-                'Fiscal', 'Monetary and macro-financial',
-                    'Exchange rate and balance of payments', 'Background.', 'Reopening of the economy.'}:
-                body = {
-                    "country": country,
-                    "organization": "International Monetary Fund",
-                    "scrap_date": datetime.now().strftime(SCRAP_DATE_FORMAT),
-                    "original_text": text,
-                    "section": section,
-                    "title": _short_text_(text, max_n_chars_to_translate),
-                    "document_type": "secondary_source",
-                    "info_date": cfg['pdfparser']['default_date']
-                }
-                imf_chain = nlpengine.tasks.translate_pdf.s() | \
-                            nlpengine.tasks.index_doc_task.s()
+            body = {
+                "country": country,
+                "organization": "International Monetary Fund",
+                "scrap_date": datetime.now().strftime(SCRAP_DATE_FORMAT),
+                "original_text": text,
+                "section": section,
+                "title": _short_text_(text, max_n_chars_to_translate),
+                "document_type": "secondary_source",
+                "info_date": cfg['pdfparser']['default_date']
+            }
+            imf_chain = nlpengine.tasks.translate_pdf.s() | \
+                        nlpengine.tasks.index_doc_task.s()
 
-                imf_chain(body)
+            imf_chain(body)
 
 # def last_crawling(crawler_name):
 #     crawler_status_path = os.path.join(pdf_dir, crawler_name + '.json')
