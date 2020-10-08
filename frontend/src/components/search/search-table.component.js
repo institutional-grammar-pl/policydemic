@@ -25,6 +25,7 @@ import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import AddBoxIcon from '@material-ui/icons/AddBox';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteConfirmationDialogComponent from './delete-dialog.component.js';
+import CompareTabDialogComponent from '../tabs/compare-tab-dialog.component.js';
 import UploadPdfComponent from '../form/upload-pdf.component';
 
 import Api from '../../common/api.js';
@@ -164,11 +165,11 @@ const EnhancedTableToolbar = (props) => {
                     style={{ display: 'flex', justifyContent: 'right' }}
                 >
 
-                    {/*<Tooltip title="Download Selected" >
-                        <IconButton aria-label="download" onClick={(event) => props.onDownloadSelectedClick(event)}>
+                    <Tooltip title="Compare Selected" >
+                        <IconButton aria-label="compare" onClick={(event) => props.onCompareSelectedClick(event)}>
                             <CloudDownloadIcon />
                         </IconButton>
-                    </Tooltip>*/}
+                    </Tooltip>
 
                     <Tooltip title="Delete">
                         <IconButton aria-label="delete" onClick={(event) => props.onDeleteClick(event)}>
@@ -199,7 +200,7 @@ EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
     onUploadJSONClick: PropTypes.func.isRequired,
     onAddNewItemClick: PropTypes.func.isRequired,
-    onDownloadSelectedClick: PropTypes.func.isRequired,
+    onCompareSelectedClick: PropTypes.func.isRequired,
     onDeleteClick: PropTypes.func.isRequired,
 };
 
@@ -237,6 +238,7 @@ export default function EnhancedTable(props) {
     const [selected, setSelected] = React.useState([], );
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5); 
+    const [comparingIds, setComparingIds] = React.useState(); 
     
     const [deleteDialogVisible, setDeleteDialogVisible] = React.useState(false);
 
@@ -304,8 +306,15 @@ export default function EnhancedTable(props) {
         alert("download items: " + selected);
     };
 
+    const onCompareSelectedClick = (event) => {
+        setComparingIds(selected)
+    }
+
     return (
         <div>
+        { comparingIds && (
+            <CompareTabDialogComponent open={comparingIds} documentIds={comparingIds} onClose={setComparingIds}/>
+        )}
         <DeleteConfirmationDialogComponent
             dialogVisible={deleteDialogVisible}
             onDeleteExecute={() => {
@@ -321,6 +330,7 @@ export default function EnhancedTable(props) {
                     onUploadJSONClick={uploadJsonButtonClicked}
                     onAddNewItemClick={addNewItemButtonClicked}
                     onDownloadSelectedClick={downloadSelectedButtonClicked}
+                    onCompareSelectedClick={onCompareSelectedClick}
                     onDeleteClick={() => setDeleteDialogVisible(true)}
                 />
                 <TableContainer>

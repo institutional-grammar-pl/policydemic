@@ -1,0 +1,12 @@
+.text-row {
+	max-height: 200px
+}
+
+.table-head {
+	border-bottom: 1px solid rgba(224, 224, 224, 1)	
+}
+
+.table-cell {
+	width: 20%;
+	margin-left: 5%;
+}

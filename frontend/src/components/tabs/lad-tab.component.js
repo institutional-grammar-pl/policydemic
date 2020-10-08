@@ -29,6 +29,8 @@ export default function LadTabComponent() {
     }
 
     const handleOnDelete = (selected) => {
+        console.log(selected);
+        return;
         Api.deleteDocuments(selected).catch(()=>{}).then(()=>{
             console.log(searchResults)
             const newSearchResults = searchResults.filter(row=>!selected.includes(row.id))
