@@ -196,6 +196,7 @@ const EnhancedTableToolbar = (props) => {
     );
 };
 
+
 EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
     onUploadJSONClick: PropTypes.func.isRequired,
@@ -310,10 +311,12 @@ export default function EnhancedTable(props) {
         setComparingIds(selected)
     }
 
+
+
     return (
         <div>
         { comparingIds && (
-            <CompareTabDialogComponent open={comparingIds} documentIds={comparingIds} onClose={setComparingIds}/>
+            <CompareTabDialogComponent open={comparingIds} documentIds={comparingIds} onClose={()=> setComparingIds()}/>
         )}
         <DeleteConfirmationDialogComponent
             dialogVisible={deleteDialogVisible}

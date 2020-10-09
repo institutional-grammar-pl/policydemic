@@ -19,6 +19,10 @@ export default function CompareTabDialogComponent({ type, onSuccess, documentIds
     const [documents, setDocuments] = useState();    
 
     useEffect(() => {
+        if (!documentIds) {
+            return
+        }
+        console.log('documentIds', documentIds)
         const promiseList = documentIds.map((id) => Api.getDocumentById(id))
         Promise.all(promiseList)
             .then((docs) => docs.map((response) => response.data))
@@ -27,9 +31,11 @@ export default function CompareTabDialogComponent({ type, onSuccess, documentIds
                 console.error(e)
                 alert("Error: " + e.toString())
             })
-    }, [documentIds]);  
+    }, [documentIds]);
 
+    
     return (
+
         <Dialog variant="outlined" fullScreen open={open} onClose={onClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title" onClose={onClose}>
                 Compare documents
