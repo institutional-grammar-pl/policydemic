@@ -18,6 +18,24 @@ const celery_client = celery.createClient(
   "amqp://"
 );
 
+const basicAuth = require('basic-auth')
+const crypto = require('crypto')
+
+app.use(async (ctx, next) => {
+    const user = basicAuth(ctx);
+    if (user && user.name === 'root') {
+        var shasum = crypto.createHash('sha256');
+        shasum.update(`${user.pass}`);
+        if (shasum.digest('hex') === 'a15f8ae07675bfb96e084bfb4f52fb2c22091061aae86e0eb76a55f4e52dd74e') {
+            return next();
+        }
+    }
+
+    ctx.status = 401;
+    ctx.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+    ctx.body = 'Invalid credentials!';
+})
+
 router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
@@ -275,7 +293,7 @@ function constructParams(body, documentType, any_phrase){
                 }
             }
         }, 
-        size: 100000
+        size: 100
     }
 
 
