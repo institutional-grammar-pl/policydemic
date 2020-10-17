@@ -78,4 +78,9 @@ export default class Api {
         console.log(pdfFile)
         return this._postFormData('upload', {pdf: pdfFile})
     }
+
+    static translateDocument(documentID){
+        console.log('api translateDocument')
+        return this._postJsonData('translate', {id: documentID})
+    }
 }

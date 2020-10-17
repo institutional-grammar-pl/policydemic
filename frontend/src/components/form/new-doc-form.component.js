@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import 'date-fns';
 
+import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 
@@ -106,6 +107,17 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         document.keywords = document.keywords.filter(function (el) {
               return el != "";
         });
+    }
+
+    const onTranslateClicked = (event) => {
+
+        console.log('document sent to translation')
+        console.log('id', document.id)       
+        Api.translateDocument(document.id) 
+    };
+
+    const onAnnotateClicked = (event) => {
+        console.log('text sent to annotation')
     }
 
     return (
@@ -321,6 +333,17 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                         />
                     </Grid>
 
+
+                    {(type === "LAD") && 
+                    <Button
+                        variant="contained"
+                        className="button-submit"
+                        style={{ position: 'relative', left: 15, top: 5, margin: 5 }}
+                        onClick={(event) => onTranslateClicked(event)}>
+                        Translate
+                    </Button>}
+
+               
                     {(type === "LAD") && (<Grid container item xs={12}>
                         <TextField
                             name="translated_text"
@@ -335,6 +358,30 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             variant="outlined"
                         />
                     </Grid>)}
+
+                    <Grid container item xs={12}>
+
+                        <TextField
+                            name="text_to_annotate"
+                            inputRef={register}
+                            label="Text to annotate"
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            multiline
+                            rows={8}
+                            fullWidth
+                            variant="outlined"
+                        />
+
+                        <Button
+                            variant="contained"
+                            className="button-submit"
+                            style={{ position: 'relative', left: 5, top: 5, margin: 5 }}
+                            onClick={(event) => onAnnotateClicked(event)}>
+                            Annotate
+                        </Button>
+                    </Grid>
 
                     {(document && (type === "LAD") && <Grid container item xs={12}>
                         <iframe style={{width: '100%', height: '30rem'}} src={`/documents/${document.id}/pdf`}/>

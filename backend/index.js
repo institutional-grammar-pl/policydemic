@@ -463,6 +463,16 @@ router.post('/upload', upload.single('pdf'), (ctx) => {
     })
 });
 
+router.post('/translate', (ctx) => {
+    ctx.body = ctx.request.body
+    
+    /*const task = celery_client.createTask("translator.tasks.translate");
+    const result = task.applyAsync([path]);*/
+
+    ctx.status = 200
+
+});
+
 module.exports = constructParams;
 app
   .use(cors())
