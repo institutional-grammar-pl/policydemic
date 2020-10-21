@@ -36,7 +36,7 @@ SCRAP_DATE_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
 _log = logging.getLogger()
 
 
-@app.task
+@app.task(queue='light')
 def process_pdf_link(pdf_url, document_type='secondary_source'):
     print(f"Received pdf: {pdf_url}")
 
@@ -167,9 +167,10 @@ def parse_pdf(body):
         return body
     else:
         pdf_path = body["pdf_path"]
-        parse_result, method = pdfparser_tasks.parse(pdf_path)
+        parse_result, method, ocr_needed = pdfparser_tasks.parse(pdf_path)
 
         body.update({
+            "ocr_needed": ocr_needed,
             "original_text": parse_result,
             "text_parsing_type": method})
         return body
@@ -258,6 +259,12 @@ def process_document(body):
             shutil.move(old_pdf_path, new_pdf_path)
             body.update({'status': 'subject_rejected',
                         'pdf_path': str(new_pdf_path)})
+
+        body.update({
+            "is_translated": False,
+            "is_annotated": False,
+            "expert_status": "empty"
+        })
 
     index_document(body)
 

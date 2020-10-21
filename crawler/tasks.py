@@ -94,10 +94,12 @@ max_n_chars_to_translate = int(cfg['translator']['max_n_chars_to_translate'])
 #     process.join()
 
 
-@app.task
-def crawl_lad(depth=5):
+@app.task(queue='crawler')
+def crawl_lad(depth=5, urls=None, domain='gov'):
     """Starts crawling process which downloads pdfs from all prepared .gov websites"""
-    gov_sites = list(get_gov_websites(gov_sites_path))
+    if urls is None:
+        urls = list(get_gov_websites(gov_sites_path))
+
     settings = Settings()
     settings.set('MEDIA_ALLOW_REDIRECTS', True)
     settings.set('SCHEDULER_PRIORITY_QUEUE', 'scrapy.pqueues.DownloaderAwarePriorityQueue')
@@ -116,9 +118,10 @@ def crawl_lad(depth=5):
     settings.set('DEPTH_LIMIT', depth)
     process = CrawlerProcess(settings)
 
-    process.crawl(LadSpider, gov_sites)
+    process.crawl(LadSpider, urls, domain)
     process.start()
     process.join()
+
 
 
 '''

@@ -22,11 +22,12 @@ class LadSpider(scrapy.spiders.CrawlSpider):
     # start_urls = ['https://ww2.mini.pw.edu.pl/']
     start_urls = []
 
-    def __init__(self, urls, *args, **kwargs):
+    def __init__(self, urls, selected_domain,  *args, **kwargs):
         logging.getLogger('scrapy').setLevel(logging.ERROR)
         super().__init__(**kwargs)
         self._link_extractor = LxmlLinkExtractor()
         self.start_urls.extend(urls)
+        self.selected_domain = selected_domain
         self.sites_count = {url: 0 for url in self.start_urls + urls}
         self.found_pdf = {url: False for url in self.start_urls + urls}
 
@@ -50,7 +51,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
                     # self.logger.info(link.ulr)
                     match = re.match('^http[s]?://([a-z0-9.-]+)/', link.url)
                     domain = match.group(0) if match is not None else None
-                    if domain is not None and 'gov' in domain:
+                    if domain is not None and self.selected_domain in domain:
                         yield response.follow(link, callback=self.parse_page, cb_kwargs={'start_url': start_url})
 
 

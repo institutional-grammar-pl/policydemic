@@ -42,6 +42,7 @@ es_hosts = cfg['elasticsearch']['hosts']
 min_n_chars_per_page = int(cfg['pdfparser']['min_n_chars_per_page'])
 
 default_date = cfg['pdfparser']['default_date']
+ocr_on = True if cfg['pdfparser']['ocr_on'] == 'True' else False
 
 es = Elasticsearch(hosts=es_hosts)
 
@@ -263,15 +264,19 @@ def parse(path, method='pdfminer'):
     contents = text_postprocessing(contents)
 
     if len(contents) < n_pages * min_n_chars_per_page:
-        try:
-            ocr_contents = ' '.join(pdf_ocr(path))
-        except:
-            _log.error(f'ocr error on {path}')
-        else:
-            contents += ' ' + ocr_contents
-            method = 'ocr'
+        ocr_needed = True
+        if ocr_on:
+            try:
+                ocr_contents = ' '.join(pdf_ocr(path))
+            except:
+                _log.error(f'ocr error on {path}')
+            else:
+                contents += ' ' + ocr_contents
+                method = 'ocr'
+    else:
+        ocr_needed = False
 
-    return contents, method
+    return contents, method, ocr_needed
 
 
 @app.task
