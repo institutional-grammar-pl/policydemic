@@ -15,12 +15,14 @@ import pdfparser.tasks as pdfparser_tasks
 import translator.tasks as translator_tasks
 from nlpengine.country_domains import country_domains
 from crawler.utils import _short_text_
+from policydemic_annotator.ig_annotator import annotate_text
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
 
 es_hosts = cfg['elasticsearch']['hosts']
 pdf_dir = Path(cfg['paths']['pdf_database'])
+anns_dir = Path(cfg['paths']['annotation_files'])
 es = Elasticsearch(hosts=es_hosts)
 
 INDEX_NAME = cfg['elasticsearch']['index_name']
@@ -107,7 +109,7 @@ def get_local_pdf(old_pdf_path, document_type=''):
             }
 
 
-@app.task()
+@app.task(queue='light')
 def download_pdf(pdf_url, document_type=''):
     fd, pdf_path = tempfile.mkstemp(prefix='doc_', suffix='.pdf', dir=pdf_dir)
     os.close(fd)
@@ -184,6 +186,7 @@ def translate_pdf(body=None, full_translation=False, _id=None):
         if full_translation:
             text_to_translate = _short_text_(body["original_text"], max_n_chars_to_translate_by_api)
             result = translator_tasks.translate(text_to_translate, 'translated_text')
+            result['is_translated'] = True
         else:
             text_to_translate = body.get('title', _short_text_(body['original_text'], max_n_chars))
             result = translator_tasks.translate(text_to_translate)
@@ -198,6 +201,29 @@ def translate_and_update(_id, body):
         update_doc_task.s(_id)
 
     chain(body)
+
+
+@app.task
+def annotate(body):
+    text_to_annotate = body.get('annotation_text', None)
+    if text_to_annotate is not None:
+        sentences = re.split(r'\. (?=[A-Z])', text_to_annotate)
+        fd, ann_filepath = tempfile.mkstemp('.tsv', 'ann_', anns_dir)
+        annotate_text(sentences, ann_filepath, 'en', 'tsv')
+
+        body['annotation_path'] = ann_filepath
+        body['is_annotated'] = True
+        body['annotated_on'] = datetime.now().strftime(SCRAP_DATE_FORMAT)
+
+    return body
+
+
+@app.task
+def annotate_and_update(_id, body):
+    ann_chain = annotate.s() | \
+        update_doc_task.s(_id)
+
+    ann_chain(body)
 
 
 @app.task
@@ -250,7 +276,7 @@ def index_document(body):
     )
 
 
-@app.task
+@app.task(queue='light')
 def index_doc_task(body):
     index_document(body)
 
