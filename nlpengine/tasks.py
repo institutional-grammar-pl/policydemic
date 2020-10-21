@@ -26,6 +26,8 @@ es = Elasticsearch(hosts=es_hosts)
 INDEX_NAME = cfg['elasticsearch']['index_name']
 DOC_TYPE = cfg['elasticsearch']['doc_type']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
+max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
+max_n_chars_to_translate_by_api = int(cfg['translator']['max_n_chars_to_translate_by_api'])
 
 SCRAP_DATE_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
 
@@ -171,25 +173,31 @@ def parse_pdf(body):
         return body
 
 
-@app.task
+@app.task(queue='light')
 def translate_pdf(body=None, full_translation=False, _id=None):
     if _id is not None:
         body = es.get(INDEX_NAME, _id)
-    status = body.get("status")
+    status = body.get("status", '')
     if status == 'document_rejected':
         return body
     else:
         if full_translation:
-            text_to_translate = body["original_text"]
+            text_to_translate = _short_text_(body["original_text"], max_n_chars_to_translate_by_api)
             result = translator_tasks.translate(text_to_translate, 'translated_text')
         else:
-            max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
-
             text_to_translate = body.get('title', _short_text_(body['original_text'], max_n_chars))
             result = translator_tasks.translate(text_to_translate)
 
         body.update(result)
         return body
+
+
+@app.task(queue='light')
+def translate_and_update(_id, body):
+    chain = translate_pdf.s(full_translation=True) | \
+        update_doc_task.s(_id)
+
+    chain(body)
 
 
 @app.task
@@ -247,7 +255,7 @@ def index_doc_task(body):
     index_document(body)
 
 
-def update_document(doc_id, body):
+def update_document(body, doc_id):
     """
     Updates a document in Elasticsearch index, applying mentioned changes
 
@@ -260,5 +268,10 @@ def update_document(doc_id, body):
         index=INDEX_NAME,
         doc_type=DOC_TYPE,
         id=doc_id,
-        body=body
+        body={'doc': body}
     )
+
+
+@app.task(queue='light')
+def update_doc_task(body, doc_id):
+    update_document(body, doc_id)
