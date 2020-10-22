@@ -52,7 +52,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     };
 
 
-    const { register, handleSubmit, setValue } = useForm({
+    const { register, handleSubmit, setValue, getValues } = useForm({
         defaultValues: document ? {
             title: document.title,
             webPage: document.webPage,
@@ -66,7 +66,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             translationType: document.translationType,
             translated_text: document.translated_text,
             original_text: document.originalText,
-            status: document.status
+            status: document.status,
         } : undefined
     });
     useEffect(() => {
@@ -82,6 +82,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         register({ name: "language" });
         register({ name: "translationType" });
         register({ name: "status" });
+
 
     }, [register, pdfUpload])
 
@@ -112,12 +113,19 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     const onTranslateClicked = (event) => {
 
         console.log('document sent to translation')
-        console.log('id', document.id)       
-        Api.translateDocument(document.id) 
+        console.log('id', document.id)   
+        console.log('document', document)    
+        Api.translateDocument(document.id, document) 
     };
 
     const onAnnotateClicked = (event) => {
         console.log('text sent to annotation')
+        console.log('document sent to translation')
+        console.log('id', document.id)   
+        console.log('document', document)
+        const text = getValues()['text_to_annotate']
+        console.log('text_to_annotate', text)
+        Api.annotateDocument(document.id, text) 
     }
 
     return (

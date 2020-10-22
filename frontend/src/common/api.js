@@ -79,8 +79,13 @@ export default class Api {
         return this._postFormData('upload', {pdf: pdfFile})
     }
 
-    static translateDocument(documentID){
+    static translateDocument(documentID, document){
         console.log('api translateDocument')
-        return this._postJsonData('translate', {id: documentID})
+        return this._postJsonData('translate', {id: documentID, document: document})
+    }
+
+    static annotateDocument(documentID, text){
+        console.log('api annotateDocument')
+        return this._postJsonData('annotate', {id: documentID, text: text})
     }
 }

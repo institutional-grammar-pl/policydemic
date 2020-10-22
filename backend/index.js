@@ -463,15 +463,39 @@ router.post('/upload', upload.single('pdf'), (ctx) => {
     })
 });
 
+function prepareDocumentToTranslate(document) {
+    document['web_page'] = document['webPage']
+    document['info_date'] = document['infoDate']
+    document['original_text'] = document['originalText']
+    document['scrap_date'] = document['scrapDate']
+    return document
+}
+
 router.post('/translate', (ctx) => {
     ctx.body = ctx.request.body
-    
-    /*const task = celery_client.createTask("translator.tasks.translate");
-    const result = task.applyAsync([path]);*/
+    console.log('/translate', ctx.body)
+    console.log('id', ctx.body.id)
+    console.log('document', ctx.body.document)
+    document = prepareDocumentToTranslate(ctx.body.document)
+    console.log('new_document', document)
+    const task = celery_client.createTask("nlpengine.tasks.translate_and_update");
+    const result = task.applyAsync([ctx.body.id, document]);
 
     ctx.status = 200
 
 });
+
+router.post('/annotate', (ctx) => {
+    ctx.body = ctx.request.body
+    console.log('/annotate', ctx.body)
+    console.log('id', ctx.body.id)
+    console.log('text', ctx.body.text)
+    const task = celery_client.createTask("nlpengine.tasks.annotate_and_update");
+    const result = task.applyAsync([ctx.body.id, {'annotation_text': ctx.body.text}]);
+    ctx.status = 200
+
+});
+
 
 module.exports = constructParams;
 app
