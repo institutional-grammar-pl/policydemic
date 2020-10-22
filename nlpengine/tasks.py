@@ -197,15 +197,11 @@ def translate_pdf(body=None, full_translation=False, _id=None):
 
 
 @app.task(queue='light')
-def translate_and_update(_id):
-    doc = es.get(index=INDEX_NAME, id=_id)
-    body = doc.get('_source', None)
-    
-    if doc is not None:
-        chain = translate_pdf.s(full_translation=True) | \
-            update_doc_task.s(_id)
+def translate_and_update(_id, body):
+    chain = translate_pdf.s(full_translation=True) | \
+        update_doc_task.s(_id)
 
-        chain(body)
+    chain(body)
 
 
 @app.task
@@ -224,15 +220,11 @@ def annotate(body):
 
 
 @app.task
-def annotate_and_update(_id, annotation_dict):
-    doc = es.get(index=INDEX_NAME, id=_id)
-    body = doc.get('_source', None)
-    if doc is not None:
-        body.update(annotation_dict)
-        ann_chain = annotate.s() | \
-            update_doc_task.s(_id)
+def annotate_and_update(_id, body):
+    ann_chain = annotate.s() | \
+        update_doc_task.s(_id)
 
-        ann_chain(body)
+    ann_chain(body)
 
 
 @app.task
