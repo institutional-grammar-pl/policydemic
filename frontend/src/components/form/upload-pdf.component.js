@@ -67,28 +67,6 @@ export default function UploadPdfComponent({ name, setValue }) {
                     </label>
                 </div>
             </Grid>
-            {/*{file && (
-                <Grid item xs={12}>
-                    <Card> 
-                        <CardHeader title="PDF Preview" />
-                        <CardContent style={{ display: "flex", alignItems: "center", justifyContent: "center"}}>
-                            <Document file={file} onLoadSuccess={handleDocumentLoadSuccess}>
-                                <Page pageNumber={pageNo} />
-                            </Document>
-                        </CardContent>
-                        <CardActions style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            {numPages && (
-                                <Pagination 
-                                    page={pageNo}
-                                    count={numPages}
-                                    onChange={handlePageChange}
-                                    color="primary"
-                                 />
-                            )}
-                        </CardActions>
-                    </Card>
-                </Grid>
-            )}*/}
         </Grid>
 
     )

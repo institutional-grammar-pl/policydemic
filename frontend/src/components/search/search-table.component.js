@@ -362,7 +362,6 @@ export default function EnhancedTable(props) {
                                     if (row.infoDate == "1900-01-01") {
                                         row.infoDate = ""
                                     }
-                                    console.log(row.infoDate)
 
                                     return (
                                         <TableRow
@@ -416,8 +415,6 @@ export default function EnhancedTable(props) {
         <Container>
             <UploadPdfComponent name="pdf" setValue={function(_, file) {
                 Api.uploadPDF(file).then((resp) => {
-                    console.log(resp)
-                    alert(resp.data)
                 })
             }}/>
         </Container>

@@ -4,9 +4,6 @@ export default class Api {
     static baseUrl = ""
 
     static postDocument(type, data) {
-        console.log('postDocument')
-        console.log('type', type)
-        console.log('data', data)
         return this._postJsonData(type.toLowerCase(), data);
     }
 
@@ -23,15 +20,10 @@ export default class Api {
     }
 
     static getSearchResults(type, data) {
-        console.log('getSearchResults', type, data)
         return this._postJsonData(type.toLowerCase() + '/search', data).then((request) => request.data)
     }
 
     static editDocument(type, id, data) {
-        console.log('editDocument')
-        console.log('type', type)
-        console.log('id', id)
-        console.log('data', data)
         return this._postJsonData(`${type.toLowerCase()}/${id}`, data)
     }
 
@@ -54,7 +46,6 @@ export default class Api {
     }
 
     static _postJsonData(relativeUrl, jsonData) {
-        console.log('_postJsonData', relativeUrl, jsonData)
         return axios.post(`${this.baseUrl}/${relativeUrl}`, jsonData, {
             headers: {
                 'Content-Type': 'application/json',
@@ -75,17 +66,18 @@ export default class Api {
     }
 
     static uploadPDF(pdfFile) {
-        console.log(pdfFile)
         return this._postFormData('upload', {pdf: pdfFile})
     }
 
     static translateDocument(documentID, document){
-        console.log('api translateDocument')
         return this._postJsonData('translate', {id: documentID, document: document})
     }
 
     static annotateDocument(documentID, text){
-        console.log('api annotateDocument')
         return this._postJsonData('annotate', {id: documentID, text: text})
+    }
+
+    static getAnnotatedDocuments() {
+        return axios.get(`${this.baseUrl}/annotated`);
     }
 }

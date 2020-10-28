@@ -205,43 +205,8 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             />
                         </Grid>
 
-                        {(type === "SSD") && /*
-                        <Grid item xs={4}>
-                            <AsyncAutocomplete
-                                name="organization"
-                                collectionName="organizations"
-                                style={{ width: 250 }}
-                                openOnFocus
-                                fullWidth
-                                multiple
-                                renderInput={(params) =>
-                                    <TextField
-                                        {...params}
-                                        name="organization"
-                                        inputRef={register}
-                                        label="Organization" margin="normal" />}
-                                onChange={(e, opts) => setValue("organization", opts.map(o => o.value), e)}
-                            />
-                        </Grid>,
-
-                        <Grid item xs={4}>
-                            <AsyncAutocomplete
-                                name="section"
-                                collectionName="sections"
-                                style={{ width: 250 }}
-                                openOnFocus
-                                fullWidth
-                                multiple
-                                renderInput={(params) =>
-                                    <TextField
-                                        {...params}
-                                        name="section"
-                                        inputRef={register}
-                                        label="Section" margin="normal" />}
-                                onChange={(e, opts) => setValue("section", opts.map(o => o.value), e)}
-                            />
-                        </Grid>*/
-
+                        {(type === "SSD") && 
+ 
                         (<Grid item xs={5}>
                             <DropdownTreeSelect data={sectionOptions} onChange={onSectionChanged} onNodeToggle={updateSectionNode} texts={{placeholder:"Section"}}/>
                         </Grid>)}

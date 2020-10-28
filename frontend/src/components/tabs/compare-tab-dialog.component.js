@@ -14,15 +14,13 @@ import { CircularProgress } from '@material-ui/core';
 import CompareFormComponent from './compare-tab.component.js'
 
 export default function CompareTabDialogComponent({ type, onSuccess, documentIds, open, onClose, children }) {
-    console.log('halo comparing', documentIds)
-
+    
     const [documents, setDocuments] = useState();    
 
     useEffect(() => {
         if (!documentIds) {
             return
         }
-        console.log('documentIds', documentIds)
         const promiseList = documentIds.map((id) => Api.getDocumentById(id))
         Promise.all(promiseList)
             .then((docs) => docs.map((response) => response.data))

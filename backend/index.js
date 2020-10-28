@@ -137,7 +137,6 @@ router.get('/autocomplete/status', async (ctx) => {
   ])})
 
 router.get('/documents/:id', async (ctx) => {
-    console.log('get id', ctx.params.id)
     try {
         const query = await client.get({
             index: 'documents',
@@ -164,7 +163,6 @@ router.get('/documents/:id', async (ctx) => {
 })
 
 router.get('/documents/:id/pdf', async (ctx) => {
-    console.log('get pdf', ctx.params.id)
     try {
         const query = await client.get({
             index: 'documents',
@@ -187,17 +185,38 @@ router.get('/documents/:id/pdf', async (ctx) => {
     }
 })
 
+router.get('/documents/:id/tsv', async (ctx) => {
+    try {
+        const query = await client.get({
+            index: 'documents',
+            id: ctx.params.id
+        })
+
+        if (!query.body._source.annotation_path) {
+            ctx.body = 'Document has no file!'
+            ctx.status = 404
+            return
+        }
+
+        const src = fs.createReadStream(query.body._source.annotation_path);
+        ctx.response.set("content-type", "text/tab-separated-values");
+        ctx.response.set("content-disposition", `attachment; filename*=UTF-8''"${encodeURIComponent(query.body._source.title.substr(0, 40))}"`);
+
+        ctx.body = src;
+    } catch (e) {
+        console.error('get id ', ctx.params.id, ' threw error: ', e);
+        ctx.body = e.toString();
+        ctx.status = 422;
+    }
+})
 
 router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
 
-
 router.post('/delete', async (ctx) => {
-    console.log(ctx.request.body)
     try {
         for (id of ctx.request.body.ids) {
-            console.log(id)
             await client.delete({
                 id: id,
                 index: 'documents'
@@ -211,21 +230,6 @@ router.post('/delete', async (ctx) => {
     ctx.status = 200
     ctx.body = 'OK'
 })
-
-/*router.post('/crawler/saveConfig', upload.none(), (ctx) => {
-  console.log(ctx.request)
-  console.log(ctx.request.body)
-
-  ctx.status = 200
-});
-*/
-/*router.post('/crawler/run', upload.none(), (ctx) => {
-  console.log(ctx.request)
-  console.log(ctx.request.body)
-
-  ctx.status = 200
-});*/
-
 
 async function getDocuments(ctx, documentType) {
     const data = await fetchDocumentsFromElastic(ctx.request.body, documentType)
@@ -258,12 +262,10 @@ function parseData(data){
 }
 
 async function fetchDocumentsFromElastic(body, documentType){
-    console.log('body', body)
     let any_phrase = ""
     if (body.keywords != undefined) {
         any_phrase = body.keywords[0]
     }
-    console.log(any_phrase)
     let params = constructParams(body, documentType, any_phrase)
     let request = await client.search(params);
     return request.body.hits.hits;
@@ -329,8 +331,6 @@ function constructParams(body, documentType, any_phrase){
         )
     }
 
-    console.log(params)
-
     let fields = ["country", "section", "organization", "status"];
 
     for(let i = 0; i < fields.length; i++){
@@ -358,42 +358,34 @@ function constructParams(body, documentType, any_phrase){
             }
         }
 
-    console.log(JSON.stringify(params))
     return params
 }
 
 router.post('/lad/search', async (ctx) => {
-    console.log('ctx.request', ctx.request)
     await getDocuments(ctx, "legal_act");
 });
 
 router.post('/ssd/search', async (ctx) => {
-    console.log('ctx.request', ctx.request)
     await getDocuments(ctx, "secondary_source");
 });
 
 router.post('/lad', async (ctx) => {
-  console.log('post /lad');
   await postDocument(ctx);
   ctx.status = 200
 });
 
-
 router.post('/lad/:id', upload.single('pdf'), async (ctx) => {
-  console.log('post /lad/', ctx.params.id);
   await updateDocument(ctx);
   ctx.status = 200
 });
 
 router.post('/ssd/:id', upload.single('pdf'), async (ctx) => {
-  console.log('post /ssd/', ctx.params.id);
   await updateDocument(ctx);
   ctx.status = 200
 });
 
 async function postDocument(ctx){
     const body = { ...ctx.request.body }
-    console.log(body)
     const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
         originalText: 'original_text' }
 
@@ -401,8 +393,6 @@ async function postDocument(ctx){
         body[vars[k]] = body[k]
         delete body[k] 
     }
-
-    console.log('post new document ', body)
 
     await client.index({
         index: 'documents',
@@ -422,8 +412,6 @@ async function updateDocument(ctx){
         body[vars[k]] = body[k]
         delete body[k] 
     }
-
-    console.log('update document ', ctx.params.id, body)
 
     await client.update({
         index: 'documents',
@@ -455,7 +443,6 @@ router.post('/upload', upload.single('pdf'), (ctx) => {
             ctx.status = 200
             resolve(ctx)
 
-            console.log('request processed, started celery task for pdf ', pdf.originalname)
             result.get().then(data => {
               console.log('celery task finished for pdf ', pdf.originalname, "\nresult:\n", data);
             });
@@ -473,13 +460,12 @@ function prepareDocumentToTranslate(document) {
 
 router.post('/translate', (ctx) => {
     ctx.body = ctx.request.body
-    console.log('/translate', ctx.body)
-    console.log('id', ctx.body.id)
-    console.log('document', ctx.body.document)
     document = prepareDocumentToTranslate(ctx.body.document)
-    console.log('new_document', document)
     const task = celery_client.createTask("nlpengine.tasks.translate_and_update");
     const result = task.applyAsync([ctx.body.id, document]);
+    //result.get().then(data => {
+    //  console.log('translated', data);
+    //});
 
     ctx.status = 200
 
@@ -487,15 +473,34 @@ router.post('/translate', (ctx) => {
 
 router.post('/annotate', (ctx) => {
     ctx.body = ctx.request.body
-    console.log('/annotate', ctx.body)
-    console.log('id', ctx.body.id)
-    console.log('text', ctx.body.text)
     const task = celery_client.createTask("nlpengine.tasks.annotate_and_update");
     const result = task.applyAsync([ctx.body.id, {'annotation_text': ctx.body.text}]);
     ctx.status = 200
-
 });
 
+router.get('/annotated', async (ctx) => {
+    ctx.body = ctx.request.body
+    let params = {
+        index: 'documents',
+        body: {
+            query: {
+                bool: {
+                    must: [
+                        {match: {
+                            is_annotated: 'true'
+                            }
+                        }
+                    ]
+                }
+            }
+        }, 
+        size: 1000
+    }
+
+    let request = await client.search(params);
+    ctx.body =  request.body.hits.hits.map((e)=> e._source);
+
+});
 
 module.exports = constructParams;
 app
