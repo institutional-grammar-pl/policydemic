@@ -23,9 +23,9 @@ export default function AnnotatorTabComponent() {
             ? <AnnotationTableComponent
                 headerCaption="Annotations"
                 rows={documents.map((e)=> ({
-                    title: e.title,
-                    annotationDate: e.annotated_on, 
-                    id: e.id
+                    title: e._source.title,
+                    annotationDate: e._source.annotated_on, 
+                    id: e._id
                 }))}/>            
             : <CircularProgress />
         }
