@@ -186,6 +186,7 @@ router.get('/documents/:id/pdf', async (ctx) => {
 })
 
 router.get('/documents/:id/tsv', async (ctx) => {
+    console.log('/documents/:id/tsv', ctx.params.id)
     try {
         const query = await client.get({
             index: 'documents',
@@ -498,7 +499,7 @@ router.get('/annotated', async (ctx) => {
     }
 
     let request = await client.search(params);
-    ctx.body =  request.body.hits.hits.map((e)=> e._source);
+    ctx.body =  request.body.hits.hits;
 
 });
 
