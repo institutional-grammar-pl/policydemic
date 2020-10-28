@@ -40,14 +40,12 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     const handleInfoDateChange = (date) => {
         date = selectDate(date);
         setInfoDate(date);
-        console.log('infoDate', date)
         setValue("infoDate", date);
     };
 
     const handleScrapDateChange = (date) => {
         date = selectDateTime(date);
         setScrapDate(date);
-        console.log('scrapDate', date)
         setValue("scrapDate", date);
     };
 
@@ -87,14 +85,8 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     }, [register, pdfUpload])
 
     const onSubmit = data => {
-        console.log('onSubmit document',document)
-        console.log('onSubmit data', data)
-        // if (data.keywords == undefined) {
-        //     data.keywords = []
-        // }
-        console.log('kw:', data.keywords)
+     
         if (document) {
-            console.log('editDocument in onSubmit')
             Api.editDocument(type, document.id, data)
                 .then(c => onSuccessfulSend());
         } else {
@@ -112,19 +104,13 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
     const onTranslateClicked = (event) => {
 
-        console.log('document sent to translation')
-        console.log('id', document.id)   
-        console.log('document', document)    
         Api.translateDocument(document.id, document) 
     };
 
     const onAnnotateClicked = (event) => {
-        console.log('text sent to annotation')
-        console.log('document sent to translation')
-        console.log('id', document.id)   
-        console.log('document', document)
         const text = getValues()['text_to_annotate']
-        console.log('text_to_annotate', text)
+        console.log('text',text)
+        console.log('text2', text.replace('\s?\n+', ' '))
         Api.annotateDocument(document.id, text) 
     }
 

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import SearchFormComponent from '../search/search-form.component.js';
 import SearchResultsListComponent from '../search/search-results-list.component'
 import { Container } from '@material-ui/core';
-import NewDocDialogComponent from '../form/new-doc-dialog.component.js';
 import EditDocDialogComponent from '../form/edit-doc-dialog.component.js';
 import NewDocFormComponent from '../form/new-doc-form.component.js';
 import { useFormDialog } from '../../common/hooks/form-dialog-hook';
@@ -29,40 +28,34 @@ export default function LadTabComponent() {
     }
 
     const handleOnDelete = (selected) => {
-        console.log(selected);
-        return;
         Api.deleteDocuments(selected).catch(()=>{}).then(()=>{
-            console.log(searchResults)
             const newSearchResults = searchResults.filter(row=>!selected.includes(row.id))
-            console.log(newSearchResults)
             setSearchResults(newSearchResults)
         })
     }
 
-    return (<Container>
-        <SearchFormComponent type="LAD" onSearch={handleSearch} onReset={handleReset}/>
-        <NewDocDialogComponent open={openDialog} onClose={handleCloseDialog}>
-            <NewDocFormComponent type="LAD" onSuccessfulSend={handleCloseDialog}/>
-        </NewDocDialogComponent>
+    return (
 
-        {
-            editedDocumentId && (
-                <EditDocDialogComponent
-                    open={true}
-                    onClose={() => setEditedDocumentId(undefined)}
-                    type="LAD"
-                    onSuccess={() => setEditedDocumentId(undefined)}
-                    documentId = {editedDocumentId}
-                />
-            )
-        }
-        <SearchResultsListComponent
-            headerCaption="LAD"
-            onAddNewItemClick={handleOpenDialog}
-            onEdit={documentId => setEditedDocumentId(documentId)}
-            onDelete={handleOnDelete}
-            searchResultsList={searchResults}
-        />
+        <Container>
+            <SearchFormComponent type="LAD" onSearch={handleSearch} onReset={handleReset}/>
 
-    </Container>)
+            {editedDocumentId && (
+                    <EditDocDialogComponent
+                        open={true}
+                        onClose={() => setEditedDocumentId(undefined)}
+                        type="LAD"
+                        onSuccess={() => setEditedDocumentId(undefined)}
+                        documentId = {editedDocumentId}
+                    />
+            )}
+
+            <SearchResultsListComponent
+                headerCaption="LAD"
+                onAddNewItemClick={handleOpenDialog}
+                onEdit={documentId => setEditedDocumentId(documentId)}
+                onDelete={handleOnDelete}
+                searchResultsList={searchResults}
+            />
+
+        </Container>)
 } 

@@ -295,7 +295,7 @@ export default function EnhancedTable(props) {
                                             role="checkbox"
                                             aria-checked={isItemSelected}
                                             tabIndex={-1}
-                                            key={row.id}
+                                            key={index}
                                             selected={isItemSelected}
                                         >
                                             <TableCell padding="checkbox">
@@ -308,7 +308,7 @@ export default function EnhancedTable(props) {
                                             <TableCell align="left">{row.annotationDate}</TableCell>
                                             <TableCell align="left">
                                                 <Tooltip title="Download">
-                                                    <IconButton aria-label="download" onClick={(event) => {console.log(event) }}>
+                                                    <IconButton aria-label="download" onClick={(event) => {document.location = `/documents/${row.id}/tsv` }}>
                                                         <CloudDownloadIcon />
                                                     </IconButton>
                                                 </Tooltip>

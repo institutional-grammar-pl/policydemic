@@ -1,22 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from '@material-ui/core';
 import { useFormDialog } from '../../common/hooks/form-dialog-hook';
 import AnnotationTableComponent from './annotation-table.component.js';
-
+import { CircularProgress } from '@material-ui/core';
 
 import Api from '../../common/api.js';
 
 export default function AnnotatorTabComponent() {
-
+    const [documents, setDocuments] = useState();
     const [openDialog, handleOpenDialog, handleCloseDialog] = useFormDialog();
 
+    useEffect(() => {
+        Api.getAnnotatedDocuments()
+            .then(response => {
+                setDocuments(response.data)
+            });
+    }, []);  
+
+
     return (<Container>
-        <AnnotationTableComponent
-            headerCaption="Annotations"
-            rows={[{
-            title: 'a',
-            annotationDate: 'b',
-        }]}
-        />
+        { documents
+            ? <AnnotationTableComponent
+                headerCaption="Annotations"
+                rows={documents.map((e)=> ({
+                    title: e.title,
+                    annotationDate: e.annotated_on, 
+                    id: e.id
+                }))}/>            
+            : <CircularProgress />
+        }
     </Container>);
 }

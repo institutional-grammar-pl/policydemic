@@ -26,38 +26,11 @@ import './compare_table_styles.css'
 
 export default function CompareFormComponent({documents}) {
 
-    console.log('compare tab component', documents, Object.keys(documents))
-
-    /*return (
-        <form id={documents ? "edit-doc-form" : "new-doc-form"}>
-            <table class="table table-bordered">
-                <tr key="country">
-                { documents.map((doc) => 
-                    <td>{doc.country}</td>
-                    
-                )}
-                </tr>
-                <tr key='organization'>
-                { documents.map((doc) => 
-                    <td>{doc.organization}</td>
-                    
-                )}
-                </tr>
-                <tr key='section'>
-                { documents.map((doc) => 
-                    <td>{doc.section}</td>
-                )}
-                </tr>
-            </table>
-        </form >
-    );*/
     const useStyles = makeStyles({
       table: {
         minWidth: 650,
       },
     });
-
-
 
     const classes = useStyles();
 

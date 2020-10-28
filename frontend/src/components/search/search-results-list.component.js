@@ -5,22 +5,6 @@ import SearchTableComponent from './search-table.component.js';
 
 export default class SearchResultsListComponent extends React.Component {
 
-    /*createDataForRow(title, source, infoDate, language, keywords, country) {
-
-        if (infoDate == "1900-01-01") {
-            infoDate = ''
-        }
-
-        return {
-            title: title,
-            source: source,
-            infoDate: infoDate,
-            language: language,
-            keywords: keywords,
-            country: country
-        };
-      }*/
-
     render() {
         return (
             <Box
