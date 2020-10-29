@@ -109,11 +109,8 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     };
 
     const onAnnotateClicked = (event) => {
-        //const text = getValues()['annotation_text']
-        //Api.annotateDocument(document.id, text) 
-        document = getValues()
-        console.log('document', document)
-        Api.annotateDocument(document.id, document) 
+        document_values = getValues()
+        Api.annotateDocument(document.id, document_values) 
     }
 
     return (
@@ -226,7 +223,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                 variant="inline"
                                 format="yyyy-MM-dd"
                                 margin="normal"
-                                name="infoDate"
+                                name="info_date"
                                 label="Info date"
                                 fullWidth
                                 value={infoDate}
@@ -242,7 +239,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                 variant="inline"
                                 format="yyyy-MM-dd"
                                 margin="normal"
-                                name="scrapDate"
+                                name="scrap_date"
                                 label="Scrap date"
                                 value={scrapDate}
                                 onChange={handleScrapDateChange}
