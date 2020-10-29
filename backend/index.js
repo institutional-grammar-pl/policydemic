@@ -199,9 +199,17 @@ router.get('/documents/:id/tsv', async (ctx) => {
             return
         }
 
+        var arr = query.body._source.annotation_path.split('/')
+        console.log(arr[arr.length-1])
+
+        console.log(query.body._source.title)
+        console.log(query.body._source.title.substr(0, 40))
+
         const src = fs.createReadStream(query.body._source.annotation_path);
         ctx.response.set("content-type", "text/tab-separated-values");
-        ctx.response.set("content-disposition", `attachment; filename*=UTF-8''"${encodeURIComponent(query.body._source.title.substr(0, 40))}"`);
+        //ctx.response.set("content-disposition", `attachment; filename*=UTF-8''"${encodeURIComponent(query.body._source.title.substr(0, 40))}"`);
+
+        ctx.response.set("content-disposition", `attachment; filename="${arr[arr.length-1]}"`);
 
         ctx.body = src;
     } catch (e) {

@@ -70,14 +70,14 @@ function EnhancedTableHead(props) {
     return (
         <TableHead>
             <TableRow>
-                <TableCell padding="checkbox">
+                {/*<TableCell padding="checkbox">
                     <Checkbox
                         indeterminate={numSelected > 0 && numSelected < rowCount}
                         checked={rowCount > 0 && numSelected === rowCount}
                         onChange={onSelectAllClick}
                         inputProps={{ 'aria-label': 'select all desserts' }}
                     />
-                </TableCell>
+                </TableCell>*/}
                 {headCells.map((headCell) => (
                     <TableCell
                         key={headCell.id}
@@ -197,7 +197,7 @@ export default function EnhancedTable(props) {
     const [orderBy, setOrderBy] = React.useState('calories');
     const [selected, setSelected] = React.useState([], );
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5); 
+    const [rowsPerPage, setRowsPerPage] = React.useState(15); 
   
     React.useEffect(() => {
         setSelected([]);
@@ -210,32 +210,32 @@ export default function EnhancedTable(props) {
     };
 
     const handleSelectAllClick = (event) => {
-        if (event.target.checked) {
-            const newSelecteds = rows.map((n) => n.id);
-            setSelected(newSelecteds);
-            return;
-        }
-        setSelected([]);
+        // if (event.target.checked) {
+        //     const newSelecteds = rows.map((n) => n.id);
+        //     setSelected(newSelecteds);
+        //     return;
+        // }
+        // setSelected([]);
     };
 
     const handleClick = (event, name) => {
-        const selectedIndex = selected.indexOf(name);
-        let newSelected = [];
+        // const selectedIndex = selected.indexOf(name);
+        // let newSelected = [];
 
-        if (selectedIndex === -1) {
-            newSelected = newSelected.concat(selected, name);
-        } else if (selectedIndex === 0) {
-            newSelected = newSelected.concat(selected.slice(1));
-        } else if (selectedIndex === selected.length - 1) {
-            newSelected = newSelected.concat(selected.slice(0, -1));
-        } else if (selectedIndex > 0) {
-            newSelected = newSelected.concat(
-                selected.slice(0, selectedIndex),
-                selected.slice(selectedIndex + 1),
-            );
-        }
+        // if (selectedIndex === -1) {
+        //     newSelected = newSelected.concat(selected, name);
+        // } else if (selectedIndex === 0) {
+        //     newSelected = newSelected.concat(selected.slice(1));
+        // } else if (selectedIndex === selected.length - 1) {
+        //     newSelected = newSelected.concat(selected.slice(0, -1));
+        // } else if (selectedIndex > 0) {
+        //     newSelected = newSelected.concat(
+        //         selected.slice(0, selectedIndex),
+        //         selected.slice(selectedIndex + 1),
+        //     );
+        // }
 
-        setSelected(newSelected);
+        // setSelected(newSelected);
     };
 
     const handleChangePage = (event, newPage) => {
@@ -251,10 +251,10 @@ export default function EnhancedTable(props) {
 
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
-    const downloadSelectedButtonClicked = (event) => {
+    /*const downloadSelectedButtonClicked = (event) => {
         alert("download items: " + selected);
     };
-
+*/
     return (
         <Box textAlign="left"><div>
      
@@ -277,7 +277,7 @@ export default function EnhancedTable(props) {
                             numSelected={selected.length}
                             order={order}
                             orderBy={orderBy}
-                            onSelectAllClick={handleSelectAllClick}
+                            //onSelectAllClick={handleSelectAllClick}
                             onRequestSort={handleRequestSort}
                             rowCount={rows.length}
                         />
@@ -298,12 +298,12 @@ export default function EnhancedTable(props) {
                                             key={index}
                                             selected={isItemSelected}
                                         >
-                                            <TableCell padding="checkbox">
+                                            {/*<TableCell padding="checkbox">
                                                 <Checkbox
                                                     checked={isItemSelected}
                                                     inputProps={{ 'aria-labelledby': labelId }}
                                                 />
-                                            </TableCell>
+                                            </TableCell>*/}
                                             <TableCell align="left">{row.title}</TableCell>
                                             <TableCell align="left">{row.annotationDate}</TableCell>
                                             <TableCell align="left">
@@ -325,7 +325,7 @@ export default function EnhancedTable(props) {
                     </Table>
                 </TableContainer>
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
+                    rowsPerPageOptions={[5, 15, 25]}
                     component={Container}
                     count={rows.length}
                     rowsPerPage={rowsPerPage}
