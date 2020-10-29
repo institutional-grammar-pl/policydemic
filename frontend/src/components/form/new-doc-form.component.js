@@ -64,6 +64,8 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             translationType: document.translationType,
             translated_text: document.translated_text,
             original_text: document.originalText,
+            annotation_text: document.annotation_text,
+
             status: document.status,
         } : undefined
     });
@@ -71,7 +73,6 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         if (pdfUpload) {
             register({ name: 'pdf' });
         }
-        register({ name: "title"  });
         register({ name: "keywords"  });
         register({ name: "infoDate" });
         register({ name: "scrapDate" });
@@ -108,9 +109,8 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     };
 
     const onAnnotateClicked = (event) => {
-        const text = getValues()['text_to_annotate']
-        console.log('text',text)
-        console.log('text2', text.replace('\s?\n+', ' '))
+        const text = getValues()['annotation_text']
+        
         Api.annotateDocument(document.id, text) 
     }
 
