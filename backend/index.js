@@ -137,6 +137,7 @@ router.get('/autocomplete/status', async (ctx) => {
   ])})
 
 router.get('/documents/:id', async (ctx) => {
+    console.log('/documents/:id', ctx.params.id)
     try {
         const query = await client.get({
             index: 'documents',
@@ -144,13 +145,13 @@ router.get('/documents/:id', async (ctx) => {
         })
 
         const body = ctx.body = { id: query.body._id, ...query.body._source }
-        const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
+/*        const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
             originalText: 'original_text' }
 
         for (k in vars) {
             body[k] = body[vars[k]]
             delete body[vars[k]] 
-        }
+        }*/
         if (body.keywords === '') { 
             body.keywords = []
         }
@@ -260,8 +261,7 @@ function parseData(data){
             title: element._source.title,
             id: element._id,
             source: element._source.source,
-            /*source: element._source.web_page,*/
-            infoDate: element._source.info_date,
+            info_date: element._source.info_date,
             language: element._source.language,
             keywords: k === '' ? [] : k,
             country: element._source.country,
@@ -395,14 +395,14 @@ router.post('/ssd/:id', upload.single('pdf'), async (ctx) => {
 
 async function postDocument(ctx){
     const body = { ...ctx.request.body }
-    const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
+/*    const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
         originalText: 'original_text' }
 
     for (k in vars) {
         body[vars[k]] = body[k]
         delete body[k] 
     }
-
+*/
     await client.index({
         index: 'documents',
         body: {
@@ -414,13 +414,13 @@ async function postDocument(ctx){
 async function updateDocument(ctx){
     
     const body = { ...ctx.request.body }
-    const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
+/*    const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
         originalText: 'original_text' }
 
     for (k in vars) {
         body[vars[k]] = body[k]
         delete body[k] 
-    }
+    }*/
 
     await client.update({
         index: 'documents',
@@ -459,17 +459,10 @@ router.post('/upload', upload.single('pdf'), (ctx) => {
     })
 });
 
-function prepareDocumentToTranslate(document) {
-    document['web_page'] = document['webPage']
-    document['info_date'] = document['infoDate']
-    document['original_text'] = document['originalText']
-    document['scrap_date'] = document['scrapDate']
-    return document
-}
 
 router.post('/translate', (ctx) => {
     ctx.body = ctx.request.body
-    document = prepareDocumentToTranslate(ctx.body.document)
+    document = ctx.body.document
     const task = celery_client.createTask("nlpengine.tasks.translate_and_update");
     const result = task.applyAsync([ctx.body.id, document]);
     //result.get().then(data => {
@@ -482,8 +475,10 @@ router.post('/translate', (ctx) => {
 
 router.post('/annotate', (ctx) => {
     ctx.body = ctx.request.body
+    document = ctx.body.document
+
     const task = celery_client.createTask("nlpengine.tasks.annotate_and_update");
-    const result = task.applyAsync([ctx.body.id, {'annotation_text': ctx.body.text}]);
+    const result = task.applyAsync([ctx.body.id, document]);
     ctx.status = 200
 });
 

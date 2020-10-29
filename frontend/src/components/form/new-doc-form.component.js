@@ -53,17 +53,17 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     const { register, handleSubmit, setValue, getValues } = useForm({
         defaultValues: document ? {
             title: document.title,
-            webPage: document.webPage,
+            webPage: document.web_page,
             organization: document.organization,
             section: document.section,
             keywords: document.keywords || [],
-            infoDate: document.infoDate,
-            scrapDate: document.scrapDate,
+            infoDate: document.info_date,
+            scrapDate: document.scrap_date,
             country: document.country,
             language: document.language,
-            translationType: document.translationType,
+            translationType: document.translation_type,
             translated_text: document.translated_text,
-            original_text: document.originalText,
+            original_text: document.original_text,
             annotation_text: document.annotation_text,
 
             status: document.status,
@@ -109,9 +109,11 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     };
 
     const onAnnotateClicked = (event) => {
-        const text = getValues()['annotation_text']
-        
-        Api.annotateDocument(document.id, text) 
+        //const text = getValues()['annotation_text']
+        //Api.annotateDocument(document.id, text) 
+        document = getValues()
+        console.log('document', document)
+        Api.annotateDocument(document.id, document) 
     }
 
     return (
@@ -133,7 +135,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                     <Grid container item xs={12} spacing={8} justify="space-around">
                         <Grid item md={4}>
                             <TextField
-                                name="webPage"
+                                name="web_page"
                                 inputRef={register}
                                 label="Web page"
                                 margin="normal"
@@ -292,12 +294,12 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                         </Grid>
                         {(type === "LAD") && (<Grid item md={4}>
                             <AsyncAutocomplete
-                                name="translationType"
+                                name="translation_type"
                                 collectionName="translationTypes"
                                 inputRef={register}
                                 style={{ width: 300 }}
                                 openOnFocus
-                                onChange={(_, opt) => setValue("translationType", opt.value)}
+                                onChange={(_, opt) => setValue("translation_type", opt.value)}
                                 defaultValue={document ? {
                                     name: document.translationType,
                                     value: document.translationType,
