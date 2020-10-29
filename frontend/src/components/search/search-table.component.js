@@ -61,7 +61,7 @@ function stableSort(array, comparator) {
 
 const headCells = [
     { id: 'title', alignLeft: false, label: 'Title' },
-    { id: 'infoDate', alignLeft: false, label: 'Info date' },
+    { id: 'info_date', alignLeft: false, label: 'Info date' },
     { id: 'country', alignLeft: false, label: 'Country' },
 ];
 
@@ -359,8 +359,8 @@ export default function EnhancedTable(props) {
                                     const isItemSelected = isSelected(row.id);
                                     const labelId = `enhanced-table-checkbox-${index}`;
 
-                                    if (row.infoDate == "1900-01-01") {
-                                        row.infoDate = ""
+                                    if (row.info_date == "1900-01-01") {
+                                        row.info_date = ""
                                     }
 
                                     return (
@@ -380,7 +380,7 @@ export default function EnhancedTable(props) {
                                                 />
                                             </TableCell>
                                             <TableCell align="left">{row.title}</TableCell>
-                                            <TableCell align="left">{row.infoDate}</TableCell>
+                                            <TableCell align="left">{row.info_date}</TableCell>
                                             <TableCell align="left">{row.country}</TableCell>
                                             <TableCell align="left">
                                                 <Tooltip title="Edit">
