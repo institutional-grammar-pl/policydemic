@@ -53,7 +53,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     const { register, handleSubmit, setValue, getValues } = useForm({
         defaultValues: document ? {
             title: document.title,
-            webPage: document.web_page,
+            web_page: document.web_page,
             organization: document.organization,
             section: document.section,
             keywords: document.keywords || [],
@@ -61,7 +61,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             scrapDate: document.scrap_date,
             country: document.country,
             language: document.language,
-            translationType: document.translation_type,
+            translation_type: document.translation_type,
             translated_text: document.translated_text,
             original_text: document.original_text,
             annotation_text: document.annotation_text,
@@ -76,7 +76,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         register({ name: "keywords"  });
         register({ name: "info_date" });
         register({ name: "scrap_date" });
-
+        register({ name: "web_page" });
         register({ name: "country" });
         register({ name: "language" });
         register({ name: "translation_type" });
@@ -301,8 +301,8 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                 openOnFocus
                                 onChange={(_, opt) => setValue("translation_type", opt.value)}
                                 defaultValue={document ? {
-                                    name: document.translationType,
-                                    value: document.translationType,
+                                    name: document.translation_type,
+                                    value: document.translation_type,
                                 } : undefined}
                                 renderInput={(params) =>
                                     <TextField
