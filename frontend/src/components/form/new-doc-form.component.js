@@ -356,7 +356,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                     <Grid container item xs={12}>
 
                         <TextField
-                            name="text_to_annotate"
+                            name="annotation_text"
                             inputRef={register}
                             label="Text to annotate"
                             InputLabelProps={{
