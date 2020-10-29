@@ -74,12 +74,12 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             register({ name: 'pdf' });
         }
         register({ name: "keywords"  });
-        register({ name: "infoDate" });
-        register({ name: "scrapDate" });
+        register({ name: "info_date" });
+        register({ name: "scrap_date" });
 
         register({ name: "country" });
         register({ name: "language" });
-        register({ name: "translationType" });
+        register({ name: "translation_type" });
         register({ name: "status" });
 
 
