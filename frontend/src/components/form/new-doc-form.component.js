@@ -109,7 +109,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     };
 
     const onAnnotateClicked = (event) => {
-        document_values = getValues()
+        const document_values = getValues()
         Api.annotateDocument(document.id, document_values) 
     }
 
