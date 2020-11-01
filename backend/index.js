@@ -145,13 +145,7 @@ router.get('/documents/:id', async (ctx) => {
         })
 
         const body = ctx.body = { id: query.body._id, ...query.body._source }
-/*        const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
-            originalText: 'original_text' }
 
-        for (k in vars) {
-            body[k] = body[vars[k]]
-            delete body[vars[k]] 
-        }*/
         if (body.keywords === '') { 
             body.keywords = []
         }
@@ -201,10 +195,6 @@ router.get('/documents/:id/tsv', async (ctx) => {
         }
 
         var arr = query.body._source.annotation_path.split('/')
-        console.log(arr[arr.length-1])
-
-        console.log(query.body._source.title)
-        console.log(query.body._source.title.substr(0, 40))
 
         const src = fs.createReadStream(query.body._source.annotation_path);
         ctx.response.set("content-type", "text/tab-separated-values");
@@ -395,14 +385,7 @@ router.post('/ssd/:id', upload.single('pdf'), async (ctx) => {
 
 async function postDocument(ctx){
     const body = { ...ctx.request.body }
-/*    const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
-        originalText: 'original_text' }
 
-    for (k in vars) {
-        body[vars[k]] = body[k]
-        delete body[k] 
-    }
-*/
     await client.index({
         index: 'documents',
         body: {
@@ -414,13 +397,6 @@ async function postDocument(ctx){
 async function updateDocument(ctx){
     
     const body = { ...ctx.request.body }
-/*    const vars = { webPage: 'web_page', translationType: 'translation_type', infoDate: 'info_date', scrapDate: 'scrap_date',
-        originalText: 'original_text' }
-
-    for (k in vars) {
-        body[vars[k]] = body[k]
-        delete body[k] 
-    }*/
 
     await client.update({
         index: 'documents',
@@ -473,11 +449,12 @@ router.post('/translate', (ctx) => {
 
 });
 
-router.post('/annotate', (ctx) => {
+router.post('/annotate/', (ctx) => {
     ctx.body = ctx.request.body
     document = ctx.body.document
 
     const task = celery_client.createTask("nlpengine.tasks.annotate_and_update");
+
     const result = task.applyAsync([ctx.body.id, document]);
     ctx.status = 200
 });

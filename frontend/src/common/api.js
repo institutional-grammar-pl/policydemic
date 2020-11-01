@@ -73,9 +73,6 @@ export default class Api {
         return this._postJsonData('translate', {id: documentID, document: document})
     }
 
-/*    static annotateDocument(documentID, text){
-        return this._postJsonData('annotate', {id: documentID, text: text})
-    }*/
     static annotateDocument(documentID, document){
         return this._postJsonData('annotate', {id: documentID, document: document})
     }
