@@ -10,7 +10,7 @@ import SwipeableViews from 'react-swipeable-views';
 
 import LadTabComponent from './lad-tab.component.js';
 import SsdTabComponent from './ssd-tab.component.js';
-/*import CrawlerConfigComponent from './crawler-config-tab.component.js';*/
+import SearchTabComponent from './search-tab.component.js';
 import AnnotatorTabComponent from './annotator-tab.component.js';
 
 // https://material-ui.com/components/tabs/
@@ -88,18 +88,21 @@ export default function MainTabs() {
         index={value}
         onChangeIndex={handleChangeIndex}
       >
-        <TabPanel value={value} index={0}>
+{/*        <TabPanel value={value} index={0}>
           <LadTabComponent />
         </TabPanel>
         <TabPanel value={value} index={1}>
           <SsdTabComponent />
+        </TabPanel>*/}
+        <TabPanel value={value} index={0}>
+          <SearchTabComponent documentType="LAD"/>
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          <SearchTabComponent documentType="SSD"/>
         </TabPanel>
         <TabPanel value={value} index={2}>
           <AnnotatorTabComponent />
         </TabPanel>
-        {/*<TabPanel value={value} index={2}>
-          <CrawlerConfigComponent />
-        </TabPanel>*/}
       </SwipeableViews>
     </div>
   );

@@ -353,6 +353,7 @@ export default function EnhancedTable(props) {
                             rowCount={rows.length}
                         />
                         <TableBody>
+                            Searching...
                             {stableSort(rows, getComparator(order, orderBy))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((row, index) => {

@@ -20,7 +20,6 @@ import EditIcon from '@material-ui/icons/Edit';
 import Box from '@material-ui/core/Box';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 
-
 import { Container } from '@material-ui/core';
 
 import Api from '../../common/api.js';
@@ -57,7 +56,7 @@ function stableSort(array, comparator) {
 const headCells = [
     { id: 'title', alignLeft: false, label: 'Title' },
     { id: 'annotationDate', alignLeft: false, label: 'Annotation date' },
-    { id: 'download', alignLeft: false, label: 'Download annotation' },
+    { id: 'download', a1lignLeft: false, label: 'Download annotation' },
 
 ];
 
@@ -197,7 +196,7 @@ export default function EnhancedTable(props) {
     const [orderBy, setOrderBy] = React.useState('calories');
     const [selected, setSelected] = React.useState([], );
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(15); 
+    const [rowsPerPage, setRowsPerPage] = React.useState(10); 
   
     React.useEffect(() => {
         setSelected([]);
@@ -325,7 +324,7 @@ export default function EnhancedTable(props) {
                     </Table>
                 </TableContainer>
                 <TablePagination
-                    rowsPerPageOptions={[5, 15, 25]}
+                    rowsPerPageOptions={[5, 10, 20, 50]}
                     component={Container}
                     count={rows.length}
                     rowsPerPage={rowsPerPage}

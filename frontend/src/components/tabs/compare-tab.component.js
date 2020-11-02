@@ -57,7 +57,7 @@ export default function CompareFormComponent({documents}) {
             <TableBody>
               <TableRow class='text-row'>
                 { documents.map((doc) => 
-                    <TableCell class='table-cell'>{doc.originalText}</TableCell>
+                    <TableCell class='table-cell'>{doc.original_text}</TableCell>
                 )}
               </TableRow>
             </TableBody>
