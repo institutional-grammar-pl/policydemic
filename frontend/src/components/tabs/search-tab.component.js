@@ -52,6 +52,7 @@ export default function SearchTabComponent(props) {
             )}
 
             <SearchResultsListComponent
+                documentType={props.documentType}
                 headerCaption={props.documentType}
                 onAddNewItemClick={handleOpenDialog}
                 onEdit={documentId => setEditedDocumentId(documentId)}

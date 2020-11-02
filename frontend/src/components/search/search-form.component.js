@@ -191,7 +191,6 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                             <AsyncAutocomplete
                                 name="country"
                                 collectionName="countries"
-                                // style={{ width: 250 }}
                                 openOnFocus
                                 fullWidth
                                 multiple

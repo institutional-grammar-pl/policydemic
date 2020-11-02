@@ -59,11 +59,22 @@ function stableSort(array, comparator) {
     return stabilizedThis.map((el) => el[0]);
 }
 
-const headCells = [
-    { id: 'title', alignLeft: false, label: 'Title' },
-    { id: 'info_date', alignLeft: false, label: 'Info date' },
-    { id: 'country', alignLeft: false, label: 'Country' },
-];
+const headCells = {
+    "LAD" : [
+        { id: 'title', alignLeft: false, label: 'Title' },
+        { id: 'info_date', alignLeft: false, label: 'Info date' },
+        { id: 'country', alignLeft: false, label: 'Country' }
+    ], 
+    "SSD": [
+        { id: 'title', alignLeft: false, label: 'Title' },
+        { id: 'info_date', alignLeft: false, label: 'Info date' },
+        { id: 'section', alignLeft: false, label: 'Section' },
+        { id: 'organization', alignLeft: false, label: 'Organization'},  
+        { id: 'country', alignLeft: false, label: 'Country' },
+    ]
+}
+
+console.log('headCells')
 
 function EnhancedTableHead(props) {
     const { classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
@@ -71,6 +82,8 @@ function EnhancedTableHead(props) {
         onRequestSort(event, property);
     };
 
+    console.log('headCells', headCells)
+    console.log(props.documentType)
     return (
         <TableHead>
             <TableRow>
@@ -82,7 +95,7 @@ function EnhancedTableHead(props) {
                         inputProps={{ 'aria-label': 'select all desserts' }}
                     />
                 </TableCell>
-                {headCells.map((headCell) => (
+                {headCells[props.documentType].map((headCell) => (
                     <TableCell
                         key={headCell.id}
                         align={headCell.alignLeft ? 'right' : 'left'}
@@ -165,11 +178,11 @@ const EnhancedTableToolbar = (props) => {
                     style={{ display: 'flex', justifyContent: 'right' }}
                 >
 
-                    <Tooltip title="Compare Selected" >
+                    {(props.documentType=='SSD') && (<Tooltip title="Compare Selected" >
                         <IconButton aria-label="compare" onClick={(event) => props.onCompareSelectedClick(event)}>
                             <CloudDownloadIcon />
                         </IconButton>
-                    </Tooltip>
+                    </Tooltip> )}
 
                     <Tooltip title="Delete">
                         <IconButton aria-label="delete" onClick={(event) => props.onDeleteClick(event)}>
@@ -183,15 +196,7 @@ const EnhancedTableToolbar = (props) => {
             ) : <Container
                 style={{ display: 'flex', justifyContent: 'right' }}
             >
-
-                    {/*<Tooltip title="Add New">
-                        <IconButton aria-label="addNew" onClick={(event) => props.onAddNewItemClick(event)}>
-                            <AddBoxIcon />
-                        </IconButton>
-                    </Tooltip>*/}
-
-                </Container>}
-                    
+            </Container>}        
         </Toolbar>
     );
 };
@@ -232,6 +237,8 @@ const useStyles = makeStyles((theme) => ({
 export default function EnhancedTable(props) {
 
     const { tableTitle, rows, onDelete, onEdit } = props;
+
+    console.log('rows', rows)
 
     const classes = useStyles();
     const [order, setOrder] = React.useState('asc');
@@ -328,6 +335,7 @@ export default function EnhancedTable(props) {
         <Container className={classes.root}>
             <Paper className={classes.paper}>
                 <EnhancedTableToolbar
+                    documentType={props.documentType}
                     numSelected={selected.length}
                     tableTitle={tableTitle}
                     onUploadJSONClick={uploadJsonButtonClicked}
@@ -344,6 +352,7 @@ export default function EnhancedTable(props) {
                         aria-label="enhanced table"
                     >
                         <EnhancedTableHead
+                            documentType={props.documentType}
                             classes={classes}
                             numSelected={selected.length}
                             order={order}
@@ -353,7 +362,6 @@ export default function EnhancedTable(props) {
                             rowCount={rows.length}
                         />
                         <TableBody>
-                            Searching...
                             {stableSort(rows, getComparator(order, orderBy))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((row, index) => {
@@ -382,7 +390,15 @@ export default function EnhancedTable(props) {
                                             </TableCell>
                                             <TableCell align="left">{row.title}</TableCell>
                                             <TableCell align="left">{row.info_date}</TableCell>
+                                            {(props.documentType == 'SSD') && (
+                                                <TableCell align="left">{row.section}</TableCell>
+                                            )}
+                                            {(props.documentType == 'SSD') && (
+                                                <TableCell align="left">{row.organization}</TableCell>
+                                            )}
+
                                             <TableCell align="left">{row.country}</TableCell>
+
                                             <TableCell align="left">
                                                 <Tooltip title="Edit">
                                                     <IconButton aria-label="edit" onClick={(event) => { event.stopPropagation(); onEdit(row.id); }}>
@@ -413,12 +429,12 @@ export default function EnhancedTable(props) {
             </Paper>
         </Container>
 
-        <Container>
+        {(props.documentType=='LAD') && (<Container>
             <UploadPdfComponent name="pdf" setValue={function(_, file) {
                 Api.uploadPDF(file).then((resp) => {
                 })
             }}/>
-        </Container>
+        </Container>)}
 
         </div>
 

@@ -11,6 +11,7 @@ export default class SearchResultsListComponent extends React.Component {
                 textAlign="left"
             >                
                 <SearchTableComponent 
+                    documentType={this.props.documentType}
                     tableTitle={this.props.headerCaption}
                     onAddNewItemClick={this.props.onAddNewItemClick}
                     onDelete={this.props.onDelete}

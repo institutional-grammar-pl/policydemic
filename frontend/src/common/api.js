@@ -7,18 +7,6 @@ export default class Api {
         return this._postJsonData(type.toLowerCase(), data);
     }
 
-    static createDataForRow(title, id, source, infoDate, language, keywords, country) {
-        return {
-            title: title, 
-            id: id,
-            source: source,
-            infoDate: infoDate,
-            language: language,
-            keywords: keywords,
-            country: country
-        };
-    }
-
     static getSearchResults(type, data) {
         return this._postJsonData(type.toLowerCase() + '/search', data).then((request) => request.data)
     }

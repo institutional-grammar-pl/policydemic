@@ -249,11 +249,10 @@ function parseData(data){
         const k = element._source.keywords
         parsedData.push({
             title: element._source.title,
+            section: element._source.section,
+            organization: element._source.organization,
             id: element._id,
-            source: element._source.source,
             info_date: element._source.info_date,
-            language: element._source.language,
-            keywords: k === '' ? [] : k,
             country: element._source.country,
         })
     });
