@@ -34,8 +34,8 @@ const selectDateTime = (v) => {
 
 export default function NewDocFormComponent({ document, type, onSuccessfulSend }) {
     const pdfUpload = type === "LAD";
-    const [infoDate, setInfoDate] = React.useState(document ? document.infoDate : undefined);
-    const [scrapDate, setScrapDate] = React.useState(document ? document.scrapDate : undefined);
+    const [infoDate, setInfoDate] = React.useState(document ? document.info_date : undefined);
+    const [scrapDate, setScrapDate] = React.useState(document ? document.scrap_date : undefined);
 
     const handleInfoDateChange = (date) => {
         date = selectDate(date);

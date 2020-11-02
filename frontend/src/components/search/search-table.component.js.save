@@ -59,22 +59,11 @@ function stableSort(array, comparator) {
     return stabilizedThis.map((el) => el[0]);
 }
 
-const headCells = {
-    "LAD" : [
-        { id: 'title', alignLeft: false, label: 'Title' },
-        { id: 'info_date', alignLeft: false, label: 'Info date' },
-        { id: 'country', alignLeft: false, label: 'Country' }
-    ], 
-    "SSD": [
-        { id: 'title', alignLeft: false, label: 'Title' },
-        { id: 'info_date', alignLeft: false, label: 'Info date' },
-        { id: 'section', alignLeft: false, label: 'Section' },
-        { id: 'organization', alignLeft: false, label: 'Organization'},  
-        { id: 'country', alignLeft: false, label: 'Country' },
-    ]
-}
-
-console.log('headCells')
+const headCells = [
+    { id: 'title', alignLeft: false, label: 'Title' },
+    { id: 'info_date', alignLeft: false, label: 'Info date' },
+    { id: 'country', alignLeft: false, label: 'Country' },
+];
 
 function EnhancedTableHead(props) {
     const { classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
@@ -82,8 +71,12 @@ function EnhancedTableHead(props) {
         onRequestSort(event, property);
     };
 
-    console.log('headCells', headCells)
-    console.log(props.documentType)
+    if (props.documentType=='SSD') {
+        headCells.append({ id: 'section', alignLeft: false, label: 'Section' })    
+        headCells.append({ id: 'section', alignLeft: false, label: 'Orgnization' })    
+
+    }
+
     return (
         <TableHead>
             <TableRow>
@@ -95,7 +88,7 @@ function EnhancedTableHead(props) {
                         inputProps={{ 'aria-label': 'select all desserts' }}
                     />
                 </TableCell>
-                {headCells[props.documentType].map((headCell) => (
+                {headCells.map((headCell) => (
                     <TableCell
                         key={headCell.id}
                         align={headCell.alignLeft ? 'right' : 'left'}
@@ -238,8 +231,6 @@ export default function EnhancedTable(props) {
 
     const { tableTitle, rows, onDelete, onEdit } = props;
 
-    console.log('rows', rows)
-
     const classes = useStyles();
     const [order, setOrder] = React.useState('asc');
     const [orderBy, setOrderBy] = React.useState('calories');
@@ -352,7 +343,6 @@ export default function EnhancedTable(props) {
                         aria-label="enhanced table"
                     >
                         <EnhancedTableHead
-                            documentType={props.documentType}
                             classes={classes}
                             numSelected={selected.length}
                             order={order}
@@ -369,7 +359,7 @@ export default function EnhancedTable(props) {
                                     const labelId = `enhanced-table-checkbox-${index}`;
 
                                     if (row.info_date == "1900-01-01") {
-                                        row.info_date = "-"
+                                        row.info_date = ""
                                     }
 
                                     return (
@@ -392,11 +382,8 @@ export default function EnhancedTable(props) {
                                             <TableCell align="left">{row.info_date}</TableCell>
                                             {(props.documentType == 'SSD') && (
                                                 <TableCell align="left">{row.section}</TableCell>
-                                            )}
-                                            {(props.documentType == 'SSD') && (
                                                 <TableCell align="left">{row.organization}</TableCell>
                                             )}
-
                                             <TableCell align="left">{row.country}</TableCell>
 
                                             <TableCell align="left">

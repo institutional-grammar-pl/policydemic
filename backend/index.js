@@ -270,43 +270,26 @@ async function fetchDocumentsFromElastic(body, documentType){
 }
 
 function constructParams(body, documentType, any_phrase){
-    
-    let params = {
-        index: 'documents',
-        body: {
-            query: {
-                bool: {
-                    must: [
-                        {match: {
-                            document_type: documentType
-                            }
-                        },
-                        {match_phrase: {
-                            original_text: {
-                                query: any_phrase,
-                                zero_terms_query: "all"
-                                } 
-                            }
+
+    console.log('constructParams body', body)
+
+    const documentFilter = []
+
+    if (body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0) {
+        documentFilter.push( {
+            "bool": {
+                "must": {
+                    "range": {
+                        "info_date": {
+                            "gte": body.infoDateFrom,
+                            "lte": body.infoDateTo
                         }
-                    ], 
-                    should: []
-                }
-            }
-        }, 
-        size: 100
-    }
-
-
-    if(body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0){
-        params.body.query.bool.should.push( {
-            "range": {
-                    "info_date": {
-                        "gte": body.infoDateFrom,
-                        "lte": body.infoDateTo
                     }
+
                 }
-            },
-            {"bool": {
+            } 
+        },  {
+            "bool": {
                 "must": [{
                         "range": {
                             "info_date": {
@@ -328,6 +311,36 @@ function constructParams(body, documentType, any_phrase){
             }
         )
     }
+    
+    let params = {
+        index: 'documents',
+        body: {
+            query: {
+                bool: {
+                    must: [
+                        {match: {
+                            document_type: documentType
+                            }
+                        },
+                        {match_phrase: {
+                            original_text: {
+                                query: any_phrase,
+                                zero_terms_query: "all"
+                                } 
+                            }
+                        }, 
+                        {
+                            bool: {
+                                should: documentFilter
+                            }
+                        }
+                    ]
+                }
+            }
+        }, 
+        size: 100
+    }
+
 
     let fields = ["country", "section", "organization", "status"];
 
@@ -356,6 +369,7 @@ function constructParams(body, documentType, any_phrase){
             }
         }
 
+    console.log('params', JSON.stringify(params))
     return params
 }
 
