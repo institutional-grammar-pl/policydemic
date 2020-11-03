@@ -342,17 +342,17 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                     </Grid>
 
 
-                    {(type === "LAD") && 
-                    <Button
+                    {(type === "LAD") &&   (document.language !='English') &&
+                    (<Button
                         variant="contained"
                         className="button-submit"
                         style={{ position: 'relative', left: 15, top: 5, margin: 5 }}
                         onClick={(event) => onTranslateClicked(event)}>
                         Translate
-                    </Button>}
+                    </Button>)}
 
                
-                    {(type === "LAD") && (<Grid container item xs={12}>
+                    {(type === "LAD") && (document.language !='English') && (<Grid container item xs={12}>
                         <TextField
                             name="translated_text"
                             inputRef={register}
