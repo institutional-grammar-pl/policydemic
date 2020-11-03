@@ -454,9 +454,9 @@ router.post('/translate', (ctx) => {
     document = ctx.body.document
     const task = celery_client.createTask("nlpengine.tasks.translate_and_update");
     const result = task.applyAsync([ctx.body.id, document]);
-    //result.get().then(data => {
-    //  console.log('translated', data);
-    //});
+/*    result.get().then(data => {
+      console.log('translated', data);
+    })*/
 
     ctx.status = 200
 

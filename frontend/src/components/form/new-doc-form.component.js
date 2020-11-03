@@ -104,8 +104,23 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     }
 
     const onTranslateClicked = (event) => {
-
-        Api.translateDocument(document.id, document) 
+        Api.translateDocument(document.id, document);
+        let i = 0;
+        const load = () => {
+            if (i++ > 10) return;
+            Api.getDocumentById(document.id).then((d) => { 
+                const doc = d.data;
+                if (doc.translated_text) {
+                    setValue('translated_text', doc.translated_text)
+                } else {
+                    setTimeout(load, 5000);
+                }
+            }).catch((e) => {
+                console.error(e);
+                setTimeout(load, 5000)
+            });
+        }
+        setTimeout(load, 5000);
     };
 
     const onAnnotateClicked = (event) => {
