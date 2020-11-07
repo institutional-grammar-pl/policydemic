@@ -1,9 +1,7 @@
 import logging
 import subprocess
-import os
 import requests
 from pathlib import Path
-import shutil
 
 from configparser import ConfigParser
 from scheduler.celery import app
@@ -17,12 +15,10 @@ from wand.image import Image as wi
 
 # --- new pdf parsing --- #
 import os
-import sys
 from io import StringIO
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.pdfdevice import PDFDevice, TagExtractor
 from pdfminer.pdfpage import PDFPage
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams

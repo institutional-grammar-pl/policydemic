@@ -1,9 +1,6 @@
 from scheduler.celery import app
 from celery.schedules import crontab
 
-@app.task
-def hello_world():
-    print("Hello queue world!")
 
 # @app.on_after_configure.connect
 # def crawler_schedule(sender, **kwargs):
