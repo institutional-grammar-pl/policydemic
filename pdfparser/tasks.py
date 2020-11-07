@@ -35,6 +35,7 @@ txts_dir = cfg['paths']['parsed_txts']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 pdf_dir = cfg['paths']['pdf_database']
 es_hosts = cfg['elasticsearch']['hosts']
+INDEX_NAME = cfg['elasticsearch']['index_name']
 min_n_chars_per_page = int(cfg['pdfparser']['min_n_chars_per_page'])
 
 default_date = cfg['pdfparser']['default_date']
@@ -90,7 +91,7 @@ def is_duplicate(url):
             }
         }
     }
-    rt = es.count(query_web_url, index='documents')
+    rt = es.count(query_web_url, index=INDEX_NAME)
     rt = rt['count']
     if rt > 0:
         _log.warning(f"Duplicate search. Found {rt} documents with URL: {url}.")

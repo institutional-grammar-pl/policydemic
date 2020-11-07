@@ -1,6 +1,7 @@
 import os
 import re
-import nlpengine.tasks as nlpengine_tasks
+from collections import deque
+
 
 import scrapy
 import logging
@@ -8,6 +9,7 @@ from configparser import ConfigParser
 from scrapy.http import Response
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 
+import nlpengine.tasks as nlpengine_tasks
 
 cfg = ConfigParser()
 cfg.read('config.ini')
@@ -33,9 +35,10 @@ class LadSpider(scrapy.spiders.CrawlSpider):
 
     def parse_start_url(self, response: Response):
         for url in self.start_urls:
-            yield scrapy.Request(url=url, callback=self.parse_page, cb_kwargs={'start_url': url})
+            yield scrapy.Request(url=url, callback=self.parse_page,
+                                 cb_kwargs={'start_url': url, "parents": deque([url])})
     
-    def parse_page(self, response: Response, start_url):
+    def parse_page(self, response: Response, start_url, parents):
         if (self.sites_count[start_url] > max_depth_no_pdf and not self.found_pdf[start_url]) \
                 or self.sites_count[start_url] > max_depth:
             yield None
@@ -45,14 +48,16 @@ class LadSpider(scrapy.spiders.CrawlSpider):
                     or response.url.endswith('.pdf'):
                 self.found_pdf[start_url] = True
                 self.logger.info('it\'s pdf %s', response.url)
-                nlpengine_tasks.process_pdf_link.delay(response.url, 'legal_act')
+                nlpengine_tasks.process_pdf_link.delay(response.url, 'legal_act', parents)
             else:
+                parents.append(response.url)
                 for link in self._link_extractor.extract_links(response):
                     # self.logger.info(link.ulr)
                     match = re.match('^http[s]?://([a-z0-9.-]+)/', link.url)
                     domain = match.group(0) if match is not None else None
                     if domain is not None and self.selected_domain in domain:
-                        yield response.follow(link, callback=self.parse_page, cb_kwargs={'start_url': start_url})
+                        yield response.follow(link, callback=self.parse_page, cb_kwargs={'start_url': start_url,
+                                                                                         'parents': parents})
 
 
 

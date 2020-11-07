@@ -16,6 +16,7 @@ import translator.tasks as translator_tasks
 from nlpengine.country_domains import country_domains
 from crawler.utils import _short_text_
 from policydemic_annotator.ig_annotator import annotate_text
+from scheduler.tasks import update_hits_score
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
@@ -30,6 +31,7 @@ DOC_TYPE = cfg['elasticsearch']['doc_type']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
 max_n_chars_to_translate_by_api = int(cfg['translator']['max_n_chars_to_translate_by_api'])
+n_parents = int(cfg['crawler']['parents_hits'])
 
 SCRAP_DATE_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
 
@@ -37,14 +39,14 @@ _log = logging.getLogger()
 
 
 @app.task(queue='light')
-def process_pdf_link(pdf_url, document_type='secondary_source'):
+def process_pdf_link(pdf_url, document_type='secondary_source', parents=None):
     print(f"Received pdf: {pdf_url}")
 
     pdf_chain = \
         download_pdf.s() | \
         parse_pdf.s() | \
         translate_pdf.s() | \
-        process_document.s()
+        process_document.s(parents)
 
     if not pdfparser_tasks.is_duplicate(pdf_url):
         pdf_chain(pdf_url, document_type)
@@ -228,7 +230,7 @@ def annotate_and_update(_id, body):
 
 
 @app.task
-def process_document(body):
+def process_document(body, parents=None):
     scrap_date = datetime.now().strftime(SCRAP_DATE_FORMAT)
     body.update({
         "scrap_date": scrap_date
@@ -245,6 +247,15 @@ def process_document(body):
         old_pdf_path = body.get("pdf_path")
         pdf_filename = Path(old_pdf_path).name
         if on_subject:
+            if parents is not None:
+                urls_hits_update = []
+                parents_count = 0
+                while parents:
+                    urls_hits_update.append(parents.pop())
+                    parents_count += 1
+                for parent_url in urls_hits_update:
+                    update_hits_score(parent_url)
+
             _log.error([body.get('keywords', ''), in_text_keywords])
             new_pdf_path = pdf_dir / 'subject_accepted' / pdf_filename
             os.makedirs(pdf_dir / 'subject_accepted', exist_ok=True)

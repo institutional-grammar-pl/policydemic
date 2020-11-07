@@ -24,10 +24,12 @@ gov_sites_path = cfg['paths']['gov_websites']
 
 SCRAP_DATE_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
 max_n_chars_to_translate = int(cfg['translator']['max_n_chars_to_translate'])
+lad_depth = int(cfg['crawler']['lad_depth'])
+lad_domain = cfg['crawler']['lad_domain']
 
 
 @app.task(queue='crawler')
-def crawl_lad(depth=5, urls=None, domain='gov'):
+def crawl_lad(depth=lad_depth, urls=None, domain=lad_domain):
     """Starts crawling process which downloads pdfs from all prepared .gov websites"""
     if urls is None:
         urls = list(get_gov_websites(gov_sites_path))
@@ -46,7 +48,7 @@ def crawl_lad(depth=5, urls=None, domain='gov'):
         'Upgrade-Insecure-Requests': '1',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
     })
-    settings.set('CONCURRENT_REQUESTS', 64)
+    settings.set('CONCURRENT_REQUESTS', 2)
     settings.set('DEPTH_LIMIT', depth)
     process = CrawlerProcess(settings)
 
