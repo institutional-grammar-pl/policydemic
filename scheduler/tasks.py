@@ -1,6 +1,7 @@
 from configparser import RawConfigParser
 import datetime
 import random
+import logging
 
 import googlesearch
 from elasticsearch import Elasticsearch
@@ -15,8 +16,10 @@ from .utils import get_new_links, get_old_links, get_top_links, get_urls_by_quer
 cfg = RawConfigParser()
 cfg.read('config.ini')
 
+_log = logging.getLogger()
 DATE_FORMAT = cfg['elasticsearch']['DATE_FORMAT']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
+filtering_keywords = cfg['document_states']['search_keywords'].split(',')
 es_hosts = cfg['elasticsearch']['hosts']
 default_date = cfg['pdfparser']['default_date']
 LINKS_INDEX_NAME = cfg['elasticsearch']['crawler_index_name']
@@ -32,7 +35,10 @@ def add_new_links():
     urls = []
     # get new urls from search api
     for word in filtering_keywords:
-        urls.extend(googlesearch.search(f'site:*.gov.* {word}', num=80, start=0, stop=None))
+        try:
+            urls.extend(googlesearch.search(f'site:*.gov.* {word}', num=40, start=0, stop=150, pause=25.0))
+        except:
+            _log.error('Googlesearch did not respond.')
     # save new urls to ES with default las_crawl date
     curr_date = datetime.now().strftime(DATE_FORMAT)
     url_dicts = [{
