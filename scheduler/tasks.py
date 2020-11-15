@@ -1,5 +1,5 @@
 from configparser import RawConfigParser
-import datetime
+from datetime import datetime
 import random
 import logging
 
