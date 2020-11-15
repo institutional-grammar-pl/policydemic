@@ -41,15 +41,15 @@ def add_new_links():
             _log.error('Googlesearch did not respond.')
     # save new urls to ES with default las_crawl date
     curr_date = datetime.now().strftime(DATE_FORMAT)
-    url_dicts = [{
+    ops = [es.index_op({
         'last_crawl': default_date,
         'added_on': curr_date,
         'url': url,
         'type': 'root',
         'hits': 0
-    } for url in urls if not links_is_duplicate(url)]
-
-    es.bulk_index(LINKS_INDEX_NAME, DOC_TYPE, url_dicts)
+    }) for url in urls if url is not None and not links_is_duplicate(url)]
+    if ops:
+        es.bulk(ops, LINKS_INDEX_NAME, DOC_TYPE)
 
 
 @app.task
@@ -74,8 +74,8 @@ def crawler_init(chain_result=None):
             'last_crawl': datetime.now().strftime(DATE_FORMAT)
     }
     actions = [es.update_op(body, id=_id) for _id in all_ids]
-
-    es.bulk(actions, index=LINKS_INDEX_NAME)
+    if actions:
+        es.bulk(actions, index=LINKS_INDEX_NAME)
 
 
 @app.task

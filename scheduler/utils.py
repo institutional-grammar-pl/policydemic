@@ -88,8 +88,8 @@ def get_new_links(n_links):
                     {
                         "range": {
                             "last_crawl": {
-                                "gt": "1899-01-01 00:00:00",
-                                "lte": "1901-01-01 00:00:00"
+                                "gt": "1899-01-01",
+                                "lte": "1901-01-01"
                             }
                         }
                     }
@@ -110,7 +110,7 @@ def get_old_links(n_links):
                     {
                         "range": {
                             "last_crawl": {
-                                "gt": "1900-01-01 00:00:00",
+                                "gt": "1900-01-01",
                                 "lte": "now"
                             }
                         }
