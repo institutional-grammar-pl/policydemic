@@ -5,6 +5,7 @@ import logging
 
 import googlesearch
 from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
 
 from scheduler.celery import app
 from celery.schedules import crontab
@@ -41,15 +42,20 @@ def add_new_links():
             _log.error('Googlesearch did not respond.')
     # save new urls to ES with default las_crawl date
     curr_date = datetime.now().strftime(DATE_FORMAT)
-    ops = [es.index_op({
-        'last_crawl': default_date,
-        'added_on': curr_date,
-        'url': url,
-        'type': 'root',
-        'hits': 0
-    }) for url in urls if url is not None and not links_is_duplicate(url)]
-    if ops:
-        es.bulk(ops, LINKS_INDEX_NAME, DOC_TYPE)
+    actions = [
+        {'_index': LINKS_INDEX_NAME,
+        '_source': {
+            'last_crawl': default_date,
+            'added_on': curr_date,
+            'url': url,
+            'type': 'root',
+            'hits': 0
+            }
+        } for url in urls if url is not None and not links_is_duplicate(url)
+    ]
+    if actions:
+        # es.bulk(actions, LINKS_INDEX_NAME, DOC_TYPE)
+        bulk(es, actions)
 
 
 @app.task
@@ -70,12 +76,18 @@ def crawler_init(chain_result=None):
     crawl_lad.delay(depth=depth, urls=all_urls)
 
     # update crawl dates of links
-    body = {
-            'last_crawl': datetime.now().strftime(DATE_FORMAT)
-    }
-    actions = [es.update_op(body, id=_id) for _id in all_ids]
+    actions = [
+        {
+            '_op_type': 'update',
+            '_id': _id,
+            '_index': LINKS_INDEX_NAME,
+            '_source': {
+                'last_crawl': datetime.now().strftime(DATE_FORMAT)
+            }
+        } for _id in all_ids
+    ]
     if actions:
-        es.bulk(actions, index=LINKS_INDEX_NAME)
+        bulk(es, actions)
 
 
 @app.task
