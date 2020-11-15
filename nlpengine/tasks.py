@@ -16,7 +16,9 @@ import translator.tasks as translator_tasks
 from nlpengine.country_domains import country_domains
 from crawler.utils import _short_text_
 from policydemic_annotator.ig_annotator import annotate_text
-from scheduler.tasks import update_hits_score
+from scheduler.utils import update_hits_score
+from .utils import update_document
+from .utils import index_document
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
@@ -250,7 +252,7 @@ def process_document(body, parents=None):
             if parents is not None:
                 urls_hits_update = []
                 parents_count = 0
-                while parents:
+                while parents and parents_count < n_parents:
                     urls_hits_update.append(parents.pop())
                     parents_count += 1
                 for parent_url in urls_hits_update:
@@ -280,40 +282,10 @@ def process_document(body, parents=None):
     index_document(body)
 
 
-def index_document(body):
-    """
-    Stores a document in Elasticsearch index, according to the structure
-
-    :param body: document body (JSON-like)
-    :return: response from Elasticsearch
-    """
-    es.index(
-        index=INDEX_NAME,
-        doc_type=DOC_TYPE,
-        body=body
-    )
-
 
 @app.task(queue='light')
 def index_doc_task(body):
     index_document(body)
-
-
-def update_document(body, doc_id):
-    """
-    Updates a document in Elasticsearch index, applying mentioned changes
-
-    :param doc_id: hash document ID
-    :param body: elements of body to update
-    :return response from Elasticsearch
-    """
-
-    es.update(
-        index=INDEX_NAME,
-        doc_type=DOC_TYPE,
-        id=doc_id,
-        body={'doc': body}
-    )
 
 
 @app.task(queue='light')
