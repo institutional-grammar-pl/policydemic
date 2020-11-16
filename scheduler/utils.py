@@ -1,8 +1,9 @@
 from configparser import RawConfigParser
 import logging
-import datetime
+from datetime import datetime
 
 from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
 
 from nlpengine.utils import update_document
 from nlpengine.utils import index_document
@@ -14,6 +15,7 @@ es_hosts = cfg['elasticsearch']['hosts']
 LINKS_INDEX_NAME = cfg['elasticsearch']['crawler_index_name']
 DOC_TYPE = cfg['elasticsearch']['doc_type']
 DATE_FORMAT = cfg['elasticsearch']['DATE_FORMAT']
+default_date = cfg['pdfparser']['default_date']
 
 es = Elasticsearch(hosts=es_hosts)
 
@@ -59,7 +61,6 @@ def update_hits_score(url):
                                                              for doc in query_rt['hits']['hits']]
 
         if doc_params:
-
             hits_, id_ = doc_params[0]
             new_body = {
                 'hits': hits_+1,
@@ -141,6 +142,28 @@ def get_top_links(n_links):
 
 def get_urls_by_query(query):
     query_rt = es.search(query, index=LINKS_INDEX_NAME)
-    return [doc['_source']['url'] for doc in query_rt['hits']['hits']], [doc['_id'] for doc in query_rt['hits']['hits']]
+    print(query_rt)
+    return [(doc.get('_id', None), doc['_source'].get('url', None))
+    for doc in query_rt['hits']['hits'] 
+    if doc['_source'].get('url', None) is not None]
 
 
+def load_links_from_file(path):
+    with open(path) as link_file:
+        file_text = link_file.read()
+        urls = [url.strip(' ,;') for url in file_text.split('\n')]
+    curr_date = datetime.now().strftime(DATE_FORMAT)
+
+    actions = [
+        {'_index': LINKS_INDEX_NAME,
+        '_source': {
+            'last_crawl': default_date,
+            'added_on': curr_date,
+            'url': url,
+            'type': 'root',
+            'hits': 0
+            }
+        } for url in urls if url is not None and not links_is_duplicate(url)
+    ]
+    if actions:
+        bulk(es, actions)

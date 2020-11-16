@@ -12,7 +12,7 @@ from celery.schedules import crontab
 
 from crawler.tasks import crawl_lad
 from .utils import links_is_duplicate
-from .utils import get_new_links, get_old_links, get_top_links, get_urls_by_query
+from .utils import get_new_links, get_old_links, get_top_links
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
@@ -35,7 +35,7 @@ es = Elasticsearch(hosts=es_hosts)
 def add_new_links():
     urls = []
     # get new urls from search api
-    for word in filtering_keywords:
+    for word in filtering_keywords[0]:
         try:
             urls.extend(googlesearch.search(f'site:*.gov.* {word}', num=40, start=0, stop=150, pause=25.0))
         except:
@@ -44,7 +44,7 @@ def add_new_links():
     curr_date = datetime.now().strftime(DATE_FORMAT)
     actions = [
         {'_index': LINKS_INDEX_NAME,
-        '_source': {
+        'doc': {
             'last_crawl': default_date,
             'added_on': curr_date,
             'url': url,
@@ -54,7 +54,6 @@ def add_new_links():
         } for url in urls if url is not None and not links_is_duplicate(url)
     ]
     if actions:
-        # es.bulk(actions, LINKS_INDEX_NAME, DOC_TYPE)
         bulk(es, actions)
 
 
@@ -68,9 +67,9 @@ def crawler_init(chain_result=None):
     funcs = [get_old_links, get_new_links, get_top_links]
 
     for size, get_links in zip(sizes, funcs):
-        ids, urls = get_links(size)
-        all_urls.extend(urls)
-        all_ids.extend(ids)
+        link_tuples = get_links(size)
+        all_urls.extend([el[1] for el in link_tuples])
+        all_ids.extend([el[0] for el in link_tuples])
 
     # run crawler with that urls
     crawl_lad.delay(depth=depth, urls=all_urls)
@@ -81,11 +80,12 @@ def crawler_init(chain_result=None):
             '_op_type': 'update',
             '_id': _id,
             '_index': LINKS_INDEX_NAME,
-            '_source': {
+            'doc': {
                 'last_crawl': datetime.now().strftime(DATE_FORMAT)
             }
         } for _id in all_ids
     ]
+    _log.error('actions', len(actions))
     if actions:
         bulk(es, actions)
 
