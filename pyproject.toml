@@ -36,6 +36,7 @@ jedi = "^0.17.2"
 stanfordnlp = "^0.2.0"
 torch = "1.4.0"
 scrapyscript = "^1.1.0"
+google = "^3.0.0"
 
 
 [tool.poetry.dev-dependencies]

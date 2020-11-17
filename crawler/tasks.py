@@ -1,5 +1,6 @@
 from datetime import datetime
 from configparser import RawConfigParser
+import json
 
 from scrapyscript import Job, Processor
 

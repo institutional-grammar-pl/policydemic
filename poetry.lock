@@ -344,6 +344,17 @@ pytz = "*"
 tornado = {version = ">=5.0.0,<7.0.0", markers = "python_version >= \"3.5.2\""}
 
 [[package]]
+name = "google"
+version = "3.0.0"
+description = "Python bindings to the Google search engine."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+beautifulsoup4 = "*"
+
+[[package]]
 name = "humanize"
 version = "3.1.0"
 description = "Python humanize utilities"
@@ -1166,7 +1177,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f5bbd304e51e27ec7862423a855a9aee45280675ca0395bc578d5c6dc1b13a0c"
+content-hash = "d9ef5f2065bc609ecca78a0ea07006ed840dd1a6a38bc54a7fa62d0945ad1e69"
 
 [metadata.files]
 amqp = [
@@ -1329,6 +1340,10 @@ flake8 = [
 flower = [
     {file = "flower-0.9.5-py2.py3-none-any.whl", hash = "sha256:71be02bff7b2f56b0a07bd947fb3c748acba7f44f80ae88125d8954ce1a89697"},
     {file = "flower-0.9.5.tar.gz", hash = "sha256:56916d1d2892e25453d6023437427fc04706a1308e0bd4822321da34e1643f9c"},
+]
+google = [
+    {file = "google-3.0.0-py2.py3-none-any.whl", hash = "sha256:889cf695f84e4ae2c55fbc0cfdaf4c1e729417fa52ab1db0485202ba173e4935"},
+    {file = "google-3.0.0.tar.gz", hash = "sha256:143530122ee5130509ad5e989f0512f7cb218b2d4eddbafbad40fd10e8d8ccbe"},
 ]
 humanize = [
     {file = "humanize-3.1.0-py3-none-any.whl", hash = "sha256:6790d9ba139ce09761ae901be9b22bd32a131fa65ecc82cdfc4d86f377f7395d"},

@@ -36,7 +36,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
     def parse_start_url(self, response: Response):
         for url in self.start_urls:
             yield scrapy.Request(url=url, callback=self.parse_page,
-                                 cb_kwargs={'start_url': url, "parents": deque([url])})
+                                 cb_kwargs={'start_url': url, "parents": [url]})
     
     def parse_page(self, response: Response, start_url, parents):
         if (self.sites_count[start_url] > max_depth_no_pdf and not self.found_pdf[start_url]) \
