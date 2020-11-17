@@ -85,7 +85,6 @@ def crawler_init(chain_result=None):
             }
         } for _id in all_ids
     ]
-    _log.error('actions', len(actions))
     if actions:
         bulk(es, actions)
 
