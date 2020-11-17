@@ -100,6 +100,11 @@ def crawler_scheduler():
 
 @app.on_after_configure.connect
 def crawler_schedule(sender, **kwargs):
-    cron_cycle = crontab(hour=2, minute=10)
+    cron_cycle = crontab(hour=[2], minute=[10])
 
     sender.add_periodic_task(cron_cycle, crawler_scheduler)
+
+
+@app.task
+def hello_task():
+    _log.warn('HELLO WORLD')
