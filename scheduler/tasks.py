@@ -10,7 +10,7 @@ from elasticsearch.helpers import bulk
 from scheduler.celery import app
 from celery.schedules import crontab
 
-from crawler.tasks import crawl_lad
+from crawler.tasks import crawl_lad_scrapyscript
 from .utils import links_is_duplicate
 from .utils import get_new_links, get_old_links, get_top_links
 
@@ -72,7 +72,7 @@ def crawler_init(chain_result=None):
         all_ids.extend([el[0] for el in link_tuples])
 
     # run crawler with that urls
-    crawl_lad.delay(depth=depth, urls=all_urls)
+    crawl_lad_scrapyscript.delay(depth=depth, urls=all_urls)
 
     # update crawl dates of links
     actions = [
