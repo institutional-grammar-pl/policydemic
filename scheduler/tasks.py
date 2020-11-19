@@ -35,12 +35,13 @@ es = Elasticsearch(hosts=es_hosts)
 def add_new_links():
     urls = []
     # get new urls from search api
-    for word in filtering_keywords[0]:
+    for word in filtering_keywords:
         try:
             urls.extend(googlesearch.search(f'site:*.gov.* {word}', num=40, start=0, stop=150, pause=25.0))
         except:
             _log.error('Googlesearch did not respond.')
     # save new urls to ES with default las_crawl date
+    _log.info(urls)
     curr_date = datetime.now().strftime(DATE_FORMAT)
     actions = [
         {'_index': LINKS_INDEX_NAME,

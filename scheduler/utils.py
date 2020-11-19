@@ -56,12 +56,11 @@ def update_hits_score(url):
             "size": 1
         }
         query_rt = es.search(query, LINKS_INDEX_NAME, DOC_TYPE)
-        hits_list, ids_list = [(doc['_source']['hits'], doc['_id'])
-                      for doc in query_rt['hits']['hits']], [doc['_id']
-                                                             for doc in query_rt['hits']['hits']]
+        doc_infos = [(doc['_source']['hits'], doc['_id'])
+                      for doc in query_rt['hits']['hits']]
 
-        if hits_list is not None and ids_list is not None:
-            hits_, id_ = hits_list[0], ids_list[0]
+        if doc_infos is not None:
+            hits_, id_ = doc_infos[0]
             new_body = {
                 'hits': hits_+1,
                 'last_crawl': curr_date
