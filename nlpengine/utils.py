@@ -1,5 +1,4 @@
 from configparser import RawConfigParser
-
 from elasticsearch import Elasticsearch
 
 cfg = RawConfigParser()

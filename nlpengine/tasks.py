@@ -11,12 +11,13 @@ import shutil
 from elasticsearch import Elasticsearch
 
 from scheduler.celery import app
+from scheduler.utils import update_hits_score
 import pdfparser.tasks as pdfparser_tasks
 import translator.tasks as translator_tasks
 from nlpengine.country_domains import country_domains
 from crawler.utils import _short_text_
 from policydemic_annotator.ig_annotator import annotate_text
-from scheduler.utils import update_hits_score
+
 from .utils import update_document
 from .utils import index_document
 
@@ -25,15 +26,19 @@ cfg.read('config.ini')
 
 es_hosts = cfg['elasticsearch']['hosts']
 pdf_dir = Path(cfg['paths']['pdf_database'])
+txt_dir = Path(cfg['paths']['txt_database'])
 anns_dir = Path(cfg['paths']['annotation_files'])
+default_date = cfg['pdfparser']['default_date']
 es = Elasticsearch(hosts=es_hosts)
 
 INDEX_NAME = cfg['elasticsearch']['index_name']
 DOC_TYPE = cfg['elasticsearch']['doc_type']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
-max_n_chars_to_translate_by_api = int(cfg['translator']['max_n_chars_to_translate_by_api'])
+max_n_chars_to_translate_by_api = int(
+    cfg['translator']['max_n_chars_to_translate_by_api'])
 n_parents = int(cfg['crawler']['parents_hits'])
+
 
 SCRAP_DATE_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
 
@@ -67,6 +72,49 @@ def process_pdf_path(pdf_path, document_type='legal_act'):
         process_document.s()
 
     pdf_chain(pdf_path, document_type)
+
+
+@app.task
+def process_txt_path(txt_path, document_type='legal_act'):
+    print(f"Received txt: {txt_path}")
+
+    txt_chain = \
+        get_local_txt.s() | \
+        translate_pdf.s() | \
+        index_doc_task.s()
+
+    txt_chain(txt_path, document_type)
+
+
+@app.task()
+def get_local_txt(old_txt_path, document_type=''):
+    fd, path = tempfile.mkstemp(prefix='doc_', suffix='.txt', dir=txt_dir)
+    os.close(fd)
+
+    old_filename = Path(old_txt_path).name
+    new_filename = os.path.basename(path)
+
+    shutil.move(old_txt_path, path)
+
+    date, keywords = default_date, ''
+
+    with open(path) as text_file:
+        text = text_file.read()
+
+    scrap_date = datetime.now().strftime(SCRAP_DATE_FORMAT)
+
+    return {
+        "web_page": old_filename,
+        "pdf_path": str(path),
+        "keywords": keywords,
+        "original_text": text,
+        "info_date": date,
+        "document_type": document_type,
+        "status": "subject_accepted",
+        "ocr_needed": False,
+        "text_parsing_type": 'txt_file',
+        "scrap_date": scrap_date
+    }
 
 
 @app.task()
@@ -231,6 +279,8 @@ def annotate_and_update(_id, body):
     ann_chain(body)
 
 
+
+
 @app.task
 def process_document(body, parents=None):
     scrap_date = datetime.now().strftime(SCRAP_DATE_FORMAT)
@@ -249,14 +299,7 @@ def process_document(body, parents=None):
         old_pdf_path = body.get("pdf_path")
         pdf_filename = Path(old_pdf_path).name
         if on_subject:
-            if parents is not None:
-                urls_hits_update = []
-                parents_count = 0
-                while parents and parents_count < n_parents:
-                    urls_hits_update.append(parents.pop())
-                    parents_count += 1
-                for parent_url in urls_hits_update:
-                    update_hits_score(parent_url)
+            update_parents(parents)
 
             _log.error([body.get('keywords', ''), in_text_keywords])
             new_pdf_path = pdf_dir / 'subject_accepted' / pdf_filename
@@ -291,3 +334,14 @@ def index_doc_task(body):
 @app.task(queue='light')
 def update_doc_task(body, doc_id):
     update_document(body, doc_id)
+
+
+def update_parents(parents):
+    if parents is not None:
+        urls_hits_update = []
+        parents_count = 0
+        while parents and parents_count < n_parents:
+            urls_hits_update.append(parents.pop())
+            parents_count += 1
+        for parent_url in urls_hits_update:
+            update_hits_score(parent_url)
