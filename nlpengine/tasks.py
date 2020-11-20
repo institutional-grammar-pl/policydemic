@@ -20,6 +20,7 @@ from policydemic_annotator.ig_annotator import annotate_text
 
 from .utils import update_document
 from .utils import index_document
+from .utils import run_procssing_chain
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
@@ -55,15 +56,13 @@ def process_pdf_link(pdf_url, document_type='secondary_source', parents=None):
         translate_pdf.s() | \
         process_document.s(parents)
 
-    if not pdfparser_tasks.is_duplicate(pdf_url):
-        pdf_chain(pdf_url, document_type)
-    else:
-        _log.error("url already in database")
+    return run_procssing_chain(pdf_chain, document_type, pdf_url, pdf_url)
 
 
 @app.task
 def process_pdf_path(pdf_path, document_type='legal_act'):
     print(f"Received pdf: {pdf_path}")
+    filename = Path(pdf_path).name
 
     pdf_chain = \
         get_local_pdf.s() | \
@@ -71,19 +70,20 @@ def process_pdf_path(pdf_path, document_type='legal_act'):
         translate_pdf.s() | \
         process_document.s()
 
-    pdf_chain(pdf_path, document_type)
+    return run_procssing_chain(pdf_chain, document_type, pdf_path, filename)
 
 
 @app.task
 def process_txt_path(txt_path, document_type='legal_act'):
     print(f"Received txt: {txt_path}")
+    filename = Path(txt_path).name
 
     txt_chain = \
         get_local_txt.s() | \
         translate_pdf.s() | \
         index_doc_task.s()
 
-    txt_chain(txt_path, document_type)
+    return run_procssing_chain(txt_chain, document_type, txt_path, filename)
 
 
 @app.task()
@@ -134,7 +134,7 @@ def get_local_pdf(old_pdf_path, document_type=''):
         shutil.move(pdf_path, new_pdf_path)
 
         return {
-            "web_page": 'added_manually',
+            "web_page": pdf_filename,
             "pdf_path": str(new_pdf_path),
             "keywords": keywords,
             "info_date": date,

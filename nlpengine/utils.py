@@ -1,16 +1,32 @@
 from configparser import RawConfigParser
+import logging
+
 from elasticsearch import Elasticsearch
+
+import pdfparser.tasks as pdfparser_tasks
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
+_log = logging.getLogger()
 
 es_hosts = cfg['elasticsearch']['hosts']
-
 INDEX_NAME = cfg['elasticsearch']['index_name']
 DOC_TYPE = cfg['elasticsearch']['doc_type']
 
 es = Elasticsearch(hosts=es_hosts)
 
+
+def run_procssing_chain(chain, document_type, doc_path, doc_id):
+    if not pdfparser_tasks.is_duplicate(doc_id):
+        chain(doc_path, document_type)
+        return {
+            'is_duplicate': False
+        }
+    else:
+        _log.error("pdf already in database")
+        return {
+            'is_duplicate': True
+        }
 
 def update_document(body, doc_id, index=INDEX_NAME):
     """
