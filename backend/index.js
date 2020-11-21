@@ -497,6 +497,7 @@ router.post('/annotate', (ctx) => {
     document = ctx.body.document
     const task = celery_client.createTask("nlpengine.tasks.annotate_and_update");
     const result = task.applyAsync([ctx.body.id, document]);
+    console.log('document', document)
     ctx.status = 200
 });
 
