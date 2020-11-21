@@ -40,7 +40,7 @@ router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
 
-async function autocompleteField(field) {
+async function autocompleteField(field, type) {
 
     const results = await client.search({
         index: 'documents',
@@ -58,10 +58,40 @@ async function autocompleteField(field) {
     return unique_values.map((row)=>({name: row.key, value:row.key}))
 }
 
-router.get('/autocomplete/countries', async (ctx) => {
-    ctx.body = await autocompleteField("country")
+async function autocompleteCountry(type) {
+
+    const results = await client.search({
+        index: 'documents',
+        body: {
+             "size":"0",
+             "aggs" : {
+               "unique" : {
+               "terms" : { "field" : "country", "size": 1000 }
+               }
+             },
+            "query": {
+                "bool": {
+                    "must": {
+                        "match": {
+                            "document_type": type
+                        }
+                    }
+                }
+            }        
+        }
+    })
+    
+    unique_values = results.body.aggregations.unique.buckets
+    return unique_values.map((row)=>({name: row.key, value:row.key}))
+}
+
+router.get('/autocomplete/countries_ssd', async (ctx) => {
+    ctx.body = await autocompleteCountry("secondary_source")
 })
 
+router.get('/autocomplete/countries_lad', async (ctx) => {
+    ctx.body = await autocompleteCountry("legal_act")
+})
 
 router.get('/autocomplete/languages', async (ctx) => {
     ctx.body = await autocompleteField("language")
@@ -462,12 +492,10 @@ router.post('/translate', (ctx) => {
 
 });
 
-router.post('/annotate/', (ctx) => {
+router.post('/annotate', (ctx) => {
     ctx.body = ctx.request.body
     document = ctx.body.document
-
     const task = celery_client.createTask("nlpengine.tasks.annotate_and_update");
-
     const result = task.applyAsync([ctx.body.id, document]);
     ctx.status = 200
 });
