@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import 'date-fns';
 
 import Button from '@material-ui/core/Button';
@@ -9,7 +9,7 @@ import Typography from '@material-ui/core/Typography';
 
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import Api from "../../common/api";
 
 import AsyncAutocomplete from "./async-autocomplete.component";
@@ -33,7 +33,7 @@ const selectDateTime = (v) => {
     }
 }
 
-export default function NewDocFormComponent({ document, type, onSuccessfulSend }) {
+export default function EditDocFormComponent({ document, type, onSuccessfulSend }) {
     const pdfUpload = type === "LAD";
     const [infoDate, setInfoDate] = React.useState(document ? document.info_date : undefined);
     const [scrapDate, setScrapDate] = React.useState(document ? document.scrap_date : undefined);
@@ -101,7 +101,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     if (typeof document.keywords=== 'string') {
         document.keywords = document.keywords.split(',')
         document.keywords = document.keywords.filter(function (el) {
-              return el != "";
+              return el !== "";
         });
     }
 
@@ -133,7 +133,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     }
 
     return (
-        <form id={document ? "edit-doc-form" : "new-doc-form"} onSubmit={handleSubmit(onSubmit)}>
+        <form id="edit-doc-form" onSubmit={handleSubmit(onSubmit)}>
             <MuiPickersUtilsProvider utils={DateFnsUtils}>
                 <Grid container spacing={5}>
                     <Grid container item xs={12} spacing={4} justify="center">
@@ -326,8 +326,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                         />
                     </Grid>
 
-
-                    {(type === "LAD") &&   (document.language !='English') &&
+                    {(type === "LAD") &&   (document.language !== 'English') &&
                     (<Button
                         variant="contained"
                         className="button-submit"
@@ -335,15 +334,15 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                         onClick={(event) => onTranslateClicked(event)}>
                         Translate
                     </Button>)}
-                    {(type === "LAD") &&   (document.language !='English') && (translated) &&  
-                        (<Typography variant="body2" component="p" style={{"margin-top":'19px', 'margin-left':'2em'}}>
+                    {(type === "LAD") &&   (document.language !== 'English') && (translated) &&  
+                        (<Typography variant="body2" component="p" style={{"marginTop":'19px', 'marginLeft':'2em'}}>
                             Document sent to translation!
                          </Typography>
                         )}
                     
 
                
-                    {(type === "LAD") && (document.language !='English') && (<Grid container item xs={12}>
+                    {(type === "LAD") && (document.language !== 'English') && (<Grid container item xs={12}>
                         <TextField
                             name="translated_text"
                             inputRef={register}
@@ -381,7 +380,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                 onClick={(event) => onAnnotateClicked(event)}>
                                 Annotate
                             </Button>
-                            {(annotated) && (<Typography variant="body2" component="p" style={{"margin-top":'19px', 'margin-left':'2em'}}>
+                            {(annotated) && (<Typography variant="body2" component="p" style={{"marginTop":'19px', 'marginLeft':'2em'}}>
                                     Document sent to annotation module!
                              </Typography>
                              )}
@@ -390,7 +389,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                     </Grid>
 
                     {(document && (type === "LAD") && <Grid container item xs={12}>
-                        <iframe style={{width: '100%', height: '30rem'}} src={`/documents/${document.id}/pdf`}/>
+                        <iframe title={document.id} style={{width: '100%', height: '30rem'}} src={`/documents/${document.id}/pdf`}/>
                     </Grid>)}
                 </Grid>
             </MuiPickersUtilsProvider>

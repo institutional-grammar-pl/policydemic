@@ -22,12 +22,10 @@ import Grid from '@material-ui/core/Grid';
 import { Container } from '@material-ui/core';
 
 import DeleteIcon from '@material-ui/icons/Delete';
-import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import AddBoxIcon from '@material-ui/icons/AddBox';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteConfirmationDialogComponent from './delete-dialog.component.js';
-import CompareTabDialogComponent from '../tabs/compare-tab-dialog.component.js';
+import CompareTabDialogComponent from '../compare/compare-tab-dialog.component.js';
 import UploadComponent from '../form/upload.component';
 
 
@@ -181,7 +179,7 @@ const EnhancedTableToolbar = (props) => {
                     style={{ display: 'flex', justifyContent: 'right' }}
                 >
 
-                    {(props.documentType=='SSD') && (<Tooltip title="Compare Selected" >
+                    {(props.documentType==='SSD') && (<Tooltip title="Compare Selected" >
                         <IconButton aria-label="compare" onClick={(event) => props.onCompareSelectedClick(event)}>
                             <CloudDownloadIcon />
                         </IconButton>
@@ -373,7 +371,7 @@ export default function EnhancedTable(props) {
                                     const isItemSelected = isSelected(row.id);
                                     const labelId = `enhanced-table-checkbox-${index}`;
 
-                                    if (row.info_date == "1900-01-01") {
+                                    if (row.info_date === "1900-01-01") {
                                         row.info_date = "-"
                                     }
 
@@ -395,10 +393,10 @@ export default function EnhancedTable(props) {
                                             </TableCell>
                                             <TableCell align="left">{row.title}</TableCell>
                                             <TableCell align="left">{row.info_date}</TableCell>
-                                            {(props.documentType == 'SSD') && (
+                                            {(props.documentType === 'SSD') && (
                                                 <TableCell align="left">{row.section}</TableCell>
                                             )}
-                                            {(props.documentType == 'SSD') && (
+                                            {(props.documentType === 'SSD') && (
                                                 <TableCell align="left">{row.organization}</TableCell>
                                             )}
 
@@ -434,12 +432,12 @@ export default function EnhancedTable(props) {
             </Paper>
         </Container>
 
-        {(props.documentType=='LAD') && (<Container>
+        {(props.documentType==='LAD') && (<Container>
             <UploadComponent name="uploadFile" setValue={function(_, file) {
                 Api.uploadFile(file).then((resp) => {
                     console.log('resp', resp)
                     console.log(resp.request.status)
-                    if (resp.request.status == 200) {
+                    if (resp.request.status === 200) {
                         setUploaded(true)
                     } 
                 }).catch((resp) => {
@@ -449,11 +447,11 @@ export default function EnhancedTable(props) {
             }}/>
             <Grid item xs={5}>
 
-            {(uploaded === true) && (<Typography variant="body2" component="p" style={{"margin-top":'19px', 'margin-left':'2em'}}>
+            {(uploaded === true) && (<Typography variant="body2" component="p" style={{"marginTop":'19px', 'marginLeft':'2em'}}>
                             Document uploaded!
                         </Typography>
                         )}
-            {(typeof uploaded == 'string') &&  (<Typography variant="body2" component="p" style={{"margin-top":'19px', 'margin-left':'2em', 'color': 'red'}}>
+            {(typeof uploaded == 'string') &&  (<Typography variant="body2" component="p" style={{"marginTop":'19px', 'marginLeft':'2em', 'color': 'red'}}>
                             {uploaded}
                         </Typography>)
                 }

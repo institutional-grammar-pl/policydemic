@@ -13,16 +13,12 @@ import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
-import Checkbox from '@material-ui/core/Checkbox';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
-import EditIcon from '@material-ui/icons/Edit';
 import Box from '@material-ui/core/Box';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 
 import { Container } from '@material-ui/core';
-
-import Api from '../../common/api.js';
 
 
 function descendingComparator(a, b, orderBy) 
@@ -56,12 +52,12 @@ function stableSort(array, comparator) {
 const headCells = [
     { id: 'title', alignLeft: false, label: 'Title' },
     { id: 'annotationDate', alignLeft: false, label: 'Annotation date' },
-    { id: 'download', a1lignLeft: false, label: 'Download annotation' },
+    { id: 'download', a1lignLeft: false, label: 'Download annotation*' },
 
 ];
 
 function EnhancedTableHead(props) {
-    const { classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
+    const { classes, order, orderBy, onRequestSort } = props;
     const createSortHandler = (property) => (event) => {
         onRequestSort(event, property);
     };
@@ -69,14 +65,6 @@ function EnhancedTableHead(props) {
     return (
         <TableHead>
             <TableRow>
-                {/*<TableCell padding="checkbox">
-                    <Checkbox
-                        indeterminate={numSelected > 0 && numSelected < rowCount}
-                        checked={rowCount > 0 && numSelected === rowCount}
-                        onChange={onSelectAllClick}
-                        inputProps={{ 'aria-label': 'select all desserts' }}
-                    />
-                </TableCell>*/}
                 {headCells.map((headCell) => (
                     <TableCell
                         key={headCell.id}
@@ -108,7 +96,6 @@ EnhancedTableHead.propTypes = {
     classes: PropTypes.object.isRequired,
     numSelected: PropTypes.number.isRequired,
     onRequestSort: PropTypes.func.isRequired,
-    onSelectAllClick: PropTypes.func.isRequired,
     order: PropTypes.oneOf(['asc', 'desc']).isRequired,
     orderBy: PropTypes.string.isRequired,
     rowCount: PropTypes.number.isRequired,
@@ -160,7 +147,6 @@ const EnhancedTableToolbar = (props) => {
 
 EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
-    /*onDeleteClick: PropTypes.func.isRequired,*/
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -208,35 +194,6 @@ export default function EnhancedTable(props) {
         setOrderBy(property);
     };
 
-    const handleSelectAllClick = (event) => {
-        // if (event.target.checked) {
-        //     const newSelecteds = rows.map((n) => n.id);
-        //     setSelected(newSelecteds);
-        //     return;
-        // }
-        // setSelected([]);
-    };
-
-    const handleClick = (event, name) => {
-        // const selectedIndex = selected.indexOf(name);
-        // let newSelected = [];
-
-        // if (selectedIndex === -1) {
-        //     newSelected = newSelected.concat(selected, name);
-        // } else if (selectedIndex === 0) {
-        //     newSelected = newSelected.concat(selected.slice(1));
-        // } else if (selectedIndex === selected.length - 1) {
-        //     newSelected = newSelected.concat(selected.slice(0, -1));
-        // } else if (selectedIndex > 0) {
-        //     newSelected = newSelected.concat(
-        //         selected.slice(0, selectedIndex),
-        //         selected.slice(selectedIndex + 1),
-        //     );
-        // }
-
-        // setSelected(newSelected);
-    };
-
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -250,10 +207,6 @@ export default function EnhancedTable(props) {
 
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
-    /*const downloadSelectedButtonClicked = (event) => {
-        alert("download items: " + selected);
-    };
-*/
     return (
         <Box textAlign="left"><div>
      
@@ -262,7 +215,6 @@ export default function EnhancedTable(props) {
                 <EnhancedTableToolbar
                     numSelected={selected.length}
                     tableTitle={tableTitle}
-/*                  onDownloadSelectedClick={downloadSelectedButtonClicked}*/
                 />
                 <TableContainer>
                     <Table
@@ -276,7 +228,6 @@ export default function EnhancedTable(props) {
                             numSelected={selected.length}
                             order={order}
                             orderBy={orderBy}
-                            //onSelectAllClick={handleSelectAllClick}
                             onRequestSort={handleRequestSort}
                             rowCount={rows.length}
                         />
@@ -285,24 +236,17 @@ export default function EnhancedTable(props) {
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((row, index) => {
                                     const isItemSelected = isSelected(row.id);
-                                    const labelId = `enhanced-table-checkbox-${index}`;
 
                                     return (
                                         <TableRow
                                             hover
-                                            onClick={(event) => handleClick(event, row.id)}
                                             role="checkbox"
                                             aria-checked={isItemSelected}
                                             tabIndex={-1}
                                             key={index}
                                             selected={isItemSelected}
                                         >
-                                            {/*<TableCell padding="checkbox">
-                                                <Checkbox
-                                                    checked={isItemSelected}
-                                                    inputProps={{ 'aria-labelledby': labelId }}
-                                                />
-                                            </TableCell>*/}
+
                                             <TableCell align="left">{row.title}</TableCell>
                                             <TableCell align="left">{row.annotationDate}</TableCell>
                                             <TableCell align="left">
