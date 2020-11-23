@@ -420,31 +420,43 @@ async function updateDocument(ctx){
     })
 }
 
-router.post('/upload', upload.single('pdf'), (ctx) => {
-    const pdf = ctx.req.file // originalname, encoding, mimetype, buffer, size
+router.post('/upload', upload.single('uploadFile'), (ctx) => {
+    const file = ctx.req.file // originalname, encoding, mimetype, buffer, size
+    console.log(file.mimetype)
+    const mimetype = file.mimetype
     if (!ctx.req.file) {
         ctx.body = "No file given!";
         ctx.status = 422;
         return
     }
     return new Promise((resolve, reject) => {
-        const path = "/tmp/policydemic_" + pdf.originalname
-        fs.writeFile(path, pdf.buffer, (err) => {
-            if (err) {
-                reject(err)
-                return
-            }
-            const task = celery_client.createTask("nlpengine.tasks.process_pdf_path");
-            const result = task.applyAsync([path]);
+        const path = "/tmp/policydemic_" + file.originalname
+        if (['application/pdf', 'text/plain'].includes(mimetype)) {
+            fs.writeFile(path, file.buffer, (err) => {
+                if (err) {
+                    reject(err)
+                    return
+                }
+                const task = celery_client.createTask(mimetype == 'application/pdf' ? 
+                    "nlpengine.tasks.process_pdf_path" : 
+                    "nlpengine.tasks.process_txt_path");
+                const result = task.applyAsync([path]);
 
-            ctx.body = "File sent for processing!"
-            ctx.status = 200
+                ctx.body = "File sent for processing!"
+                ctx.status = 200
+                resolve(ctx)
+                console.log('before results get')
+                result.get().then(data => {
+                    console.log('celery task finished for file ', file.originalname, "\nresult:\n", data);
+                });
+                console.log('after results get')
+            }) 
+        } else {
+            console.log('other mimetype')
+            ctx.body = "Incorrect file type. Only .txt or .pdf allowed."
+            ctx.status = 422
             resolve(ctx)
-
-            result.get().then(data => {
-              console.log('celery task finished for pdf ', pdf.originalname, "\nresult:\n", data);
-            });
-        })
+        }
     })
 });
 
@@ -454,15 +466,11 @@ router.post('/translate', (ctx) => {
     document = ctx.body.document
     const task = celery_client.createTask("nlpengine.tasks.translate_and_update");
     const result = task.applyAsync([ctx.body.id, document]);
-/*    result.get().then(data => {
-      console.log('translated', data);
-    })*/
-
     ctx.status = 200
 
 });
 
-router.post('/annotate/', (ctx) => {
+router.post('/annotate', (ctx) => {
     ctx.body = ctx.request.body
     document = ctx.body.document
 
