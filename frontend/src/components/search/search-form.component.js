@@ -202,8 +202,8 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                         label="Country" margin="normal" />}
                                 onChange={(e, opts) => setValue("country", opts.map(o => o.value), e)}
                             />
-                        </Grid>) : 
-                        (<Grid item xs={4}>
+                        </Grid>)}
+                        {(type === "LAD") &&(<Grid item xs={4}>
                             <AsyncAutocomplete
                                 name="country"
                                 collectionName="countries_lad"
