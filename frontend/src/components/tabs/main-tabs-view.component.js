@@ -7,9 +7,6 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import SwipeableViews from 'react-swipeable-views';
-
-import LadTabComponent from './lad-tab.component.js';
-import SsdTabComponent from './ssd-tab.component.js';
 import SearchTabComponent from './search-tab.component.js';
 import AnnotatorTabComponent from './annotator-tab.component.js';
 
@@ -88,12 +85,6 @@ export default function MainTabs() {
         index={value}
         onChangeIndex={handleChangeIndex}
       >
-{/*        <TabPanel value={value} index={0}>
-          <LadTabComponent />
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          <SsdTabComponent />
-        </TabPanel>*/}
         <TabPanel value={value} index={0}>
           <SearchTabComponent documentType="LAD"/>
         </TabPanel>

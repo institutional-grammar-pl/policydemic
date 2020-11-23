@@ -1,10 +1,9 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import 'date-fns';
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
-import Autocomplete from '@material-ui/lab/Autocomplete';
 import Box from '@material-ui/core/Box';
 
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
@@ -30,7 +29,7 @@ const selectDate = (v) => {
 
 export default function SearchFormComponent({ type, onSearch, onReset }) {
     const aWeekAgo = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000);
-    const { register, handleSubmit, errors, reset, setValue, control } = useForm();
+    const { register, handleSubmit, errors, reset, setValue } = useForm();
 
     const [selectedDateFrom, setSelectedDateFrom] = React.useState(selectDate(new Date(2020,0,1)));
     const handleChangeDateFrom = (date) => {
@@ -61,10 +60,10 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
     };
 
     const onSubmit = (data) => {
-        if (data.keywords == "") {
+        if (data.keywords === "") {
             data.keywords = undefined
         }
-        if (data.keywords != undefined) {
+        if (data.keywords !== undefined) {
             data.keywords = data.keywords.split(',')
         }
         onSearch(data);

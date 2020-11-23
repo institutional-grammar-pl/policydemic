@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Container } from '@material-ui/core';
-import { useFormDialog } from '../../common/hooks/form-dialog-hook';
-import AnnotationTableComponent from './annotation-table.component.js';
 import { CircularProgress } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
+
+import AnnotationTableComponent from '../annotator/annotation-table.component.js';
 
 import Api from '../../common/api.js';
 
 export default function AnnotatorTabComponent() {
     const [documents, setDocuments] = useState();
-    const [openDialog, handleOpenDialog, handleCloseDialog] = useFormDialog();
 
     useEffect(() => {
         Api.getAnnotatedDocuments()
@@ -29,5 +29,8 @@ export default function AnnotatorTabComponent() {
                 }))}/>            
             : <CircularProgress />
         }
+            <Typography variant="body2" component="p" style={{"marginTop":'19px', 'marginLeft':'2em'}}>
+                *Annotation files are in .tsv format and contain annotation of "IG Core Regulative" Layer.
+            </Typography>
     </Container>);
 }
