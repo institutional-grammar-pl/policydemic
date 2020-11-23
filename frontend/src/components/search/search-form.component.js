@@ -187,10 +187,10 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                     </Grid>
                     <Grid container item xs={12} spacing={1} justify="space-around">
 
-                        <Grid item xs={4}>
+                        {(type === "SSD") &&  (<Grid item xs={4}>
                             <AsyncAutocomplete
                                 name="country"
-                                collectionName="countries"
+                                collectionName="countries_ssd"
                                 openOnFocus
                                 fullWidth
                                 multiple
@@ -202,7 +202,23 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                         label="Country" margin="normal" />}
                                 onChange={(e, opts) => setValue("country", opts.map(o => o.value), e)}
                             />
-                        </Grid>
+                        </Grid>) : 
+                        (<Grid item xs={4}>
+                            <AsyncAutocomplete
+                                name="country"
+                                collectionName="countries_lad"
+                                openOnFocus
+                                fullWidth
+                                multiple
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params}
+                                        name="country"
+                                        inputRef={register}
+                                        label="Country" margin="normal" />}
+                                onChange={(e, opts) => setValue("country", opts.map(o => o.value), e)}
+                            />
+                        </Grid>)}
 
                         {(type === "SSD") && 
  
