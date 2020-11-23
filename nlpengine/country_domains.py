@@ -35,7 +35,7 @@ country_domains = {'af': 'Afghanistan', 'ax': 'Aland', 'al': 'Albania', 'dz': 'A
                    'pt': 'Portugal', 'pr': 'Puerto Rico', 'qa': 'Qatar', 'ro': 'Romania', 'ru': 'Russia',
                    'rw': 'Rwanda', 'sh': 'Saint Helena', 'kn': 'Saint Kitts and Nevis', 'lc': 'Saint Lucia',
                    'vc': 'Saint Vincent and the Grenadines', 'ws': 'Samoa', 'sm': 'San Marino', 'sa': 'Saudi Arabia',
-                   'sn': 'Senegal', 'rs': 'Serbia', 'sc': 'Seychelles', 'sl': 'Sierra Leone', 'sg': 'Singapore',
+                   'sn': 'Senegal', 'rs': 'Serbia', 'sc': 'Seychelles', 'scot': 'Scotland', 'sl': 'Sierra Leone', 'sg': 'Singapore',
                    'sx': 'Sint Maarten', 'sk': 'Slovakia', 'si': 'Slovenia', 'sb': 'Solomon Islands', 'so': 'Somalia',
                    'za': 'South Africa', 'gs': 'South Georgia and the South Sandwich Islands', 'ss': 'South Sudan',
                    'es': 'Spain', 'lk': 'Sri Lanka', 'sd': 'Sudan', 'sr': 'Suriname',
@@ -46,4 +46,4 @@ country_domains = {'af': 'Afghanistan', 'ax': 'Aland', 'al': 'Albania', 'dz': 'A
                    'ua': 'Ukraine', 'ae': 'United Arab Emirates ', 'us': 'United States of America ',
                    'vi': 'United States Virgin Islands', 'uy': 'Uruguay', 'uz': 'Uzbekistan', 'vu': 'Vanuatu',
                    'va': 'Vatican City', 've': 'Venezuela', 'vn': 'Vietnam', 'eh': 'Western Sahara', 'ye': 'Yemen',
-                   'zm': 'Zambia', 'zw': 'Zimbabwe'}
+                   'zm': 'Zambia', 'zw': 'Zimbabwe', 'int': 'International', 'gov': 'United States of America', 'com': 'International', 'org': 'International'}
