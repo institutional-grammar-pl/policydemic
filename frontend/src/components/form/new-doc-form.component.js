@@ -65,7 +65,6 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
             scrapDate: document.scrap_date,
             country: document.country,
             language: document.language,
-            translation_type: document.translation_type,
             translated_text: document.translated_text,
             original_text: document.original_text,
             annotation_text: document.annotation_text,
@@ -83,7 +82,6 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         register({ name: "web_page" });
         register({ name: "country" });
         register({ name: "language" });
-        register({ name: "translation_type" });
         register({ name: "status" });
 
 
@@ -310,25 +308,6 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                                         label="Language" margin="normal" />}
                             />
                         </Grid>
-                        {(type === "LAD") && (<Grid item md={4}>
-                            <AsyncAutocomplete
-                                name="translation_type"
-                                collectionName="translationTypes"
-                                inputRef={register}
-                                style={{ width: 300 }}
-                                openOnFocus
-                                onChange={(_, opt) => setValue("translation_type", opt.value)}
-                                defaultValue={document ? {
-                                    name: document.translation_type,
-                                    value: document.translation_type,
-                                } : undefined}
-                                renderInput={(params) =>
-                                    <TextField
-                                        {...params}
-                                        inputRef={register}
-                                        label="Translation type" margin="normal" />}
-                            />
-                        </Grid>)}
                     </Grid>
 
                     <Grid container item xs={12}>

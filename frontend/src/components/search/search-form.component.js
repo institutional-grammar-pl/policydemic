@@ -32,7 +32,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
     const aWeekAgo = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000);
     const { register, handleSubmit, errors, reset, setValue, control } = useForm();
 
-    const [selectedDateFrom, setSelectedDateFrom] = React.useState(selectDate(aWeekAgo));
+    const [selectedDateFrom, setSelectedDateFrom] = React.useState(selectDate(new Date(2020,0,1)));
     const handleChangeDateFrom = (date) => {
         date = selectDate(date);
         setSelectedDateFrom(date);
