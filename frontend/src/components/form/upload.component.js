@@ -8,6 +8,8 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Pagination from '@material-ui/lab/Pagination';
+import Typography from '@material-ui/core/Typography';
+
 
 import { Document, Page } from 'react-pdf';
 
@@ -23,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-export default function UploadPdfComponent({ name, setValue }) {
+export default function UploadComponent({ name, setValue }) {
     const classes = useStyles();
     const [file, setFile] = useState();
     const [numPages, setNumPages] = useState();
@@ -31,8 +33,11 @@ export default function UploadPdfComponent({ name, setValue }) {
 
     const handleFileChange = useCallback((event) => {
         const newFile = event.target.files[0];
-        setFile(newFile);
-        setValue(name, newFile);
+        if (newFile) {
+            setFile(newFile);
+            setValue(name, newFile);
+        }
+        document.getElementById('contained-button-file').value = ''
     }, [setFile, setValue]);
 
     const handleDocumentLoadSuccess = useCallback((obj) => {
@@ -45,10 +50,10 @@ export default function UploadPdfComponent({ name, setValue }) {
 
     return (
         <Grid container spacing="5">
-            <Grid item xs={12}>
+            <Grid item xs={5}>
                 <div className={classes.root}>
                     <input
-                        accept=".pdf"
+                        accept=".pdf,.txt"
                         className={classes.input}
                         name={name}
                         id="contained-button-file"
@@ -62,9 +67,9 @@ export default function UploadPdfComponent({ name, setValue }) {
                             endIcon={<CloudUploadIcon />}
                             component="span"
                         >
-                            Upload PDF document
+                            Upload Document
                         </Button>
-                    </label>
+                     </label>
                 </div>
             </Grid>
         </Grid>

@@ -16,6 +16,8 @@ import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
+import Grid from '@material-ui/core/Grid';
+
 
 import { Container } from '@material-ui/core';
 
@@ -26,7 +28,8 @@ import AddBoxIcon from '@material-ui/icons/AddBox';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteConfirmationDialogComponent from './delete-dialog.component.js';
 import CompareTabDialogComponent from '../tabs/compare-tab-dialog.component.js';
-import UploadPdfComponent from '../form/upload-pdf.component';
+import UploadComponent from '../form/upload.component';
+
 
 import Api from '../../common/api.js';
 
@@ -247,6 +250,8 @@ export default function EnhancedTable(props) {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5); 
     const [comparingIds, setComparingIds] = React.useState(); 
+    const [uploaded, setUploaded] = React.useState(false);
+
     
     const [deleteDialogVisible, setDeleteDialogVisible] = React.useState(false);
 
@@ -430,10 +435,29 @@ export default function EnhancedTable(props) {
         </Container>
 
         {(props.documentType=='LAD') && (<Container>
-            <UploadPdfComponent name="pdf" setValue={function(_, file) {
-                Api.uploadPDF(file).then((resp) => {
+            <UploadComponent name="uploadFile" setValue={function(_, file) {
+                Api.uploadFile(file).then((resp) => {
+                    console.log('resp', resp)
+                    console.log(resp.request.status)
+                    if (resp.request.status == 200) {
+                        setUploaded(true)
+                    } 
+                }).catch((resp) => {
+                    console.log('catch resp', resp.response.data)
+                    setUploaded(resp.response.data)
                 })
             }}/>
+            <Grid item xs={5}>
+
+            {(uploaded === true) && (<Typography variant="body2" component="p" style={{"margin-top":'19px', 'margin-left':'2em'}}>
+                            Document uploaded!
+                        </Typography>
+                        )}
+            {(typeof uploaded == 'string') &&  (<Typography variant="body2" component="p" style={{"margin-top":'19px', 'margin-left':'2em', 'color': 'red'}}>
+                            {uploaded}
+                        </Typography>)
+                }
+            </Grid>
         </Container>)}
 
         </div>

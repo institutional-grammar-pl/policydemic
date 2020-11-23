@@ -4,6 +4,8 @@ import 'date-fns';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+
 
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
@@ -11,7 +13,6 @@ import { useForm, Controller } from "react-hook-form";
 import Api from "../../common/api";
 
 import AsyncAutocomplete from "./async-autocomplete.component";
-import UploadPdfComponent from './upload-pdf.component';
 
 const selectDate = (v) => {
     try {
@@ -36,6 +37,9 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
     const pdfUpload = type === "LAD";
     const [infoDate, setInfoDate] = React.useState(document ? document.info_date : undefined);
     const [scrapDate, setScrapDate] = React.useState(document ? document.scrap_date : undefined);
+    const [annotated, setAnnotated] = React.useState(false);
+    const [translated, setTranslated] = React.useState(false);
+
 
     const handleInfoDateChange = (date) => {
         date = selectDate(date);
@@ -105,6 +109,7 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
 
     const onTranslateClicked = (event) => {
         Api.translateDocument(document.id, document);
+        setTranslated(true)
         let i = 0;
         const load = () => {
             if (i++ > 10) return;
@@ -122,10 +127,11 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
         }
         setTimeout(load, 5000);
     };
-
     const onAnnotateClicked = (event) => {
         const document_values = getValues()
         Api.annotateDocument(document.id, document_values) 
+        setAnnotated(true)
+        console.log('annotated is true')
     }
 
     return (
@@ -350,6 +356,12 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                         onClick={(event) => onTranslateClicked(event)}>
                         Translate
                     </Button>)}
+                    {(type === "LAD") &&   (document.language !='English') && (translated) &&  
+                        (<Typography variant="body2" component="p" style={{"margin-top":'19px', 'margin-left':'2em'}}>
+                            Document sent to translation!
+                         </Typography>
+                        )}
+                    
 
                
                     {(type === "LAD") && (document.language !='English') && (<Grid container item xs={12}>
@@ -381,14 +393,21 @@ export default function NewDocFormComponent({ document, type, onSuccessfulSend }
                             fullWidth
                             variant="outlined"
                         />
+                        
+                        <Grid container item xs={6}>
+                            <Button
+                                variant="contained"
+                                className="button-submit"
+                                style={{ position: 'relative', left: 5, top: 5, margin: 5 }}
+                                onClick={(event) => onAnnotateClicked(event)}>
+                                Annotate
+                            </Button>
+                            {(annotated) && (<Typography variant="body2" component="p" style={{"margin-top":'19px', 'margin-left':'2em'}}>
+                                    Document sent to annotation module!
+                             </Typography>
+                             )}
+                        </Grid>
 
-                        <Button
-                            variant="contained"
-                            className="button-submit"
-                            style={{ position: 'relative', left: 5, top: 5, margin: 5 }}
-                            onClick={(event) => onAnnotateClicked(event)}>
-                            Annotate
-                        </Button>
                     </Grid>
 
                     {(document && (type === "LAD") && <Grid container item xs={12}>
