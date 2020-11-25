@@ -177,7 +177,7 @@ def index_unique_urls(urls):
         bulk(es, actions)
 
 
-def load_links_form_google(search_phrases):
+def load_links_from_google(search_phrases):
     urls = []
     # get new urls from search api
     for phrase in search_phrases:

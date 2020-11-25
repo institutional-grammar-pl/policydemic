@@ -13,7 +13,7 @@ from crawler.tasks import crawl_lad_scrapyscript
 from .utils import links_is_duplicate
 from .utils import get_new_links, get_old_links, get_top_links
 from .utils import index_unique_urls
-from .utils import load_links_form_google
+from .utils import load_links_from_google
 from .utils import load_links_from_dir
 
 cfg = RawConfigParser()
@@ -38,7 +38,7 @@ es = Elasticsearch(hosts=es_hosts)
 def add_new_links():
     # save new urls to ES with default las_crawl date
     urls = []
-    urls.extend(load_links_form_google(search_keywords))
+    urls.extend(load_links_from_google(search_keywords))
     urls.extend(load_links_from_dir(urls_dir))
     _log.info(urls)
 
