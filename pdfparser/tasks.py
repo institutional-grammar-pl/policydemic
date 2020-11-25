@@ -47,15 +47,17 @@ os.environ['OMP_THREAD_LIMIT'] = '1'
 
 
 def get_metadata(pdf_path):
-    parser = PDFParser(open(pdf_path, 'rb'))
-    doc = PDFDocument(parser)
+    with open(pdf_path, 'rb') as file:
+        parser = PDFParser(file)
+        doc = PDFDocument(parser)
 
     metadata = doc.info[0] if doc.info else {}
 
     keywords = metadata.get('Keywords', '')
     creation_date = metadata.get('CreationDate', '')
     try:
-        creation_date = creation_date.decode('utf-8') if isinstance(creation_date, (bytes, bytearray)) else creation_date
+        creation_date = creation_date.decode('utf-8') if isinstance(creation_date, (bytes, bytearray)) \
+            else creation_date
 
         year = creation_date[2:6]
         month = creation_date[6:8]
@@ -129,7 +131,6 @@ def download_pdf(url, directory=pdf_dir, filename='document.pdf', method=None):
 
             # write in chunks in case of big files
             for chunk in r.iter_content(chunk_size=chunk_size):
-
                 # writing one chunk at a time to pdf file
                 if chunk:
                     pdf.write(chunk)
@@ -141,7 +142,7 @@ def download_pdf(url, directory=pdf_dir, filename='document.pdf', method=None):
     else:
         try:
             requests_download()
-        except Exception:
+        except:
             curl_subprocess_download()
 
 
