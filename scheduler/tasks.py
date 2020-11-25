@@ -95,4 +95,4 @@ def crawler_schedule(sender, **kwargs):
 
 @app.task
 def hello_task():
-    _log.warn('HELLO WORLD')
+    _log.warning('HELLO WORLD')
