@@ -16,7 +16,6 @@ from crawler.lad.lad.spiders.lad import LadSpider
 from crawler.COVIDPolicyWatch.PolicyWatchSpider import PolicyWatchSpider
 from scheduler.celery import app
 
-
 from .lad.lad.gov_sites import get_gov_websites
 
 import nlpengine
@@ -48,14 +47,15 @@ def scrapy_settings(depth, conc_requests):
         'Upgrade-Insecure-Requests': '1',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
     })
-    settings.set('CONCURRENT_REQUESTS', depth)
-    settings.set('DEPTH_LIMIT', conc_requests)
+    settings.set('CONCURRENT_REQUESTS', conc_requests)
+    settings.set('DEPTH_LIMIT', depth)
 
     return settings
 
 
 @app.task(queue='crawler')
 def crawl_lad_scrapyscript(depth=lad_depth, urls=None, domain=lad_domain):
+    """Version of crawl_lad that assures multiple run on one worker without restart.    """
     settings = scrapy_settings(depth, concurrent_requests)
 
     if urls is None:
