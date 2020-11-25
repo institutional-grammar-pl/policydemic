@@ -12,8 +12,8 @@ cfg = ConfigParser()
 cfg.read('config.ini')
 govs = cfg['paths']['gov_websites']
 pdf_dir = cfg['paths']['pdf_database']
-max_depth = int(cfg['crawler']['max_depth'])
-max_depth_no_pdf = int(cfg['crawler']['max_depth_no_pdf'])
+max_depth = int(cfg['crawler']['max_depth_per_starter'])
+max_depth_no_pdf = int(cfg['crawler']['max_depth_no_pdf_per_starter'])
 
 
 class LadSpider(scrapy.spiders.CrawlSpider):
