@@ -67,6 +67,7 @@ def get_metadata(pdf_path):
 
     try:
         keywords = keywords.decode('utf-8') if isinstance(keywords, (bytes, bytearray)) else keywords
+        keywords = keywords if isinstance(keywords, str) else ''
     except:
         keywords = ''
 
@@ -75,7 +76,8 @@ def get_metadata(pdf_path):
 
 def is_pdf(path):
     try:
-        PyPDF2.PdfFileReader(open(path, "rb"), strict=False)
+        with open(path, "rb") as input_file:
+            PyPDF2.PdfFileReader(input_file, strict=False)
     except (PyPDF2.utils.PdfReadError, OSError):
         return False
     else:
@@ -173,7 +175,7 @@ def pdf_ocr(path, pages=[], lang='eng'):
         text = pytesseract.image_to_string(im, lang=lang)
         result_text.append(text)
 
-    return result_text
+    return ' '.join(result_text)
 
 
 def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
@@ -226,8 +228,7 @@ def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
     return crit, at_least_words
 
 
-@app.task
-def parse(path, method='pdfminer'):
+def parse_text(path, method):
     def pdf_miner():
         rsrc_mgr = PDFResourceManager(caching=True)
         outfp = StringIO()
@@ -257,14 +258,19 @@ def parse(path, method='pdfminer'):
     else:
         contents, n_pages = pdf_miner()
         method = 'pdfminer'
+    return contents, n_pages
 
+
+@app.task
+def parse(path, method='pdfminer'):
+    contents, n_pages = parse_text(path, method)
     contents = text_postprocessing(contents)
 
     if len(contents) < n_pages * min_n_chars_per_page:
         ocr_needed = True
         if ocr_on:
             try:
-                ocr_contents = ' '.join(pdf_ocr(path))
+                ocr_contents = pdf_ocr(path)
             except:
                 _log.error(f'ocr error on {path}')
             else:
@@ -277,8 +283,7 @@ def parse(path, method='pdfminer'):
 
 
 @app.task
-def check_content(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, similarity="hamming", threshold=5,
-                  crit="simple"):
+def check_content(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, crit="simple"):
     """
     check
 
