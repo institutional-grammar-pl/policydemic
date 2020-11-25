@@ -61,12 +61,12 @@ def update_hits_score(url):
         }
         query_rt = es.search(query, LINKS_INDEX_NAME, DOC_TYPE)
         doc_infos = [(doc['_source']['hits'], doc['_id'])
-                      for doc in query_rt['hits']['hits']]
+                     for doc in query_rt['hits']['hits']]
 
         if doc_infos is not None:
             hits_, id_ = doc_infos[0]
             new_body = {
-                'hits': hits_+1,
+                'hits': hits_ + 1,
                 'last_crawl': curr_date
             }
             # update hits for that links in ES
@@ -147,8 +147,8 @@ def get_urls_by_query(query):
     query_rt = es.search(query, index=LINKS_INDEX_NAME)
     print(query_rt)
     return [(doc.get('_id', None), doc['_source'].get('url', None))
-    for doc in query_rt['hits']['hits'] 
-    if doc['_source'].get('url', None) is not None]
+            for doc in query_rt['hits']['hits']
+            if doc['_source'].get('url', None) is not None]
 
 
 def load_links_from_file(path):
@@ -164,14 +164,14 @@ def index_unique_urls(urls):
 
     actions = [
         {'_index': LINKS_INDEX_NAME,
-        '_source': {
-            'last_crawl': default_date,
-            'added_on': curr_date,
-            'url': url,
-            'type': 'root',
-            'hits': 0
-            }
-        } for url in urls if url is not None and not links_is_duplicate(url)
+         '_source': {
+             'last_crawl': default_date,
+             'added_on': curr_date,
+             'url': url,
+             'type': 'root',
+             'hits': 0
+         }
+         } for url in set(urls) if url is not None and not links_is_duplicate(url)
     ]
     if actions:
         bulk(es, actions)
