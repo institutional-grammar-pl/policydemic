@@ -51,12 +51,12 @@ class TestTasks(unittest.TestCase):
 
     def test_text_parser(self):
         text, n_pages = parse_text(lorem_ipsum_path, 'pdfminer')
-        print(text.split(' '))
-        print(text_postprocessing(text).split(' '))
-        print(len(text_postprocessing(text).split(' ')))
+        # print(text.split(' '))
+        # print(text_postprocessing(text).split(' '))
+        # print(len(text_postprocessing(text).split(' ')))
         n_words = len(text.split(' '))
 
-        self.assertAlmostEqual(n_words, 93)
+        self.assertAlmostEqual(n_words, 169)
 
 
 if __name__ == '__main__':
