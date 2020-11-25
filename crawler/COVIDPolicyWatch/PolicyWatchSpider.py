@@ -62,8 +62,6 @@ class PolicyWatchSpider(scrapy.Spider):
         yield entry
 
 
-
-
 class CreateInsertDocumentTaskPipeline:
     """Pipeline creates  Celery task which inserts document into index"""
     def process_item(self, item, spider):

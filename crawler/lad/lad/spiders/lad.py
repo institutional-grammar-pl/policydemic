@@ -1,11 +1,8 @@
-import os
 import re
-from collections import deque
-
-
-import scrapy
 import logging
 from configparser import ConfigParser
+
+import scrapy
 from scrapy.http import Response
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 
