@@ -59,7 +59,7 @@ def update_hits_score(url):
             },
             "size": 1
         }
-        query_rt = es.search(query, LINKS_INDEX_NAME, DOC_TYPE)
+        query_rt = es.search(query, LINKS_INDEX_NAME)
         doc_infos = [(doc['_source']['hits'], doc['_id'])
                      for doc in query_rt['hits']['hits']]
 

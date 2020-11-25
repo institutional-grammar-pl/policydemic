@@ -20,7 +20,7 @@ from policydemic_annotator.ig_annotator import annotate_text
 
 from .utils import update_document
 from .utils import index_document
-from .utils import run_procssing_chain
+from .utils import run_processing_chain
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
@@ -56,7 +56,7 @@ def process_pdf_link(pdf_url, document_type='secondary_source', parents=None):
         translate_pdf.s() | \
         process_document.s(parents)
 
-    return run_procssing_chain(pdf_chain, document_type, pdf_url, pdf_url)
+    return run_processing_chain(pdf_chain, document_type, pdf_url, pdf_url)
 
 
 @app.task
@@ -70,7 +70,7 @@ def process_pdf_path(pdf_path, document_type='legal_act'):
         translate_pdf.s() | \
         process_document.s()
 
-    return run_procssing_chain(pdf_chain, document_type, pdf_path, filename)
+    return run_processing_chain(pdf_chain, document_type, pdf_path, filename)
 
 
 @app.task
@@ -83,7 +83,7 @@ def process_txt_path(txt_path, document_type='legal_act'):
         translate_pdf.s() | \
         index_doc_task.s()
 
-    return run_procssing_chain(txt_chain, document_type, txt_path, filename)
+    return run_processing_chain(txt_chain, document_type, txt_path, filename)
 
 
 @app.task()

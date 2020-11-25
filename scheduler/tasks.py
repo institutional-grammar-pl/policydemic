@@ -10,7 +10,7 @@ from scheduler.celery import app
 from celery.schedules import crontab
 
 from crawler.tasks import crawl_lad_scrapyscript
-from .utils import links_is_duplicate
+
 from .utils import get_new_links, get_old_links, get_top_links
 from .utils import index_unique_urls
 from .utils import load_links_from_google

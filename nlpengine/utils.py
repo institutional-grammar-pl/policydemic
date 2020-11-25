@@ -16,7 +16,7 @@ DOC_TYPE = cfg['elasticsearch']['doc_type']
 es = Elasticsearch(hosts=es_hosts)
 
 
-def run_procssing_chain(chain, document_type, doc_path, doc_id):
+def run_processing_chain(chain, document_type, doc_path, doc_id):
     if not pdfparser_tasks.is_duplicate(doc_id):
         chain(doc_path, document_type)
         return {
@@ -27,6 +27,7 @@ def run_procssing_chain(chain, document_type, doc_path, doc_id):
         return {
             'is_duplicate': True
         }
+
 
 def update_document(body, doc_id, index=INDEX_NAME):
     """
@@ -40,7 +41,6 @@ def update_document(body, doc_id, index=INDEX_NAME):
 
     es.update(
         index=index,
-        doc_type=DOC_TYPE,
         id=doc_id,
         body={'doc': body}
     )
@@ -56,6 +56,5 @@ def index_document(body, index=INDEX_NAME):
     """
     es.index(
         index=index,
-        doc_type=DOC_TYPE,
         body=body
     )
