@@ -34,7 +34,7 @@ class TestTasks(unittest.TestCase):
         n_words = len(text.split(' '))
         self.assertAlmostEqual(n_words, 93)
 
-    def test_simple_crit(self):
+    def test_content_keywords(self):
         decision, keywords = simple_crit(
             'a b c',
             {'a'},
