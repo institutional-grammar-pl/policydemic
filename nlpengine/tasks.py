@@ -299,7 +299,7 @@ def process_document(body, parents=None):
         if on_subject:
             update_parents(parents)
 
-            _log.error([body.get('keywords', ''), in_text_keywords])
+            _log.info([body.get('keywords', ''), in_text_keywords])
             new_pdf_path = pdf_dir / 'subject_accepted' / pdf_filename
             os.makedirs(pdf_dir / 'subject_accepted', exist_ok=True)
             shutil.move(old_pdf_path, new_pdf_path)
@@ -342,3 +342,4 @@ def update_parents(parents):
             parents_count += 1
         for parent_url in urls_hits_update:
             update_hits_score(parent_url)
+
