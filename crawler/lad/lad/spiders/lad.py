@@ -29,7 +29,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
     # start_urls = ['https://ww2.mini.pw.edu.pl/']
     start_urls = []
 
-    def __init__(self, urls, selected_domain, depth_setting, *args, **kwargs):
+    def __init__(self, urls, selected_domain, depth_setting=None, *args, **kwargs):
         logging.getLogger('scrapy').setLevel(logging.ERROR)
         super().__init__(**kwargs)
         self._link_extractor = LxmlLinkExtractor()
@@ -46,7 +46,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
         crawling_time = (stop - start).total_seconds()
 
         self.log.update({
-            'depth': self.depth_setting,
+            'depth_setting': self.depth_setting,
             'start_urls': self.start_urls,
             'stop_datetime': stop.strftime(DATETIME_FORMAT),
             'crawling_time': crawling_time,
@@ -68,6 +68,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
     @staticmethod
     def init_log():
         return {
+            'depth_setting': None,
             'start_datetime': datetime.now().strftime(DATETIME_FORMAT),
             'start_date': datetime.now().strftime(DATE_FORMAT),
             'stop_datetime': None,
@@ -108,41 +109,47 @@ class LadSpider(scrapy.spiders.CrawlSpider):
             else:
                 return False
 
-    def count_as_error(self):
+    def count_as_error(self, response=None):
         self.log['errors_number'] += 1
 
-    def parse_page(self, response: Response, start_url, parents):
+    def handle_pdf_url(self, response, start_url, parents):
+        self.found_pdf[start_url] = True
+        self.log['pdfs_number'] += 1
+        self.log['pdf_urls'].append(response.url)
+        self.logger.info(f'PDF: {response.url}')
+        nlpengine_tasks.process_pdf_link.delay(response.url, 'legal_act', parents)
 
+    def handle_webpage_url(self, response, start_url, parents):
+        self.logger.info(f'url: {response.url}')
+        parents.append(response.url)
+        for link in self._link_extractor.extract_links(response):
+            match = re.match('^http[s]?://([a-z0-9.-]+)/?', link.url)
+            domain = match.group(1) if match is not None else None
+
+            if domain is not None and self.selected_domain in domain:
+                self.log['requests_number'] += 1
+                yield response.follow(link, callback=self.parse_page, errback=self.count_as_error,
+                                      cb_kwargs={'start_url': start_url,
+                                                 'parents': parents})
+            else:
+                self.log['rejected_sites'].append(link.url)
+
+    def parse_page(self, response, start_url, parents):
         self.log['requests_successes_number'] += 1
         self.log['visited_urls'].append(response.url)
 
         if self.check_url_constraints(response, start_url):
             self.sites_count[start_url] += 1
             if LadSpider.is_pdf_url(response):
-                self.found_pdf[start_url] = True
-                self.log['pdfs_number'] += 1
-                self.log['pdf_urls'].append(response.url)
-                self.logger.info('it\'s pdf %s', response.url)
-                nlpengine_tasks.process_pdf_link.delay(response.url, 'legal_act', parents)
+                self.handle_pdf_url(response, start_url, parents)
             else:
-                parents.append(response.url)
-                for link in self._link_extractor.extract_links(response):
-                    self.logger.info(link.url)
-                    match = re.match('^http[s]?://([a-z0-9.-]+)/', link.url)
-                    domain = match.group(0) if match is not None else None
-                    if domain is not None and self.selected_domain in domain:
-                        self.log['requests_number'] += 1
-                        yield response.follow(link, callback=self.parse_page, errback=self.count_as_error,
-                                              cb_kwargs={'start_url': start_url,
-                                                         'parents': parents})
-                    else:
-                        self.log['rejected_sites'].append(response.url)
+                yield from self.handle_webpage_url(response, start_url, parents)
+
         else:
             self.log['stop_due_to_depth_constraints'].append({
                 'start': start_url,
                 'stop_node': response.url
             })
             self.log['rejected_sites'].append(response.url)
-            yield None
 
 
