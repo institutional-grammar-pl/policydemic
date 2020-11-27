@@ -16,7 +16,7 @@ from crawler.lad.lad.spiders.lad import LadSpider
 from crawler.covid_policy_watch.policy_watch_spider import PolicyWatchSpider
 from scheduler.celery import app
 
-from .lad.lad.gov_sites import get_gov_websites
+from .utils import get_gov_websites
 
 import nlpengine
 
