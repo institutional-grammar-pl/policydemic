@@ -13,7 +13,7 @@ from crawler.ilo.ilo_script import extract_html
 from crawler.utils import _short_text_
 
 from crawler.lad.lad.spiders.lad import LadSpider
-from crawler.COVIDPolicyWatch.PolicyWatchSpider import PolicyWatchSpider
+from crawler.covid_policy_watch.policy_watch_spider import PolicyWatchSpider
 from scheduler.celery import app
 
 from .lad.lad.gov_sites import get_gov_websites
