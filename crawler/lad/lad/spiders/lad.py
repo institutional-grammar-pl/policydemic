@@ -1,6 +1,7 @@
 import re
 import logging
 import json
+import random
 from configparser import RawConfigParser
 from datetime import datetime
 from pathlib import Path
@@ -10,6 +11,7 @@ from scrapy.http import Response
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 
 import nlpengine.tasks as nlpengine_tasks
+from scheduler.utils import update_hits_score
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
@@ -22,6 +24,7 @@ max_depth = int(cfg['crawler']['max_depth_per_starter'])
 max_depth_no_pdf = int(cfg['crawler']['max_depth_no_pdf_per_starter'])
 DATETIME_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
 DATE_FORMAT = cfg['elasticsearch']['DATE_FORMAT']
+random_frequency = float(cfg['crawler']['random_link_indexation_frequency'])
 
 
 class LadSpider(scrapy.spiders.CrawlSpider):
@@ -52,6 +55,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
             'crawling_time': crawling_time,
             'sites_count_per_starter': self.sites_count,
             'found_pdfs_per_starter': self.found_pdf,
+            'rejected_sites': list(self.log['rejected_sites'])
 
         })
 
@@ -74,16 +78,18 @@ class LadSpider(scrapy.spiders.CrawlSpider):
             'stop_datetime': None,
             'crawling_time': None,
             'requests_successes_number': 0,
-            'requests_number': 0,
+            'requests_number': 0,  # links rejected because of depth limit and duplicates of links are counted here
             'errors_number': 0,
             'pdfs_number': 0,
             'start_urls': None,
             'sites_count_per_starter': None,
             'found_pdfs_per_starter': None,
             'visited_urls': [],
+            'errors_urls': [],
+            'different_content_urls': [],
             'pdf_urls': [],
-            'rejected_sites': [],
-            'stop_due_to_depth_constraints': []
+            'rejected_sites': set(),
+            'stop_due_to_per_starter_depth_constraints': []
         }
 
     def parse_start_url(self, response: Response):
@@ -97,6 +103,11 @@ class LadSpider(scrapy.spiders.CrawlSpider):
         return ('content-type' in response.headers and b'application/pdf' in response.headers['content-type']) \
                 or response.url.endswith('.pdf')
 
+    @staticmethod
+    def index_url_randomly(url):
+        if random.random() < random_frequency:
+            update_hits_score(url)
+
     def check_url_constraints(self, response, start_url):
         if self.found_pdf[start_url]:
             if self.sites_count[start_url] <= max_depth:
@@ -109,8 +120,9 @@ class LadSpider(scrapy.spiders.CrawlSpider):
             else:
                 return False
 
-    def count_as_error(self, response=None):
+    def count_as_error(self, failure):
         self.log['errors_number'] += 1
+        self.log['errors_urls'].append(failure.request.url)
 
     def handle_pdf_url(self, response, start_url, parents):
         self.found_pdf[start_url] = True
@@ -122,17 +134,24 @@ class LadSpider(scrapy.spiders.CrawlSpider):
     def handle_webpage_url(self, response, start_url, parents):
         self.logger.info(f'url: {response.url}')
         parents.append(response.url)
-        for link in self._link_extractor.extract_links(response):
-            match = re.match('^http[s]?://([a-z0-9.-]+)/?', link.url)
-            domain = match.group(1) if match is not None else None
+        try:
+            links = self._link_extractor.extract_links(response)
+        except AttributeError:
+            self.logger.warning('URL without text content')
+            self.log['different_content_urls'].append(response.url)
+        else:
+            LadSpider.index_url_randomly(response.url)
+            for link in links:
+                match = re.match('^http[s]?://([a-z0-9.-]+)/?', link.url)
+                domain = match.group(1) if match is not None else None
 
-            if domain is not None and self.selected_domain in domain:
-                self.log['requests_number'] += 1
-                yield response.follow(link, callback=self.parse_page, errback=self.count_as_error,
-                                      cb_kwargs={'start_url': start_url,
-                                                 'parents': parents})
-            else:
-                self.log['rejected_sites'].append(link.url)
+                if domain is not None and self.selected_domain in domain:
+                    self.log['requests_number'] += 1
+                    yield response.follow(link, callback=self.parse_page, errback=self.count_as_error,
+                                          cb_kwargs={'start_url': start_url,
+                                                     'parents': parents})
+                else:
+                    self.log['rejected_sites'].add(link.url)
 
     def parse_page(self, response, start_url, parents):
         self.log['requests_successes_number'] += 1
@@ -146,7 +165,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
                 yield from self.handle_webpage_url(response, start_url, parents)
 
         else:
-            self.log['stop_due_to_depth_constraints'].append({
+            self.log['stop_due_to_per_starter_depth_constraints'].append({
                 'start': start_url,
                 'stop_node': response.url
             })
