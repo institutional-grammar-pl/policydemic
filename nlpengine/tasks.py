@@ -279,8 +279,6 @@ def annotate_and_update(_id, body):
     ann_chain(body)
 
 
-
-
 @app.task
 def process_document(body, parents=None):
     scrap_date = datetime.now().strftime(SCRAP_DATE_FORMAT)
@@ -323,7 +321,6 @@ def process_document(body, parents=None):
         })
 
     index_document(body)
-
 
 
 @app.task(queue='light')

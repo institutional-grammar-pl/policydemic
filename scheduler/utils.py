@@ -1,12 +1,16 @@
 from configparser import RawConfigParser
 import logging
+import os
 from datetime import datetime
+from pathlib import Path
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 
 from nlpengine.utils import update_document
 from nlpengine.utils import index_document
+
+import googlesearch
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
@@ -151,6 +155,11 @@ def load_links_from_file(path):
     with open(path) as link_file:
         file_text = link_file.read()
         urls = [url.strip(' ,;') for url in file_text.split('\n')]
+
+    return urls
+
+
+def index_unique_urls(urls):
     curr_date = datetime.now().strftime(DATE_FORMAT)
 
     actions = [
@@ -166,3 +175,27 @@ def load_links_from_file(path):
     ]
     if actions:
         bulk(es, actions)
+
+
+def load_links_form_google(search_phrases):
+    urls = []
+    # get new urls from search api
+    for phrase in search_phrases:
+        try:
+            urls.extend(googlesearch.search(f'site:*.gov.* {phrase}', num=40, start=0, stop=150, pause=25.0))
+        except:
+            _log.error('Googlesearch did not respond.')
+    return urls
+
+
+def load_links_from_dir(dir_path):
+    dir_path = Path(dir_path)
+    files = os.listdir(dir_path)
+
+    urls = []
+    for file in files:
+        path = dir_path / file
+        urls.extend(load_links_from_file(path))
+        os.remove(path)
+
+    return urls

@@ -3,7 +3,6 @@ from datetime import datetime
 import random
 import logging
 
-import googlesearch
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 
@@ -13,49 +12,37 @@ from celery.schedules import crontab
 from crawler.tasks import crawl_lad_scrapyscript
 from .utils import links_is_duplicate
 from .utils import get_new_links, get_old_links, get_top_links
+from .utils import index_unique_urls
+from .utils import load_links_form_google
+from .utils import load_links_from_dir
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
 
 _log = logging.getLogger()
 DATE_FORMAT = cfg['elasticsearch']['DATE_FORMAT']
-filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
-filtering_keywords = cfg['document_states']['search_keywords'].split(',')
+
 es_hosts = cfg['elasticsearch']['hosts']
 default_date = cfg['pdfparser']['default_date']
 LINKS_INDEX_NAME = cfg['elasticsearch']['crawler_index_name']
 DOC_TYPE = cfg['elasticsearch']['doc_type']
 depth = int(cfg['crawler']['lad_depth'])
+search_keywords = cfg['document_states']['search_keywords'].split(',')
 scheduler_init_params = [int(param) for param in cfg['crawler']['scheduler_hyp_params'].split(',')]
+urls_dir = cfg['paths']['urls_input_dir']
 
 es = Elasticsearch(hosts=es_hosts)
 
 
 @app.task
 def add_new_links():
-    urls = []
-    # get new urls from search api
-    for word in filtering_keywords:
-        try:
-            urls.extend(googlesearch.search(f'site:*.gov.* {word}', num=40, start=0, stop=150, pause=25.0))
-        except:
-            _log.error('Googlesearch did not respond.')
     # save new urls to ES with default las_crawl date
+    urls = []
+    urls.extend(load_links_form_google(search_keywords))
+    urls.extend(load_links_from_dir(urls_dir))
     _log.info(urls)
-    curr_date = datetime.now().strftime(DATE_FORMAT)
-    actions = [
-        {'_index': LINKS_INDEX_NAME,
-        'doc': {
-            'last_crawl': default_date,
-            'added_on': curr_date,
-            'url': url,
-            'type': 'root',
-            'hits': 0
-            }
-        } for url in urls if url is not None and not links_is_duplicate(url)
-    ]
-    if actions:
-        bulk(es, actions)
+
+    index_unique_urls(urls)
 
 
 @app.task
