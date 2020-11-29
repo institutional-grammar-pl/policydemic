@@ -174,6 +174,6 @@ class LadSpider(scrapy.spiders.CrawlSpider):
                 'start': start_url,
                 'stop_node': response.url
             })
-            self.log['rejected_sites'].append(response.url)
+            self.log['rejected_sites'].add(response.url)
 
 
