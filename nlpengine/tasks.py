@@ -260,9 +260,8 @@ def translate_and_update(_id, body):
 def annotate(body):
     text_to_annotate = body.get('annotation_text', None)
     if text_to_annotate is not None:
-        sentences = re.split(r'\. (?=[A-Z])', text_to_annotate)
         fd, ann_filepath = tempfile.mkstemp('.tsv', 'ann_', anns_dir)
-        annotate_text(sentences, ann_filepath, 'en', 'tsv')
+        annotate_text(text_to_annotate, ann_filepath, 'en', 'tsv')
 
         body['annotation_path'] = ann_filepath
         body['is_annotated'] = True
