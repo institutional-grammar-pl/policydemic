@@ -122,7 +122,12 @@ class LadSpider(scrapy.spiders.CrawlSpider):
 
     def count_as_error(self, failure):
         self.log['errors_number'] += 1
-        self.log['errors_urls'].append(failure.request.url)
+        self.log['errors_urls'].append({
+            'url': failure.request.url,
+            'depth_on_error': failure.request.meta.get('depth', None),
+            'error': str(failure.value)
+        }
+            )
 
     def handle_pdf_url(self, response, start_url, parents):
         self.found_pdf[start_url] = True
