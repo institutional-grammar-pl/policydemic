@@ -15,7 +15,7 @@ class PolicyWatchSpider(scrapy.Spider):
     """crawls government policies from website covid19policywatch.org"""
     name = 'policywatch'
     custom_settings = {
-        'ITEM_PIPELINES':  {"crawler.COVIDPolicyWatch.PolicyWatchSpider.CreateInsertDocumentTaskPipeline": 0},
+        'ITEM_PIPELINES':  {"crawler.covid_policy_watch.PolicyWatchSpider.CreateInsertDocumentTaskPipeline": 0},
     }
     start_urls = [
         BASE_URL,
@@ -60,8 +60,6 @@ class PolicyWatchSpider(scrapy.Spider):
             'section': subsection_name
         }
         yield entry
-
-
 
 
 class CreateInsertDocumentTaskPipeline:

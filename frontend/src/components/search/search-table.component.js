@@ -16,17 +16,18 @@ import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
+import Grid from '@material-ui/core/Grid';
+
 
 import { Container } from '@material-ui/core';
 
 import DeleteIcon from '@material-ui/icons/Delete';
-import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import AddBoxIcon from '@material-ui/icons/AddBox';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteConfirmationDialogComponent from './delete-dialog.component.js';
-import CompareTabDialogComponent from '../tabs/compare-tab-dialog.component.js';
-import UploadPdfComponent from '../form/upload-pdf.component';
+import CompareTabDialogComponent from '../compare/compare-tab-dialog.component.js';
+import UploadComponent from '../form/upload.component';
+
 
 import Api from '../../common/api.js';
 
@@ -178,7 +179,7 @@ const EnhancedTableToolbar = (props) => {
                     style={{ display: 'flex', justifyContent: 'right' }}
                 >
 
-                    {(props.documentType=='SSD') && (<Tooltip title="Compare Selected" >
+                    {(props.documentType==='SSD') && (<Tooltip title="Compare Selected" >
                         <IconButton aria-label="compare" onClick={(event) => props.onCompareSelectedClick(event)}>
                             <CloudDownloadIcon />
                         </IconButton>
@@ -247,6 +248,8 @@ export default function EnhancedTable(props) {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5); 
     const [comparingIds, setComparingIds] = React.useState(); 
+    const [uploaded, setUploaded] = React.useState(false);
+
     
     const [deleteDialogVisible, setDeleteDialogVisible] = React.useState(false);
 
@@ -368,7 +371,7 @@ export default function EnhancedTable(props) {
                                     const isItemSelected = isSelected(row.id);
                                     const labelId = `enhanced-table-checkbox-${index}`;
 
-                                    if (row.info_date == "1900-01-01") {
+                                    if (row.info_date === "1900-01-01") {
                                         row.info_date = "-"
                                     }
 
@@ -390,10 +393,10 @@ export default function EnhancedTable(props) {
                                             </TableCell>
                                             <TableCell align="left">{row.title}</TableCell>
                                             <TableCell align="left">{row.info_date}</TableCell>
-                                            {(props.documentType == 'SSD') && (
+                                            {(props.documentType === 'SSD') && (
                                                 <TableCell align="left">{row.section}</TableCell>
                                             )}
-                                            {(props.documentType == 'SSD') && (
+                                            {(props.documentType === 'SSD') && (
                                                 <TableCell align="left">{row.organization}</TableCell>
                                             )}
 
@@ -429,11 +432,30 @@ export default function EnhancedTable(props) {
             </Paper>
         </Container>
 
-        {(props.documentType=='LAD') && (<Container>
-            <UploadPdfComponent name="pdf" setValue={function(_, file) {
-                Api.uploadPDF(file).then((resp) => {
+        {(props.documentType==='LAD') && (<Container>
+            <UploadComponent name="uploadFile" setValue={function(_, file) {
+                Api.uploadFile(file).then((resp) => {
+                    console.log('resp', resp)
+                    console.log(resp.request.status)
+                    if (resp.request.status === 200) {
+                        setUploaded(true)
+                    } 
+                }).catch((resp) => {
+                    console.log('catch resp', resp.response.data)
+                    setUploaded(resp.response.data)
                 })
             }}/>
+            <Grid item xs={5}>
+
+            {(uploaded === true) && (<Typography variant="body2" component="p" style={{"marginTop":'19px', 'marginLeft':'2em'}}>
+                            Document uploaded!
+                        </Typography>
+                        )}
+            {(typeof uploaded == 'string') &&  (<Typography variant="body2" component="p" style={{"marginTop":'19px', 'marginLeft':'2em', 'color': 'red'}}>
+                            {uploaded}
+                        </Typography>)
+                }
+            </Grid>
         </Container>)}
 
         </div>

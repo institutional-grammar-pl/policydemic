@@ -1,15 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import Button from '@material-ui/core/Button';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
-import Pagination from '@material-ui/lab/Pagination';
-
-import { Document, Page } from 'react-pdf';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -23,32 +16,23 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-export default function UploadPdfComponent({ name, setValue }) {
+export default function UploadComponent({ name, setValue }) {
     const classes = useStyles();
-    const [file, setFile] = useState();
-    const [numPages, setNumPages] = useState();
-    const [pageNo, setPageNo] = useState(1);
 
     const handleFileChange = useCallback((event) => {
         const newFile = event.target.files[0];
-        setFile(newFile);
-        setValue(name, newFile);
-    }, [setFile, setValue]);
-
-    const handleDocumentLoadSuccess = useCallback((obj) => {
-        setNumPages(obj.numPages);
-    }, [setNumPages]);
-
-    const handlePageChange = useCallback((event, page) => {
-        setPageNo(page);
-    }, [setPageNo]);
+        if (newFile) {
+            setValue(name, newFile);
+        }
+        document.getElementById('contained-button-file').value = ''
+    }, [setValue]);
 
     return (
-        <Grid container spacing="5">
-            <Grid item xs={12}>
+        <Grid container spacing={5}>
+            <Grid item xs={5}>
                 <div className={classes.root}>
                     <input
-                        accept=".pdf"
+                        accept=".pdf,.txt"
                         className={classes.input}
                         name={name}
                         id="contained-button-file"
@@ -62,9 +46,9 @@ export default function UploadPdfComponent({ name, setValue }) {
                             endIcon={<CloudUploadIcon />}
                             component="span"
                         >
-                            Upload PDF document
+                            Upload Document
                         </Button>
-                    </label>
+                     </label>
                 </div>
             </Grid>
         </Grid>

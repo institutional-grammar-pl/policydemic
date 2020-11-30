@@ -1,9 +1,7 @@
 import logging
 import subprocess
-import os
 import requests
 from pathlib import Path
-import shutil
 
 from configparser import ConfigParser
 from scheduler.celery import app
@@ -17,12 +15,10 @@ from wand.image import Image as wi
 
 # --- new pdf parsing --- #
 import os
-import sys
 from io import StringIO
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.pdfdevice import PDFDevice, TagExtractor
 from pdfminer.pdfpage import PDFPage
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
@@ -39,6 +35,7 @@ txts_dir = cfg['paths']['parsed_txts']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 pdf_dir = cfg['paths']['pdf_database']
 es_hosts = cfg['elasticsearch']['hosts']
+INDEX_NAME = cfg['elasticsearch']['index_name']
 min_n_chars_per_page = int(cfg['pdfparser']['min_n_chars_per_page'])
 
 default_date = cfg['pdfparser']['default_date']
@@ -50,15 +47,17 @@ os.environ['OMP_THREAD_LIMIT'] = '1'
 
 
 def get_metadata(pdf_path):
-    parser = PDFParser(open(pdf_path, 'rb'))
-    doc = PDFDocument(parser)
+    with open(pdf_path, 'rb') as file:
+        parser = PDFParser(file)
+        doc = PDFDocument(parser)
 
     metadata = doc.info[0] if doc.info else {}
 
     keywords = metadata.get('Keywords', '')
     creation_date = metadata.get('CreationDate', '')
     try:
-        creation_date = creation_date.decode('utf-8') if isinstance(creation_date, (bytes, bytearray)) else creation_date
+        creation_date = creation_date.decode('utf-8') if isinstance(creation_date, (bytes, bytearray)) \
+            else creation_date
 
         year = creation_date[2:6]
         month = creation_date[6:8]
@@ -70,6 +69,7 @@ def get_metadata(pdf_path):
 
     try:
         keywords = keywords.decode('utf-8') if isinstance(keywords, (bytes, bytearray)) else keywords
+        keywords = keywords if isinstance(keywords, str) else ''
     except:
         keywords = ''
 
@@ -78,7 +78,8 @@ def get_metadata(pdf_path):
 
 def is_pdf(path):
     try:
-        PyPDF2.PdfFileReader(open(path, "rb"), strict=False)
+        with open(path, "rb") as input_file:
+            PyPDF2.PdfFileReader(input_file, strict=False)
     except (PyPDF2.utils.PdfReadError, OSError):
         return False
     else:
@@ -94,7 +95,7 @@ def is_duplicate(url):
             }
         }
     }
-    rt = es.count(query_web_url, index='documents')
+    rt = es.count(query_web_url, index=INDEX_NAME)
     rt = rt['count']
     if rt > 0:
         _log.warning(f"Duplicate search. Found {rt} documents with URL: {url}.")
@@ -130,7 +131,6 @@ def download_pdf(url, directory=pdf_dir, filename='document.pdf', method=None):
 
             # write in chunks in case of big files
             for chunk in r.iter_content(chunk_size=chunk_size):
-
                 # writing one chunk at a time to pdf file
                 if chunk:
                     pdf.write(chunk)
@@ -142,7 +142,7 @@ def download_pdf(url, directory=pdf_dir, filename='document.pdf', method=None):
     else:
         try:
             requests_download()
-        except Exception:
+        except:
             curl_subprocess_download()
 
 
@@ -176,7 +176,7 @@ def pdf_ocr(path, pages=[], lang='eng'):
         text = pytesseract.image_to_string(im, lang=lang)
         result_text.append(text)
 
-    return result_text
+    return ' '.join(result_text)
 
 
 def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
@@ -229,8 +229,7 @@ def simple_crit(text, keywords, without=set(), at_least=1, at_most=1):
     return crit, at_least_words
 
 
-@app.task
-def parse(path, method='pdfminer'):
+def parse_text(path, method):
     def pdf_miner():
         rsrc_mgr = PDFResourceManager(caching=True)
         outfp = StringIO()
@@ -260,14 +259,19 @@ def parse(path, method='pdfminer'):
     else:
         contents, n_pages = pdf_miner()
         method = 'pdfminer'
+    return contents, n_pages
 
+
+@app.task
+def parse(path, method='pdfminer'):
+    contents, n_pages = parse_text(path, method)
     contents = text_postprocessing(contents)
 
     if len(contents) < n_pages * min_n_chars_per_page:
         ocr_needed = True
         if ocr_on:
             try:
-                ocr_contents = ' '.join(pdf_ocr(path))
+                ocr_contents = pdf_ocr(path)
             except:
                 _log.error(f'ocr error on {path}')
             else:
@@ -280,8 +284,7 @@ def parse(path, method='pdfminer'):
 
 
 @app.task
-def check_content(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, similarity="hamming", threshold=5,
-                  crit="simple"):
+def check_content(pdf_text, keywords=set(), without=set(), at_least=1, at_most=1, crit="simple"):
     """
     check
 

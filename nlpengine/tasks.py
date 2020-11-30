@@ -11,25 +11,35 @@ import shutil
 from elasticsearch import Elasticsearch
 
 from scheduler.celery import app
+from scheduler.utils import update_hits_score
 import pdfparser.tasks as pdfparser_tasks
 import translator.tasks as translator_tasks
 from nlpengine.country_domains import country_domains
 from crawler.utils import _short_text_
 from policydemic_annotator.ig_annotator import annotate_text
 
+from .utils import update_document
+from .utils import index_document
+from .utils import run_processing_chain
+
 cfg = RawConfigParser()
 cfg.read('config.ini')
 
 es_hosts = cfg['elasticsearch']['hosts']
 pdf_dir = Path(cfg['paths']['pdf_database'])
+txt_dir = Path(cfg['paths']['txt_database'])
 anns_dir = Path(cfg['paths']['annotation_files'])
+default_date = cfg['pdfparser']['default_date']
 es = Elasticsearch(hosts=es_hosts)
 
 INDEX_NAME = cfg['elasticsearch']['index_name']
 DOC_TYPE = cfg['elasticsearch']['doc_type']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
-max_n_chars_to_translate_by_api = int(cfg['translator']['max_n_chars_to_translate_by_api'])
+max_n_chars_to_translate_by_api = int(
+    cfg['translator']['max_n_chars_to_translate_by_api'])
+n_parents = int(cfg['crawler']['parents_hits'])
+
 
 SCRAP_DATE_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
 
@@ -37,24 +47,22 @@ _log = logging.getLogger()
 
 
 @app.task(queue='light')
-def process_pdf_link(pdf_url, document_type='secondary_source'):
+def process_pdf_link(pdf_url, document_type='secondary_source', parents=None):
     print(f"Received pdf: {pdf_url}")
 
     pdf_chain = \
         download_pdf.s() | \
         parse_pdf.s() | \
         translate_pdf.s() | \
-        process_document.s()
+        process_document.s(parents)
 
-    if not pdfparser_tasks.is_duplicate(pdf_url):
-        pdf_chain(pdf_url, document_type)
-    else:
-        _log.error("url already in database")
+    return run_processing_chain(pdf_chain, document_type, pdf_url, pdf_url)
 
 
 @app.task
 def process_pdf_path(pdf_path, document_type='legal_act'):
     print(f"Received pdf: {pdf_path}")
+    filename = Path(pdf_path).name
 
     pdf_chain = \
         get_local_pdf.s() | \
@@ -62,7 +70,51 @@ def process_pdf_path(pdf_path, document_type='legal_act'):
         translate_pdf.s() | \
         process_document.s()
 
-    pdf_chain(pdf_path, document_type)
+    return run_processing_chain(pdf_chain, document_type, pdf_path, filename)
+
+
+@app.task
+def process_txt_path(txt_path, document_type='legal_act'):
+    print(f"Received txt: {txt_path}")
+    filename = Path(txt_path).name
+
+    txt_chain = \
+        get_local_txt.s() | \
+        translate_pdf.s() | \
+        index_doc_task.s()
+
+    return run_processing_chain(txt_chain, document_type, txt_path, filename)
+
+
+@app.task()
+def get_local_txt(old_txt_path, document_type=''):
+    fd, path = tempfile.mkstemp(prefix='doc_', suffix='.txt', dir=txt_dir)
+    os.close(fd)
+
+    old_filename = Path(old_txt_path).name
+    new_filename = os.path.basename(path)
+
+    shutil.move(old_txt_path, path)
+
+    date, keywords = default_date, ''
+
+    with open(path) as text_file:
+        text = text_file.read()
+
+    scrap_date = datetime.now().strftime(SCRAP_DATE_FORMAT)
+
+    return {
+        "web_page": old_filename,
+        "pdf_path": str(path),
+        "keywords": keywords,
+        "original_text": text,
+        "info_date": date,
+        "document_type": document_type,
+        "status": "subject_accepted",
+        "ocr_needed": False,
+        "text_parsing_type": 'txt_file',
+        "scrap_date": scrap_date
+    }
 
 
 @app.task()
@@ -82,7 +134,7 @@ def get_local_pdf(old_pdf_path, document_type=''):
         shutil.move(pdf_path, new_pdf_path)
 
         return {
-            "web_page": 'added_manually',
+            "web_page": pdf_filename,
             "pdf_path": str(new_pdf_path),
             "keywords": keywords,
             "info_date": date,
@@ -208,9 +260,8 @@ def translate_and_update(_id, body):
 def annotate(body):
     text_to_annotate = body.get('annotation_text', None)
     if text_to_annotate is not None:
-        sentences = re.split(r'\. (?=[A-Z])', text_to_annotate)
         fd, ann_filepath = tempfile.mkstemp('.tsv', 'ann_', anns_dir)
-        annotate_text(sentences, ann_filepath, 'en', 'tsv')
+        annotate_text(text_to_annotate, ann_filepath, 'en', 'tsv')
 
         body['annotation_path'] = ann_filepath
         body['is_annotated'] = True
@@ -228,7 +279,7 @@ def annotate_and_update(_id, body):
 
 
 @app.task
-def process_document(body):
+def process_document(body, parents=None):
     scrap_date = datetime.now().strftime(SCRAP_DATE_FORMAT)
     body.update({
         "scrap_date": scrap_date
@@ -245,7 +296,9 @@ def process_document(body):
         old_pdf_path = body.get("pdf_path")
         pdf_filename = Path(old_pdf_path).name
         if on_subject:
-            _log.error([body.get('keywords', ''), in_text_keywords])
+            update_parents(parents)
+
+            _log.info([body.get('keywords', ''), in_text_keywords])
             new_pdf_path = pdf_dir / 'subject_accepted' / pdf_filename
             os.makedirs(pdf_dir / 'subject_accepted', exist_ok=True)
             shutil.move(old_pdf_path, new_pdf_path)
@@ -269,42 +322,22 @@ def process_document(body):
     index_document(body)
 
 
-def index_document(body):
-    """
-    Stores a document in Elasticsearch index, according to the structure
-
-    :param body: document body (JSON-like)
-    :return: response from Elasticsearch
-    """
-    es.index(
-        index=INDEX_NAME,
-        doc_type=DOC_TYPE,
-        body=body
-    )
-
-
 @app.task(queue='light')
 def index_doc_task(body):
     index_document(body)
 
 
-def update_document(body, doc_id):
-    """
-    Updates a document in Elasticsearch index, applying mentioned changes
-
-    :param doc_id: hash document ID
-    :param body: elements of body to update
-    :return response from Elasticsearch
-    """
-
-    es.update(
-        index=INDEX_NAME,
-        doc_type=DOC_TYPE,
-        id=doc_id,
-        body={'doc': body}
-    )
-
-
 @app.task(queue='light')
 def update_doc_task(body, doc_id):
     update_document(body, doc_id)
+
+
+def update_parents(parents):
+    if parents is not None:
+        urls_hits_update = []
+        parents_count = 0
+        while parents and parents_count < n_parents:
+            urls_hits_update.append(parents.pop())
+            parents_count += 1
+        for parent_url in urls_hits_update:
+            update_hits_score(parent_url)

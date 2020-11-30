@@ -21,6 +21,17 @@ const celery_client = celery.createClient(
 const basicAuth = require('basic-auth')
 const crypto = require('crypto')
 
+const {
+    autocompleteField,
+    autocompleteCountry,
+    getDocuments,
+    parseData,
+    fetchDocumentsFromElastic,
+    constructParams,
+    postDocument,
+    updateDocument,
+} = require('./functions')
+
 app.use(async (ctx, next) => {
     const user = basicAuth(ctx);
     if (user && user.name === 'root') {
@@ -40,28 +51,13 @@ router.get('/', (ctx) => {
   ctx.body = "Hello world!"
 })
 
-async function autocompleteField(field) {
-
-    const results = await client.search({
-        index: 'documents',
-        body: {
-             "size":"0",
-             "aggs" : {
-               "unique" : {
-               "terms" : { "field" : field, "size": 1000 }
-               }
-             }
-        }
-    })
-    
-    unique_values = results.body.aggregations.unique.buckets
-    return unique_values.map((row)=>({name: row.key, value:row.key}))
-}
-
-router.get('/autocomplete/countries', async (ctx) => {
-    ctx.body = await autocompleteField("country")
+router.get('/autocomplete/countries_ssd', async (ctx) => {
+    ctx.body = await autocompleteCountry("secondary_source")
 })
 
+router.get('/autocomplete/countries_lad', async (ctx) => {
+    ctx.body = await autocompleteCountry("legal_act")
+})
 
 router.get('/autocomplete/languages', async (ctx) => {
     ctx.body = await autocompleteField("language")
@@ -198,8 +194,6 @@ router.get('/documents/:id/tsv', async (ctx) => {
 
         const src = fs.createReadStream(query.body._source.annotation_path);
         ctx.response.set("content-type", "text/tab-separated-values");
-        //ctx.response.set("content-disposition", `attachment; filename*=UTF-8''"${encodeURIComponent(query.body._source.title.substr(0, 40))}"`);
-
         ctx.response.set("content-disposition", `attachment; filename="${arr[arr.length-1]}"`);
 
         ctx.body = src;
@@ -231,148 +225,6 @@ router.post('/delete', async (ctx) => {
     ctx.body = 'OK'
 })
 
-async function getDocuments(ctx, documentType) {
-    const data = await fetchDocumentsFromElastic(ctx.request.body, documentType)
-        .catch(console.log)
-        .then(resp => {
-            ctx.body = parseData(resp);
-            ctx.status = 200
-        }, error => {
-            console.log("Error " + error)
-        })
-}
-
-function parseData(data){
-    const parsedData = [];
-    if (!data) data = [];
-    data.forEach(element => {
-        const k = element._source.keywords
-        parsedData.push({
-            title: element._source.title,
-            section: element._source.section,
-            organization: element._source.organization,
-            id: element._id,
-            info_date: element._source.info_date,
-            country: element._source.country,
-        })
-    });
-    return parsedData;
-}
-
-async function fetchDocumentsFromElastic(body, documentType){
-    let any_phrase = ""
-    if (body.keywords != undefined) {
-        any_phrase = body.keywords[0]
-    }
-    let params = constructParams(body, documentType, any_phrase)
-    let request = await client.search(params);
-    return request.body.hits.hits;
-}
-
-function constructParams(body, documentType, any_phrase){
-
-    console.log('constructParams body', body)
-
-    const documentFilter = []
-
-    if (body.infoDateTo && body.infoDateFrom && body.infoDateTo.length > 0 && body.infoDateFrom.length > 0) {
-        documentFilter.push( {
-            "bool": {
-                "must": {
-                    "range": {
-                        "info_date": {
-                            "gte": body.infoDateFrom,
-                            "lte": body.infoDateTo
-                        }
-                    }
-
-                }
-            } 
-        },  {
-            "bool": {
-                "must": [{
-                        "range": {
-                            "info_date": {
-                                "gte": "1900-01-01",
-                                "lte": "1900-01-01"
-                            }
-                        }
-                    },
-                    {
-                        "range": {
-                            "scrap_date": {
-                                "gte": body.infoDateFrom + " 00:00:01",
-                                "lte": body.infoDateTo + " 23:59:59"
-                            }
-                        }
-                    }
-                ]
-                }
-            }
-        )
-    }
-    
-    let params = {
-        index: 'documents',
-        body: {
-            query: {
-                bool: {
-                    must: [
-                        {match: {
-                            document_type: documentType
-                            }
-                        },
-                        {match_phrase: {
-                            original_text: {
-                                query: any_phrase,
-                                zero_terms_query: "all"
-                                } 
-                            }
-                        }, 
-                        {
-                            bool: {
-                                should: documentFilter
-                            }
-                        }
-                    ]
-                }
-            }
-        }, 
-        size: 100
-    }
-
-
-    let fields = ["country", "section", "organization", "status"];
-
-    for(let i = 0; i < fields.length; i++){
-
-        if (body[fields[i]] && body[fields[i]].length > 0) {
-
-            let boolStatement = {
-                bool: {
-                    should: []
-                }
-            };
-            for( let j=0; j<body[fields[i]].length; j++) {
-
-                let matchStatement = {
-                    match: ""
-                };
-                let fieldStatement = {};
-
-                fieldStatement[fields[i]] = body[fields[i]][j]
-                matchStatement["match"] = fieldStatement
-                boolStatement.bool.should.push(matchStatement)
-            }
-
-            params.body.query.bool.must.push(boolStatement)
-            }
-        }
-
-    console.log('params', JSON.stringify(params))
-    return params
-}
-
 router.post('/lad/search', async (ctx) => {
     await getDocuments(ctx, "legal_act");
 });
@@ -396,68 +248,51 @@ router.post('/ssd/:id', upload.single('pdf'), async (ctx) => {
   ctx.status = 200
 });
 
-async function postDocument(ctx){
-    const body = { ...ctx.request.body }
-
-    await client.index({
-        index: 'documents',
-        body: {
-            doc: body
-        }
-    })    
-}
-
-async function updateDocument(ctx){
-    
-    const body = { ...ctx.request.body }
-
-    await client.update({
-        index: 'documents',
-        id: ctx.params.id,
-        body: {
-            doc: body
-        }
-    })
-}
-
-router.post('/upload', upload.single('pdf'), (ctx) => {
-    const pdf = ctx.req.file // originalname, encoding, mimetype, buffer, size
+router.post('/upload', upload.single('uploadFile'), (ctx) => {
+    const file = ctx.req.file // originalname, encoding, mimetype, buffer, size
+    console.log(file.mimetype)
+    const mimetype = file.mimetype
     if (!ctx.req.file) {
         ctx.body = "No file given!";
         ctx.status = 422;
         return
     }
     return new Promise((resolve, reject) => {
-        const path = "/tmp/policydemic_" + pdf.originalname
-        fs.writeFile(path, pdf.buffer, (err) => {
-            if (err) {
-                reject(err)
-                return
-            }
-            const task = celery_client.createTask("nlpengine.tasks.process_pdf_path");
-            const result = task.applyAsync([path]);
+        const path = "/tmp/policydemic_" + file.originalname
+        if (['application/pdf', 'text/plain'].includes(mimetype)) {
+            fs.writeFile(path, file.buffer, (err) => {
+                if (err) {
+                    reject(err)
+                    return
+                }
+                const task = celery_client.createTask(mimetype == 'application/pdf' ? 
+                    "nlpengine.tasks.process_pdf_path" : 
+                    "nlpengine.tasks.process_txt_path");
+                const result = task.applyAsync([path]);
 
-            ctx.body = "File sent for processing!"
-            ctx.status = 200
+                ctx.body = "File sent for processing!"
+                ctx.status = 200
+                resolve(ctx)
+                console.log('before results get')
+                result.get().then(data => {
+                    console.log('celery task finished for file ', file.originalname, "\nresult:\n", data);
+                });
+                console.log('after results get')
+            }) 
+        } else {
+            console.log('other mimetype')
+            ctx.body = "Incorrect file type. Only .txt or .pdf allowed."
+            ctx.status = 422
             resolve(ctx)
-
-            result.get().then(data => {
-              console.log('celery task finished for pdf ', pdf.originalname, "\nresult:\n", data);
-            });
-        })
+        }
     })
 });
-
 
 router.post('/translate', (ctx) => {
     ctx.body = ctx.request.body
     document = ctx.body.document
     const task = celery_client.createTask("nlpengine.tasks.translate_and_update");
     const result = task.applyAsync([ctx.body.id, document]);
-/*    result.get().then(data => {
-      console.log('translated', data);
-    })*/
-
     ctx.status = 200
 
 });
@@ -497,7 +332,6 @@ router.get('/annotated', async (ctx) => {
 
 });
 
-module.exports = constructParams;
 app
   .use(cors())
   .use(bodyParser())

@@ -1,0 +1,69 @@
+{
+  "links" : {
+    "aliases" : { },
+    "mappings" : {
+      "properties" : {
+        "added_on" : {
+          "type" : "date",
+          "format" : "yyyy-MM-dd"
+        },
+        "doc" : {
+          "properties" : {
+            "added_on" : {
+              "type" : "date"
+            },
+            "hits" : {
+              "type" : "long"
+            },
+            "last_crawl" : {
+              "type" : "date"
+            },
+            "type" : {
+              "type" : "text",
+              "fields" : {
+                "keyword" : {
+                  "type" : "keyword",
+                  "ignore_above" : 256
+                }
+              }
+            },
+            "url" : {
+              "type" : "text",
+              "fields" : {
+                "keyword" : {
+                  "type" : "keyword",
+                  "ignore_above" : 256
+                }
+              }
+            }
+          }
+        },
+        "hits" : {
+          "type" : "long"
+        },
+        "last_crawl" : {
+          "type" : "date",
+          "format" : "yyyy-MM-dd"
+        },
+        "type" : {
+          "type" : "keyword"
+        },
+        "url" : {
+          "type" : "keyword"
+        }
+      }
+    },
+    "settings" : {
+      "index" : {
+        "creation_date" : "1605455976067",
+        "number_of_shards" : "1",
+        "number_of_replicas" : "1",
+        "uuid" : "pvKUOsC5TkCPyzxtxGw4yA",
+        "version" : {
+          "created" : "7070099"
+        },
+        "provided_name" : "links"
+      }
+    }
+  }
+}

@@ -6,7 +6,6 @@ authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-scrapy = "2.^2.0"
 celery = "^4.4.5"
 elasticsearch = "^7.8.0"
 requests = "^2.24.0"
@@ -36,6 +35,8 @@ importlib-metadata = "^2.0.0"
 jedi = "^0.17.2"
 stanfordnlp = "^0.2.0"
 torch = "1.4.0"
+scrapyscript = "^1.1.0"
+google = "^3.0.0"
 
 
 [tool.poetry.dev-dependencies]
@@ -43,6 +44,7 @@ flake8 = "^3.8.3"
 black = {version = "^19.10b0", allow-prereleases = true}
 rope = "^0.17.0"
 pylint = "^2.5.3"
+autopep8 = "^1.5.4"
 
 [build-system]
 requires = ["poetry>=0.12"]
