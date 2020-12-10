@@ -12,6 +12,7 @@ from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 
 import nlpengine.tasks as nlpengine_tasks
 from scheduler.utils import update_hits_score
+from crawler.utils import get_n_parents
 
 cfg = RawConfigParser()
 cfg.read('config.ini')
@@ -25,6 +26,7 @@ max_depth_no_pdf = int(cfg['crawler']['max_depth_no_pdf_per_starter'])
 DATETIME_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
 DATE_FORMAT = cfg['elasticsearch']['DATE_FORMAT']
 random_frequency = float(cfg['crawler']['random_link_indexation_frequency'])
+n_parents = int(cfg['crawler']['parents_hits'])
 
 
 class LadSpider(scrapy.spiders.CrawlSpider):
@@ -134,7 +136,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
         self.log['pdfs_number'] += 1
         self.log['pdf_urls'].append(response.url)
         self.logger.info(f'PDF: {response.url}')
-        nlpengine_tasks.process_pdf_link.delay(response.url, 'legal_act', parents)
+        nlpengine_tasks.process_pdf_link.delay(response.url, 'legal_act', get_n_parents(parents, n_parents))
 
     def handle_webpage_url(self, response, start_url, parents):
         self.logger.info(f'url: {response.url}')

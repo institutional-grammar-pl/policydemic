@@ -21,3 +21,13 @@ def _short_text_(text, length):
             return left
         else:
             return right[:length]
+
+
+def get_n_parents(parents, number_of_parents):
+    if parents is not None:
+        last_n_parents = []
+        parents_count = 0
+        while parents and parents_count < number_of_parents:
+            last_n_parents.append(parents.pop())
+            parents_count += 1
+        return last_n_parents

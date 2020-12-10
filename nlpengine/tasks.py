@@ -38,7 +38,6 @@ filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 max_n_chars = int(cfg["translator"]["max_n_chars_to_translate"])
 max_n_chars_to_translate_by_api = int(
     cfg['translator']['max_n_chars_to_translate_by_api'])
-n_parents = int(cfg['crawler']['parents_hits'])
 
 
 SCRAP_DATE_FORMAT = cfg['elasticsearch']['SCRAP_DATE_FORMAT']
@@ -333,11 +332,5 @@ def update_doc_task(body, doc_id):
 
 
 def update_parents(parents):
-    if parents is not None:
-        urls_hits_update = []
-        parents_count = 0
-        while parents and parents_count < n_parents:
-            urls_hits_update.append(parents.pop())
-            parents_count += 1
-        for parent_url in urls_hits_update:
-            update_hits_score(parent_url)
+    for parent_url in parents:
+        update_hits_score(parent_url)
