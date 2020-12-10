@@ -241,7 +241,7 @@ def parse_text(path, method):
         with open(path, 'rb') as fp:
             interpreter = PDFPageInterpreter(rsrc_mgr, device)
             pages = PDFPage.get_pages(fp, pagenos, password=password,
-                                      caching=True, check_extractable=True)
+                                      caching=True, check_extractable=False)
             for page in pages:
                 interpreter.process_page(page)
                 n_pages += 1
