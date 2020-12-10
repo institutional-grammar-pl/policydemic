@@ -156,7 +156,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
                     self.log['requests_number'] += 1
                     yield response.follow(link, callback=self.parse_page, errback=self.count_as_error,
                                           cb_kwargs={'start_url': start_url,
-                                                     'parents': parents})
+                                                     'parents': parents.copy()})
                 else:
                     self.log['rejected_sites'].add(link.url)
 
