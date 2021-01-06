@@ -1,17 +1,61 @@
 version: '3'
+
 services:
   rabbitmq:
     image: rabbitmq
-    ports:
-      - "5672:5672"
+    expose:
+      - "5672"
+
   elasticsearch:
     image: nshou/elasticsearch-kibana
-    ports:
     volumes:
+      - /home/ghost/policydemic_docker_volume:/policydemic_data
+      - es_data:/usr/share/elasticsearch/data
+    ports:
+      - "5601:5601"
+    expose:
+      - "9200"
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+
+#  elasticsearch:
+#    image: elasticsearch:7.10.1
+#    volumes:
+#      - /home/ghost/policydemic_docker_volume:/policydemic_data
+#      - es_data:/usr/share/elasticsearch/data
+#    ulimits:
+#      memlock:
+#        soft: -1
+#        hard: -1
+#    expose:
+#      - "9200"
+#    environment:
+#      - discovery.type=single-node
+#      - bootstrap.memory_lock=true
+#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
 
   policydemic:
     build: .
-    image: minipw/policydemic:latest
+    tty: true
+    container_name: policydemic_app
+    volumes:
+      - /home/ghost/policydemic_docker_volume:/opt/policydemic_data
+    ports:
+      - "5555:5555"
+      - "8080:80"
+    expose:
+      - "9200"
+      - "5672"
     depends_on:
       - rabbitmq
       - elasticsearch
+    links:
+      - "elasticsearch:elastic"
+      - "rabbitmq:rabbitmq"
+    entrypoint:
+      - /opt/app/entrypoint.sh
+
+volumes:
+  es_data:
+    driver: local
