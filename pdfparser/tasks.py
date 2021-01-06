@@ -31,7 +31,6 @@ _log = logging.getLogger()
 cfg = ConfigParser()
 cfg.read('config.ini')
 tesseract_path = cfg['paths']['tesseract']
-txts_dir = cfg['paths']['parsed_txts']
 filtering_keywords = cfg['document_states']['filtering_keywords'].split(',')
 pdf_dir = cfg['paths']['pdf_database']
 es_hosts = cfg['elasticsearch']['hosts']
