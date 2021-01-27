@@ -37,7 +37,7 @@ app.use(async (ctx, next) => {
     if (user && user.name === 'root') {
         var shasum = crypto.createHash('sha256');
         shasum.update(`${user.pass}`);
-        if (shasum.digest('hex') === 'a15f8ae07675bfb96e084bfb4f52fb2c22091061aae86e0eb76a55f4e52dd74e') {
+        if (shasum.digest('hex') === '2dac3ec4c3f0ffa80fdcca225e9917ccd6f4c3c9b19e0b186cf741af381441b0') {
             return next();
         }
     }
