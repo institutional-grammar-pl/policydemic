@@ -16,7 +16,7 @@ import pdfparser.tasks as pdfparser_tasks
 import translator.tasks as translator_tasks
 from nlpengine.country_domains import country_domains
 from crawler.utils import _short_text_
-from policydemic_annotator.ig_annotator import annotate_text
+from policydemic_annotator.main import annotate_text
 
 from .utils import update_document
 from .utils import index_document
