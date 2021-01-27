@@ -55,6 +55,3 @@ Test your queues by running modifing and running `python cli.py`.
 There are 2 options to start the services:
 * docker-compose (recommended) - run `docker-compose up --build`, which will start 2 containers: one with the `rabbitmq` service and another one with celery scheduler, based on image defined in `Dockerfile`.
 * pure Docker - run each container individually.
-
-In order to build the docker image of policydemic, run: `docker build -t minipw/policydemic:latest .`.
-Then, it can be started with: `docker run minipw/policydemic:latest`.
