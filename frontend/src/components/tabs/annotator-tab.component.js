@@ -30,7 +30,7 @@ export default function AnnotatorTabComponent() {
             : <CircularProgress />
         }
             <Typography variant="body2" component="p" style={{"marginTop":'19px', 'marginLeft':'2em'}}>
-                *Annotation files are in .tsv format and contain annotation of "IG Core Regulative" Layer.
+                *Annotation files are in .tsv format and contain annotation of "IG Core Regulative" and "IG Core Constitutive" Layers.
             </Typography>
     </Container>);
 }
