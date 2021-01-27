@@ -5,7 +5,7 @@ const multer = require('koa-multer');
 const cors = require('@koa/cors');
 const fs = require('fs');
 const { Client } = require('@elastic/elasticsearch')
-const client = new Client({node: 'http:/localhost:9200'})
+const client = new Client({node: 'http://elastic:9200'})
 
 const app = new Koa();
 const router = new KoaRouter();
@@ -14,8 +14,8 @@ const upload = multer();
 const celery = require('celery-node');
 
 const celery_client = celery.createClient(
-  "amqp://",
-  "amqp://"
+  "amqp://rabbitmq",
+  "amqp://rabbitmq"
 );
 
 const basicAuth = require('basic-auth')
