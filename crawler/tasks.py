@@ -46,7 +46,7 @@ lad_crawler_settings = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
         },
     'DOWNLOAD_TIMEOUT': 20,
-    'DOWNLOAD_DELAY': 0.05
+    'DOWNLOAD_DELAY': 0.35
 }
 
 
@@ -65,7 +65,7 @@ def crawl_lad_scrapyscript(depth=lad_depth, urls=None, domain=lad_domain):
     settings = scrapy_settings(depth, concurrent_requests)
 
     if urls is None:
-        urls = list(get_gov_websites(gov_sites_path))
+            urls = list(get_gov_websites(gov_sites_path))
 
     job = Job(LadSpider, urls, domain, depth)
     processor = Processor(settings=settings)
