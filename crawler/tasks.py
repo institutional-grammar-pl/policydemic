@@ -65,7 +65,7 @@ def crawl_lad_scrapyscript(depth=lad_depth, urls=None, domain=lad_domain):
     settings = scrapy_settings(depth, concurrent_requests)
 
     if urls is None:
-            urls = list(get_gov_websites(gov_sites_path))
+        urls = list(get_gov_websites(gov_sites_path))
 
     job = Job(LadSpider, urls, domain, depth)
     processor = Processor(settings=settings)
