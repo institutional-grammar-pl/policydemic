@@ -235,13 +235,18 @@ def translate_pdf(body=None, full_translation=False, _id=None):
     if status == 'document_rejected':
         return body
     else:
-        if full_translation:
-            text_to_translate = _short_text_(body["original_text"], max_n_chars_to_translate_by_api)
-            result = translator_tasks.translate(text_to_translate, 'translated_text')
-            result['is_translated'] = True
-        else:
-            text_to_translate = body.get('title', _short_text_(body['original_text'], max_n_chars))
-            result = translator_tasks.translate(text_to_translate)
+        try:
+            if full_translation:
+                text_to_translate = _short_text_(body["original_text"], max_n_chars_to_translate_by_api)
+                result = translator_tasks.translate(text_to_translate, 'translated_text')
+                result['is_translated'] = True
+            else:
+                text_to_translate = body.get('title', _short_text_(body['original_text'], max_n_chars))
+                result = translator_tasks.translate(text_to_translate)
+        except: 
+            result = {
+                'title': body.get('title', _short_text_(body['original_text'], max_n_chars))
+            }
 
         body.update(result)
         return body
@@ -332,5 +337,6 @@ def update_doc_task(body, doc_id):
 
 
 def update_parents(parents):
-    for parent_url in parents:
-        update_hits_score(parent_url)
+    if parents:
+        for parent_url in parents:
+            update_hits_score(parent_url)
