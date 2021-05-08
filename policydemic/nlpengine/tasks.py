@@ -295,7 +295,7 @@ def process_document(body, parents=None):
     else:
         on_subject, in_text_keywords = \
             pdfparser_tasks.check_content(
-                body.get('original_text', '') + ' ' + body.get('title', ''), filtering_keywords)
+                body.get('original_text', '') + ' ' + body.get('title', ''), filtering_keywords, at_least=2)
 
         old_pdf_path = body.get("pdf_path")
         pdf_filename = Path(old_pdf_path).name
