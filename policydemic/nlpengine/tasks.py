@@ -182,7 +182,12 @@ def download_pdf(pdf_url, document_type=''):
         os.makedirs(pdf_dir / 'document_accepted', exist_ok=True)
         shutil.move(pdf_path, new_pdf_path)
 
+        # domain match
+        match = re.match('^http[s]?://([a-z0-9.-]+)/?', pdf_url)
+        domain = match.group(1) if match is not None else 'NaN'
+
         return {
+            "url_domain": domain,
             "web_page": pdf_url,
             "pdf_path": str(new_pdf_path),
             "keywords": keywords,
