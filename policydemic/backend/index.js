@@ -335,6 +335,24 @@ router.get('/annotated', async (ctx) => {
 
 });
 
+
+router.post('/crawler/run', (ctx) => {
+    return new Promise((resolve, reject) => {
+
+        const task = celery_client.createTask(
+            "crawler.tasks.crawl_lad_scrapyscript"
+            );
+
+        const url_elements = ctx.request.body.urlDomain.split('.');
+        const url_constraints = url_elements.slice(Math.max(url_elements.length - 2, 0)).join('.');
+
+        const result = task.applyAsync([4, [ctx.request.body.urlDomain], url_constraints]);
+        //=------------------------------------------------
+        ctx.status = 100;
+        resolve(ctx);
+    })
+});
+
 app
   .use(cors())
   .use(bodyParser())

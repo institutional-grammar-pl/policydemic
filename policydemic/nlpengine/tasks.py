@@ -187,7 +187,7 @@ def download_pdf(pdf_url, document_type=''):
         domain = match.group(1) if match is not None else 'NaN'
 
         return {
-            "url_domain": domain,
+            "url_domain": ' '.join(domain.split('.')),
             "web_page": pdf_url,
             "pdf_path": str(new_pdf_path),
             "keywords": keywords,
@@ -311,9 +311,15 @@ def process_document(body, parents=None):
             new_pdf_path = pdf_dir / 'subject_accepted' / pdf_filename
             os.makedirs(pdf_dir / 'subject_accepted', exist_ok=True)
             shutil.move(old_pdf_path, new_pdf_path)
+            model_pipeline = joblib.load('./classification_pipeline.joblib')
+            model_df = pd.DataFrame({
+                'text': [body.get('original_text', ' ')]
+            })
+            is_legal_act = model_pipeline.predict(model_df)
             body.update({'status': 'subject_accepted',
                          'keywords': ','.join([body.get('keywords', '')] + list(in_text_keywords)),
-                         'pdf_path': str(new_pdf_path)
+                         'pdf_path': str(new_pdf_path),
+                         'is_legal_act_v.0.1': is_legal_act 
                          })
         else:
             new_pdf_path = pdf_dir / 'subject_rejected' / pdf_filename

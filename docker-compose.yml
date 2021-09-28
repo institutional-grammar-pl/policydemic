@@ -25,6 +25,8 @@ services:
     volumes:
       - es_data_01:/usr/share/elasticsearch/data
       - /mnt/data_storage/snapshots:/usr/share/elasticsearch/snapshots
+    ports:
+      -  "9200:9200"
     networks:
       - elastic
 

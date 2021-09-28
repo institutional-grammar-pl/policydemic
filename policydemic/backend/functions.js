@@ -141,7 +141,7 @@ function constructParams(body, documentType){
                 }
             }
         }, 
-        size: 100
+        size: 200
     }
 
 
@@ -171,6 +171,14 @@ function constructParams(body, documentType){
             params.body.query.bool.must.push(boolStatement)
             }
         }
+        
+    if(body["url_domain"] && body["url_domain"].length > 0){
+        let statement = { "match_phrase": {
+            "url_domain": body["url_domain"]
+          }};
+         
+        params.body.query.bool.must.push(statement);
+    }
 
     if (body["keywords"] == undefined) {
         body["keywords"] = [""]
