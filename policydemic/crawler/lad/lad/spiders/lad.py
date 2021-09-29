@@ -7,8 +7,10 @@ from datetime import datetime
 from pathlib import Path
 
 import scrapy
+from scrapy.link import Link
 from scrapy.http import Response
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
+from lxml import html
 
 import nlpengine.tasks as nlpengine_tasks
 from scheduler.utils import update_hits_score
@@ -62,7 +64,7 @@ class LadSpider(scrapy.spiders.CrawlSpider):
         })
 
         log_filepath = Path(log_dir) / f"log_{self.log['start_datetime']}_.json"
-        with open(log_filepath, 'w') as log_f:
+        with open(log_filepath, 'w+') as log_f:
             json.dump(self.log, log_f)
 
     @classmethod
@@ -91,6 +93,8 @@ class LadSpider(scrapy.spiders.CrawlSpider):
             'different_content_urls': [],
             'pdf_urls': [],
             'rejected_sites': set(),
+            'extracted_urls': [],
+            'bodies': [],
             'stop_due_to_per_starter_depth_constraints': []
         }
 
@@ -142,7 +146,13 @@ class LadSpider(scrapy.spiders.CrawlSpider):
         self.logger.info(f'url: {response.url}')
         parents.append(response.url)
         try:
-            links = self._link_extractor.extract_links(response)
+            # links = self._link_extractor.extract_links(response)
+            match = re.match('(^http[s]?://[a-z0-9.-]+)/?', response.url)
+            base_url = match.group(1) if match is not None else ""
+            links = LadSpider.extract_links(base_url, response.text)
+            self.log['extracted_urls'].append([link.url for link in links])
+            if not self.log['bodies']:
+                self.log['bodies'].append(response.text)
         except AttributeError:
             self.logger.warning('URL without text content')
             self.log['different_content_urls'].append(response.url)
@@ -152,13 +162,27 @@ class LadSpider(scrapy.spiders.CrawlSpider):
                 match = re.match('^http[s]?://([a-z0-9.-]+)/?', link.url)
                 domain = match.group(1) if match is not None else None
 
-                if domain is not None and self.selected_domain in domain:
+                if self.selected_domain is None or (domain is not None and self.selected_domain in domain):
                     self.log['requests_number'] += 1
                     yield response.follow(link, callback=self.parse_page, errback=self.count_as_error,
                                           cb_kwargs={'start_url': start_url,
                                                      'parents': parents.copy()})
                 else:
                     self.log['rejected_sites'].add(link.url)
+
+    @staticmethod
+    def extract_links(base_url, response_text):
+        html_doc = html.fromstring(response_text)
+        urls = [element.get('href') for element in html_doc.xpath("//a") if element.get('href') is not None]
+        links = []
+
+        for url in urls:
+            if url.startswith('/'):
+                links.append(Link(base_url + url))
+            elif url.startswith('http'):
+                links.append(Link(url))
+
+        return links
 
     def parse_page(self, response, start_url, parents):
         self.log['requests_successes_number'] += 1

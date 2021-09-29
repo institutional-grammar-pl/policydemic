@@ -182,7 +182,12 @@ def download_pdf(pdf_url, document_type=''):
         os.makedirs(pdf_dir / 'document_accepted', exist_ok=True)
         shutil.move(pdf_path, new_pdf_path)
 
+        # domain match
+        match = re.match('^http[s]?://([a-z0-9.-]+)/?', pdf_url)
+        domain = match.group(1) if match is not None else 'NaN'
+
         return {
+            "url_domain": ' '.join(domain.split('.')),
             "web_page": pdf_url,
             "pdf_path": str(new_pdf_path),
             "keywords": keywords,
@@ -235,13 +240,18 @@ def translate_pdf(body=None, full_translation=False, _id=None):
     if status == 'document_rejected':
         return body
     else:
-        if full_translation:
-            text_to_translate = _short_text_(body["original_text"], max_n_chars_to_translate_by_api)
-            result = translator_tasks.translate(text_to_translate, 'translated_text')
-            result['is_translated'] = True
-        else:
-            text_to_translate = body.get('title', _short_text_(body['original_text'], max_n_chars))
-            result = translator_tasks.translate(text_to_translate)
+        try:
+            if full_translation:
+                text_to_translate = _short_text_(body["original_text"], max_n_chars_to_translate_by_api)
+                result = translator_tasks.translate(text_to_translate, 'translated_text')
+                result['is_translated'] = True
+            else:
+                text_to_translate = body.get('title', _short_text_(body['original_text'], max_n_chars))
+                result = translator_tasks.translate(text_to_translate)
+        except: 
+            result = {
+                'title': body.get('title', _short_text_(body['original_text'], max_n_chars))
+            }
 
         body.update(result)
         return body
@@ -290,7 +300,7 @@ def process_document(body, parents=None):
     else:
         on_subject, in_text_keywords = \
             pdfparser_tasks.check_content(
-                body.get('original_text', '') + ' ' + body.get('title', ''), filtering_keywords)
+                body.get('original_text', '') + ' ' + body.get('title', ''), filtering_keywords, at_least=2)
 
         old_pdf_path = body.get("pdf_path")
         pdf_filename = Path(old_pdf_path).name
@@ -301,9 +311,15 @@ def process_document(body, parents=None):
             new_pdf_path = pdf_dir / 'subject_accepted' / pdf_filename
             os.makedirs(pdf_dir / 'subject_accepted', exist_ok=True)
             shutil.move(old_pdf_path, new_pdf_path)
+            model_pipeline = joblib.load('./classification_pipeline.joblib')
+            model_df = pd.DataFrame({
+                'text': [body.get('original_text', ' ')]
+            })
+            is_legal_act = model_pipeline.predict(model_df)
             body.update({'status': 'subject_accepted',
                          'keywords': ','.join([body.get('keywords', '')] + list(in_text_keywords)),
-                         'pdf_path': str(new_pdf_path)
+                         'pdf_path': str(new_pdf_path),
+                         'is_legal_act_v.0.1': is_legal_act 
                          })
         else:
             new_pdf_path = pdf_dir / 'subject_rejected' / pdf_filename
@@ -332,5 +348,6 @@ def update_doc_task(body, doc_id):
 
 
 def update_parents(parents):
-    for parent_url in parents:
-        update_hits_score(parent_url)
+    if parents:
+        for parent_url in parents:
+            update_hits_score(parent_url)

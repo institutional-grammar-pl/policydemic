@@ -585,3 +585,4 @@ zope.interface==5.1.2; python_version >= "3.6" and python_full_version < "3.0.0"
     --hash=sha256:15f3082575e7e19581a80b866664f843719b647a7f7189c811ba7f9ab3309f83 \
     --hash=sha256:eb566cab630ec176b2d6115ed08b2cf4d921b47caa7f02cca1b4a9525223ee94 \
     --hash=sha256:c9c8e53a5472b77f6a391b515c771105011f4b40740ce53af8428d1c8ca20004
+joblib==1.0.1 --hash=sha256:feeb1ec69c4d45129954f1b7034954241eedfd6ba39b5e9e4b6883be3332d5e5

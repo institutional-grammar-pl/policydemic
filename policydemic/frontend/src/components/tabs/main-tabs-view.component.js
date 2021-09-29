@@ -9,6 +9,7 @@ import Box from '@material-ui/core/Box';
 import SwipeableViews from 'react-swipeable-views';
 import SearchTabComponent from './search-tab.component.js';
 import AnnotatorTabComponent from './annotator-tab.component.js';
+import CrawlerConfigTabComponent from './crawler-tab.component.js';
 
 // https://material-ui.com/components/tabs/
 
@@ -76,8 +77,7 @@ export default function MainTabs() {
           <Tab label="LAD" {...a11yProps(0)} />
           <Tab label="SSD" {...a11yProps(1)} />
           <Tab label="Annotator" {...a11yProps(2)} />
-
-          {/*<Tab label="CRAWLER CONFIG" {...a11yProps(2)} />*/}
+          <Tab label="Crawler" {...a11yProps(3)} />
         </Tabs>
       </AppBar>
       <SwipeableViews
@@ -93,6 +93,9 @@ export default function MainTabs() {
         </TabPanel>
         <TabPanel value={value} index={2}>
           <AnnotatorTabComponent />
+        </TabPanel>
+        <TabPanel value={value} index={3}>
+          <CrawlerConfigTabComponent/>
         </TabPanel>
       </SwipeableViews>
     </div>

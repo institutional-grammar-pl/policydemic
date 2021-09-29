@@ -77,6 +77,7 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
         register({ name: "country" });
         register({ name: "keywords" });
         register({ name: "status" });
+        register({ name: "url_domain"});
 
 
     }, [register])
@@ -148,6 +149,17 @@ export default function SearchFormComponent({ type, onSearch, onReset }) {
                                 margin="normal"
                                 onChange={(event) => setValue("keywords", event.target.value)}
                                 aria-invalid={errors['keywords'] ? "true" : "false"}
+                            />
+                        </Grid>
+
+                        <Grid item xs={4}>
+                        <TextField
+                                name="url_domain"
+                                inputRef={register}
+                                label="Website domain"
+                                margin="normal"
+                                onChange={(event) => setValue("url_domain", event.target.value)}
+                                aria-invalid={errors['url_domain'] ? "true" : "false"}
                             />
                         </Grid>
 

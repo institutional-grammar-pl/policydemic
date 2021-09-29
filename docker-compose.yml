@@ -4,58 +4,102 @@ services:
   rabbitmq:
     image: rabbitmq
     expose:
-      - "5672"
+      - "5672" 
+    networks:
+      - rabbit
 
-  elasticsearch:
-    image: nshou/elasticsearch-kibana
-    volumes:
-      - /home/ghost/policydemic_docker_volume:/policydemic_data
-      - es_data:/usr/share/elasticsearch/data
-    ports:
-      - "5601:5601"
-    expose:
-      - "9200"
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
+    container_name: es01
     environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - node.name=es01
+      - cluster.name=es-policydemic-cluster
+      - discovery.seed_hosts=es02
+      - cluster.initial_master_nodes=es01,es02
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms3072m -Xmx3072m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es_data_01:/usr/share/elasticsearch/data
+      - /mnt/data_storage/snapshots:/usr/share/elasticsearch/snapshots
+    ports:
+      -  "9200:9200"
+    networks:
+      - elastic
+    restart: "always"
 
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
+    container_name: es02
+    environment:
+      - node.name=es02
+      - cluster.name=es-policydemic-cluster
+      - discovery.seed_hosts=es01
+      - cluster.initial_master_nodes=es01,es02
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms3072m -Xmx3072m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es_data_02:/usr/share/elasticsearch/data
+      - /mnt/data_storage/snapshots:/usr/share/elasticsearch/snapshots
+    networks:
+      - elastic
+    restart: "always"
 
-#  elasticsearch:
-#    image: elasticsearch:7.10.1
-#    volumes:
-#      - /home/ghost/policydemic_docker_volume:/policydemic_data
-#      - es_data:/usr/share/elasticsearch/data
-#    ulimits:
-#      memlock:
-#        soft: -1
-#        hard: -1
-#    expose:
-#      - "9200"
-#    environment:
-#      - discovery.type=single-node
-#      - bootstrap.memory_lock=true
-#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  kib01:
+    image: docker.elastic.co/kibana/kibana:7.12.0
+    container_name: kib01
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200"]'
+    links:
+     - "es01:es01"
+     - "es02:es02"
+    networks:
+      - elastic
 
   policydemic:
     build: .
     tty: true
     container_name: policydemic_app
     volumes:
-      - /home/ghost/policydemic_docker_volume:/opt/policydemic_data
+      - /mnt/data_storage/policydemic_data:/opt/policydemic_data
+      - ./policydemic:/opt/app/
     ports:
       - "5555:5555"
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     expose:
-      - "9200"
       - "5672"
     depends_on:
       - rabbitmq
-      - elasticsearch
+      - es01
+      - es02
+    networks:
+      - elastic
+      - rabbit
     links:
-      - "elasticsearch:elastic"
       - "rabbitmq:rabbitmq"
+      - "es01:elastic"
     entrypoint:
-      - /opt/app/entrypoint.sh
+      - /opt/entrypoint.sh
 
 volumes:
-  es_data:
+  es_data_01:
     driver: local
+  es_data_02:
+    driver: local
+
+networks:
+  elastic:
+    driver: bridge
+  rabbit:
+    driver: bridge

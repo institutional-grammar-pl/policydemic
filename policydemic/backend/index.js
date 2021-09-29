@@ -34,12 +34,15 @@ const {
 
 app.use(async (ctx, next) => {
     const user = basicAuth(ctx);
-    if (user && user.name === 'root') {
+    if (user && user.name === 'mistrz') {
         var shasum = crypto.createHash('sha256');
         shasum.update(`${user.pass}`);
-        if (shasum.digest('hex') === '2dac3ec4c3f0ffa80fdcca225e9917ccd6f4c3c9b19e0b186cf741af381441b0') {
+        if (shasum.digest('hex') === '698b1a504923c130a68e1d94109ce5a7aeb144780d7e210e4f57de442d107a7e') {
             return next();
         }
+        // if (shasum.digest('hex') === '2dac3ec4c3f0ffa80fdcca225e9917ccd6f4c3c9b19e0b186cf741af381441b0') {
+        //     return next();
+        // }
     }
 
     ctx.status = 401;
@@ -330,6 +333,24 @@ router.get('/annotated', async (ctx) => {
     let request = await client.search(params);
     ctx.body =  request.body.hits.hits;
 
+});
+
+
+router.post('/crawler/run', (ctx) => {
+    return new Promise((resolve, reject) => {
+
+        const task = celery_client.createTask(
+            "crawler.tasks.crawl_lad_scrapyscript"
+            );
+
+        const url_elements = ctx.request.body.urlDomain.split('.');
+        const url_constraints = url_elements.slice(Math.max(url_elements.length - 2, 0)).join('.');
+
+        const result = task.applyAsync([4, [ctx.request.body.urlDomain], url_constraints]);
+        //=------------------------------------------------
+        ctx.status = 100;
+        resolve(ctx);
+    })
 });
 
 app

@@ -1,0 +1,121 @@
+{
+  "documents" : {
+    "mappings" : {
+      "properties" : {
+        "annotated_on" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "annotation_path" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "annotation_text" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "country" : {
+          "type" : "keyword"
+        },
+        "document_type" : {
+          "type" : "keyword"
+        },
+        "expert_status" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "info_date" : {
+          "type" : "date",
+          "format" : "yyyy-MM-dd"
+        },
+        "is_annotated" : {
+          "type" : "boolean"
+        },
+        "is_translated" : {
+          "type" : "boolean"
+        },
+        "keywords" : {
+          "type" : "keyword"
+        },
+        "language" : {
+          "type" : "keyword"
+        },
+        "message" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "ocr_needed" : {
+          "type" : "boolean"
+        },
+        "organization" : {
+          "type" : "keyword"
+        },
+        "original_text" : {
+          "type" : "text"
+        },
+        "pdf_path" : {
+          "type" : "keyword"
+        },
+        "scrap_date" : {
+          "type" : "date",
+          "format" : "yyyy-MM-dd HH:mm:ss"
+        },
+        "section" : {
+          "type" : "keyword"
+        },
+        "status" : {
+          "type" : "keyword"
+        },
+        "text_parsing_type" : {
+          "type" : "keyword"
+        },
+        "title" : {
+          "type" : "text"
+        },
+        "translated_text" : {
+          "type" : "text"
+        },
+        "translation_type" : {
+          "type" : "keyword"
+        },
+        "url_domain" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "web_page" : {
+          "type" : "keyword"
+        }
+      }
+    }
+  }
+}
