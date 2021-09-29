@@ -29,6 +29,7 @@ services:
       -  "9200:9200"
     networks:
       - elastic
+    restart: "always"
 
   es02:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
@@ -49,6 +50,7 @@ services:
       - /mnt/data_storage/snapshots:/usr/share/elasticsearch/snapshots
     networks:
       - elastic
+    restart: "always"
 
   kib01:
     image: docker.elastic.co/kibana/kibana:7.12.0
